@@ -1,0 +1,39 @@
+{
+  "content_bytes": 10848,
+  "content_sha256": "e788e5fc4b5ce4548714eafa302f85c33adc1769b2fc720a678f763185520fd0",
+  "elapsed_ms": 356.2,
+  "headers": {
+    "accept-ranges": "bytes",
+    "access-control-allow-credentials": "true",
+    "access-control-allow-headers": "Content-Type, Authorization, X-Esri-Authorization",
+    "access-control-allow-origin": "*",
+    "access-control-expose-headers": "Request-Context",
+    "cache-control": "public, max-age=30, s-maxage=30",
+    "connection": "keep-alive",
+    "content-encoding": "gzip",
+    "content-length": "2928",
+    "content-type": "application/json; charset=utf-8",
+    "date": "Wed, 19 Aug 2026 02:09:12 GMT",
+    "etag": "543191987",
+    "last-modified": "Tue, 05 Sep 2023 16:15:47 GMT",
+    "request-context": "appId=cid-v1:3e4b9f12-ca59-424b-b320-0c429e32d54c",
+    "strict-transport-security": "max-age=63072000",
+    "vary": "X-Esri-Authorization",
+    "x-arcgis-correlation-id": "4df1dd78f618ba53",
+    "x-arcgis-instance": "i7tdixsfq00000I",
+    "x-arcgis-trace-id": "20260819T020912Z-16469c864fdvpq2thC1CHInybn0000000u600000000023cg",
+    "x-arcgis-upstream": "us1h01c00-services",
+    "x-azure-ref": "20260819T020912Z-16469c864fdvpq2thC1CHInybn0000000u600000000023cg",
+    "x-cache": "TCP_MISS",
+    "x-fd-int-roxy-purgeid": "0"
+  },
+  "params": {
+    "f": "json"
+  },
+  "request_headers": {},
+  "retrieved_at": "2026-08-19T02:09:12+00:00",
+  "source_id": "hifld_transmission_service",
+  "status_code": 200,
+  "truncated": false,
+  "url": "https://services1.arcgis.com/Hp6G80Pky0om7QvQ/arcgis/rest/services/Electric_Power_Transmission_Lines/FeatureServer/0"
+}

@@ -1,0 +1,28 @@
+{
+  "content_bytes": 1024,
+  "content_sha256": "b4482cad51f0ca1427e3b9fb7c007841c524c96c1c39778900eff096ba89f919",
+  "elapsed_ms": 277.1,
+  "headers": {
+    "accept-ranges": "bytes",
+    "alt-svc": "h3=\":443\"; ma=93600",
+    "connection": "keep-alive",
+    "content-length": "1024",
+    "content-range": "bytes 0-1023/253341",
+    "content-type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    "date": "Wed, 19 Aug 2026 02:09:10 GMT",
+    "etag": "\"0e677b7c9bad71:0\"",
+    "last-modified": "Wed, 06 Oct 2021 15:49:16 GMT",
+    "server": "Microsoft-IIS/10.0",
+    "strict-transport-security": "max-age=31536000",
+    "x-powered-by": "ASP.NET"
+  },
+  "params": {},
+  "request_headers": {
+    "Range": "bytes=0-1023"
+  },
+  "retrieved_at": "2026-08-19T02:09:10+00:00",
+  "source_id": "eia_prices_bulk",
+  "status_code": 206,
+  "truncated": true,
+  "url": "https://www.eia.gov/electricity/data/state/avgprice_annual.xlsx"
+}

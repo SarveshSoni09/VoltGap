@@ -1,0 +1,26 @@
+{
+  "content_bytes": 21668,
+  "content_sha256": "5ccd26777fb332824e5aa39d48e82e057cf9242192365be3af00636d6084e605",
+  "elapsed_ms": 340.8,
+  "headers": {
+    "cache-control": "private",
+    "content-length": "21668",
+    "content-security-policy": "frame-ancestors 'self' https://cms.fhwa.dot.gov https://highways.dot.gov https://highways.fhwa.dot.gov http://acquia-dev-fhwa.dot.gov http://acquia-stage1-fhwa.dot.gov http://acquia-stage2-fhwa.dot.gov http://acquia-stage-fhwa.dot.gov http://acquia-test-fhwa.dot.gov;",
+    "content-type": "text/html;charset=UTF-8",
+    "date": "Wed, 19 Aug 2026 02:09:10 GMT",
+    "server": "",
+    "set-cookie": "JSESSIONID=DE01C8DEBF073C171463C240F1D32CD4.fhwa; Path=/; Secure; HttpOnly; SameSite=Lax, Secure; HttpOnly",
+    "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+    "x-aspnet-version": "",
+    "x-aspnetmvc-version": "",
+    "x-content-type-options": "nosniff",
+    "x-powered-by": "ASP.NET"
+  },
+  "params": {},
+  "request_headers": {},
+  "retrieved_at": "2026-08-19T02:09:10+00:00",
+  "source_id": "fhwa_traffic",
+  "status_code": 200,
+  "truncated": false,
+  "url": "https://www.fhwa.dot.gov/policyinformation/hpms.cfm"
+}

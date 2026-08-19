@@ -1,0 +1,37 @@
+{
+  "content_bytes": 65617,
+  "content_sha256": "77746e3ec0f62244cab035d6b5b5cab761c7b3cf5ef6f46621571f834e38ada9",
+  "elapsed_ms": 238.7,
+  "headers": {
+    "cache-control": "max-age=0, private, must-revalidate",
+    "connection": "keep-alive",
+    "content-encoding": "gzip",
+    "content-type": "text/html; charset=utf-8",
+    "date": "Wed, 19 Aug 2026 02:08:53 GMT",
+    "etag": "W/\"77746e3ec0f62244cab035d6b5b5cab7\"",
+    "link": "</vite/assets/application-BeT0KcPR.css>; rel=preload; as=style; nopush,</vite/assets/application-MwBwFncz.js>; rel=modulepreload; as=script; crossorigin=anonymous; nopush",
+    "referrer-policy": "strict-origin-when-cross-origin",
+    "set-cookie": "lcid=hOyMsX4So.1787105333; Expires=Fri, 18 Aug 2028 02:08:53 GMT; Path=/; Secure; HttpOnly; SameSite=Lax",
+    "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+    "surrogate-control": "max-age=600",
+    "transfer-encoding": "chunked",
+    "vary": "Accept-Encoding, Accept",
+    "x-content-type-options": "nosniff",
+    "x-frame-options": "SAMEORIGIN",
+    "x-permitted-cross-domain-policies": "none",
+    "x-request-id": "b16a085a1a104930453d082cec55afa2",
+    "x-runtime": "0.037279",
+    "x-xss-protection": "1; mode=block"
+  },
+  "params": {
+    "year": "2020"
+  },
+  "request_headers": {
+    "User-Agent": "VoltGap-Phase0-Probe (+https://github.com/voltgap)"
+  },
+  "retrieved_at": "2026-08-19T02:08:53+00:00",
+  "source_id": "afdc_state_ev_registrations_2020",
+  "status_code": 200,
+  "truncated": false,
+  "url": "https://afdc.energy.gov/vehicle-registration"
+}

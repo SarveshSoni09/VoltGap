@@ -1,0 +1,39 @@
+{
+  "content_bytes": 1024,
+  "content_sha256": "b499da84da0e3865e622bca7d84e6db5e1e5ead27652ecca02faf48c783c52c8",
+  "elapsed_ms": 198.2,
+  "headers": {
+    "age": "161",
+    "cache-control": "private",
+    "connection": "keep-alive",
+    "content-language": "en",
+    "content-length": "1024",
+    "content-range": "bytes 0-1023/21213301",
+    "content-security-policy": "block-all-mixed-content; default-src * data: 'unsafe-inline' 'unsafe-eval'; worker-src * blob: data: 'unsafe-inline' 'unsafe-eval'; child-src * blob: data: 'unsafe-inline' 'unsafe-eval'; img-src * blob: data: 'unsafe-inline' 'unsafe-eval';",
+    "content-type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    "date": "Wed, 19 Aug 2026 02:06:28 GMT",
+    "expires": "Sun, 19 Nov 1978 05:00:00 GMT",
+    "feature-policy": "geolocation 'none';midi 'none';microphone 'none';camera 'none';magnetometer 'none';gyroscope 'none';fullscreen 'self';payment 'none'",
+    "last-modified": "Mon, 16 Jun 2025 15:33:55 GMT",
+    "referrer-policy": "no-referrer-when-downgrade",
+    "server": "nginx",
+    "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+    "via": "1.1 9d71affbaf22baf23eab459f3d2ee77a.cloudfront.net (CloudFront)",
+    "x-amz-cf-id": "_r-KGGJg5dOx3CSpzC_7DijYToq_BaCylgEq1HSAKQCVVQ50zzK6dg==",
+    "x-amz-cf-pop": "ORD56-P1",
+    "x-cache": "Hit from cloudfront",
+    "x-content-type-options": "nosniff",
+    "x-frame-options": "SAMEORIGIN, SAMEORIGIN",
+    "x-generator": "Drupal 10 (https://www.drupal.org)",
+    "x-xss-protection": "1"
+  },
+  "params": {},
+  "request_headers": {
+    "Range": "bytes=0-1023"
+  },
+  "retrieved_at": "2026-08-19T02:09:09+00:00",
+  "source_id": "egrid",
+  "status_code": 206,
+  "truncated": true,
+  "url": "https://www.epa.gov/system/files/documents/2025-06/egrid2023_data_rev2.xlsx"
+}

@@ -1,0 +1,23 @@
+No block-level population-weighted centroids - evidence
+retrieved 2026-08-19 UTC
+
+CenPop2020 directory listing, https://www2.census.gov/geo/docs/reference/cenpop2020/
+  subdirectories published: blkgrp/  county/  tract/
+  (no block/ directory)
+
+  $ curl -L https://www2.census.gov/geo/docs/reference/cenpop2020/block/CenPop2020_Mean_BLK27.txt
+  HTTP 404
+
+Available population-weighted centroid products, verified live:
+  tract      CenPop2020_Mean_TR27.txt   HTTP 200, 1,505 Minnesota tracts
+  blockgroup CenPop2020_Mean_BG27.txt   HTTP 200, 4,706 Minnesota block groups
+
+Constructible block-level path, both verified reachable without a key:
+  geometry + internal point : TIGER/Line tl_2023_27_tabblock20.zip (147,565,957 bytes)
+  block population          : 2020 P.L. 94-171 mn2020.pl.zip (29,625,918 bytes)
+
+Bearing on the specification: CLAUDE.md section 7.5 permits "population-weighted
+centroids OR block-level allocation"; section 7.6 requires "block-level population
+weights, not area weights". The ready-made population-weighted product stops at block
+group. Genuine block-level weighting must be constructed from TIGER blocks joined to
+P.L. 94-171 block population. Both paths are free; the choice is a Phase 2 decision.

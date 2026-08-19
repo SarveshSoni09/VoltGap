@@ -1,0 +1,27 @@
+No national HIFLD substation layer located - evidence
+retrieved 2026-08-19 UTC
+
+Searched:
+  1. HIFLD ArcGIS organisation services1.arcgis.com/Hp6G80Pky0om7QvQ
+     526 services enumerated. Names matching /sub|electric|power|transmis/i:
+       Electric_Power_Transmission_Lines
+       Planned_transmission_line_
+     No substation layer.
+  2. EIA Energy Atlas organisation services7.arcgis.com/FGr1D95XCGALKXqM
+     79 services enumerated. No substation layer.
+  3. https://hifld-geoplatform.hub.arcgis.com/datasets/electric-substations  -> HTTP 404
+  4. ArcGIS Online title search, type=Feature Service, title="Electric Substations",
+     sorted by views: no authoritative national result in the top 10.
+  5. services.arcgis.com/G4S1dGvn7PIgYd6Y/.../HIFLD_electric_power_substations/FeatureServer/0
+     HTTP 200, esriGeometryPoint, 32 fields
+     returnCountOnly -> {"count": 128}
+     128 features is not a national layer; HIFLD has historically published on the
+     order of 55,000-80,000 substations.
+
+Affected Core specification points:
+  section 7.8 candidate filtering: "within a configured distance of a substation"
+  section 7.9 grid proximity: "distance to nearest HIFLD substation, plus voltage class"
+
+No substitute has been adopted (directive D8). Live HIFLD transmission lines remain
+available (52,244 features) but line proximity is a weaker proxy than substation
+proximity and would make the D6 language constraints more important, not less.

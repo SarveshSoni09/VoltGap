@@ -1,0 +1,20 @@
+AFDC DEMO_KEY rate limit, measured empirically
+retrieved 2026-08-19 UTC
+
+CLAUDE.md section 4.2 task 1 requires the probe to "measure the rate limit
+empirically". It was measured by exhausting it.
+
+After ten requests to developer.nlr.gov within the probe run, the endpoint answered:
+
+  HTTP 429
+  x-ratelimit-limit:     10
+  x-ratelimit-remaining: 0
+  retry-after:           78590   (seconds, ~21.8 hours)
+
+Consequence: the shared DEMO_KEY credential is not sufficient for repeated Phase 0
+probing or for any scheduled refresh. A free personal key from developer.nlr.gov is
+required. No credential is fabricated, entered, or persisted by this pipeline; the
+operator supplies NREL_API_KEY in the environment.
+
+The three AFDC specs (afdc_stations, afdc_last_updated, afdc_charging_units) share
+this quota, so a single full probe run consumes it.

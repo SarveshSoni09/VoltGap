@@ -1,0 +1,33 @@
+{
+  "content_bytes": 8531,
+  "content_sha256": "c2f4687e09b80676de7f68dec92ebea395209616dbc6f895520e547c5f68c0f5",
+  "elapsed_ms": 393.6,
+  "headers": {
+    "accept-ranges": "bytes",
+    "access-control-allow-headers": "Origin, X-Requested-With, Content-Type, Accept",
+    "access-control-allow-methods": "GET,POST,OPTIONS",
+    "access-control-allow-origin": "*",
+    "cache-control": "private",
+    "connection": "keep-alive",
+    "content-length": "8531",
+    "content-security-policy": "default-src 'self'; img-src 'self' data:; object-src 'none'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; frame-ancestors 'none'; upgrade-insecure-requests; block-all-mixed-content",
+    "content-type": "text/html",
+    "date": "Wed, 19 Aug 2026 02:09:06 GMT",
+    "etag": "W/\"8531-1785156041854\"",
+    "keep-alive": "timeout=20",
+    "last-modified": "Mon, 27 Jul 2026 12:40:41 GMT",
+    "referrer-policy": "same-origin",
+    "strict-transport-security": "max-age=31536000",
+    "x-content-type-options": "nosniff"
+  },
+  "params": {
+    "for": "state:27",
+    "get": "NAME,B25003_001E"
+  },
+  "request_headers": {},
+  "retrieved_at": "2026-08-19T02:09:07+00:00",
+  "source_id": "census_acs_api",
+  "status_code": 200,
+  "truncated": false,
+  "url": "https://api.census.gov/data/2023/acs/acs5"
+}

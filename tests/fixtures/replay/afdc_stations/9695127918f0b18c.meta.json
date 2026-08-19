@@ -1,0 +1,33 @@
+{
+  "content_bytes": 185,
+  "content_sha256": "f3fecee37b0cd186a1e9523a8bcd7b9ce68b50f9244d01e4d1f411bb52ae3d14",
+  "elapsed_ms": 578.1,
+  "headers": {
+    "access-control-allow-origin": "*",
+    "connection": "keep-alive",
+    "content-type": "application/json",
+    "date": "Wed, 19 Aug 2026 02:10:11 GMT",
+    "retry-after": "78590",
+    "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+    "transfer-encoding": "chunked",
+    "x-api-umbrella-request-id": "d02v47vps67fp63oqe50",
+    "x-cache": "MISS",
+    "x-content-type-options": "nosniff",
+    "x-frame-options": "DENY",
+    "x-ratelimit-limit": "10",
+    "x-ratelimit-remaining": "0",
+    "x-vcap-request-id": "7c63abde-5f03-4b73-6927-420e97bda777"
+  },
+  "params": {
+    "api_key": "<redacted>",
+    "country": "US",
+    "fuel_type": "ELEC",
+    "limit": "200"
+  },
+  "request_headers": {},
+  "retrieved_at": "2026-08-19T02:10:11+00:00",
+  "source_id": "afdc_stations",
+  "status_code": 429,
+  "truncated": false,
+  "url": "https://developer.nlr.gov/api/alt-fuel-stations/v1.json"
+}

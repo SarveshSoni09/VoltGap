@@ -1,0 +1,37 @@
+Domain rule G9 factual discrepancy - evidence
+retrieved 2026-08-19 UTC
+
+CLAUDE.md section 5, domain rule G9 states:
+  "State registration counts have inconsistent reporting vintages across states.
+   Oregon reports 6,436, below Kansas at 11,271 and Iowa at 9,031, which is
+   implausible. Flag outliers by comparing per-capita rates against neighboring
+   states and mark low-confidence states in the data."
+
+data/seed/MANIFEST.md repeats the claim:
+  "Oregon reports 6,436, which falls below Kansas (11,271), Iowa (9,031), and Maine
+   (7,377). That ordering is implausible and indicates inconsistent reporting
+   vintages across states."
+
+Actual delivered values, data/seed/EV_Registration_Counts_by_State.csv
+(SHA-256 4c72eeace1defeddf7dddeaedf4f65ffff970b4c2ce8090184fd6408076bb7ad):
+  Oregon    64,361
+  Kansas    11,271
+  Iowa       9,031
+  Maine      7,377
+  Total   3,555,445  (equals the sum of the 51 jurisdiction rows exactly)
+
+Oregon is 64,361, not 6,436. The stated value looks like a truncation of the real one.
+At 64,361 the ordering is entirely plausible and the anomaly G9 describes does not
+exist in the delivered file.
+
+The general claim was also tested. Rounding every delivered value half-up to the
+nearest 100 reproduces the AFDC 2023 vintage table for 51 of 51 jurisdictions:
+  Oregon 64,361 -> 64,400 = AFDC 2023 Oregon 64,400
+  Kansas 11,271 -> 11,300 = AFDC 2023 Kansas 11,300
+  Iowa    9,031 ->  9,000 = AFDC 2023 Iowa    9,000
+  California 1,256,646 -> 1,256,600 = AFDC 2023 California 1,256,600
+The file is therefore a single consistent 2023 vintage across all states, which
+contradicts G9's general claim of inconsistent reporting vintages across states.
+
+Comparison against adjacent AFDC vintages: 0 of 51 half-up matches against 2022,
+0 of 51 against 2024. The match is specific to 2023.

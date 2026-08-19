@@ -1,0 +1,39 @@
+NREL county EV home charging access shares - workbook evidence
+source: https://data.nlr.gov/system/files/278/1734741167-NREL_county_EV_home_charging_access.xlsx
+sha256 of workbook: 8ec440f2365b9181d57251dcd42e8c2008fdabbf6cd9ac8e4539f8649326e56b
+bytes: 30335649
+
+== Sheet A-Description ==
+This file contains modeled county-level home EV charging access shares from the study, "The 2030 National Charging Network: Estimating U.S. Light-Duty Demand for Electric Vehicle Charging Infrastructure" by Wood et al. (2023). A data dictionary is included in a separate tab.
+
+This work was authored in part by the National Renewable Energy Laboratory, operated by Alliance for Sustainable Energy, LLC, for the U.S. Department of Energy (DOE) under Contract No. DE-AC36-08GO28308. Funding provided by the U.S. Department of Energy Office of Energy Efficiency and Renewable Energy Vehicle Technologies Office. The views expressed in the article do not necessarily represent the views of the DOE or the U.S. Government. The U.S. Government retains and the publisher, by accepting the article for publication, acknowledges that the U.S. Government retains a nonexclusive, paid-up, irrevocable, worldwide license to publish or reproduce the published form of this work, or allow others to do so, for U.S. Government purposes.
+
+Contact:
+Yanbo Ge, National Renewable Energy Laboratory
+E: yanbo.ge@nrel.gov
+
+
+== Sheet B-Dictionary ==
+Parameter | Description
+County FIPS | County FIPS (Federal Information Processing Standard) is a unique 5-digit code assigned to every county or equivalent in the United States.
+State FIPS | State FIPS (Federal Information Processing Standard) is a unique 2-digit code assigned to each U.S. state and territory.
+County Name | Name of the county.
+Home Access Scenario | Baseline: Average of Low and High scenarios.
+Low: "Existing Access" scenario from Ge et al. (2021) assumes EV owners use existing electrical outlets at their residential parking locations.
+High: "Potential Access" scenario from Ge et al. (2021) assumes EV owners may install additional electrical infrastructure to enable home charging at their primary parking location.
+EV Share of Stock | The proportion of electric vehicles within the total stock of light-duty vehicles.
+Home Charging Access | The proportion of electric vehicles (EVs) that have access to a home charger.
+Ge, Yanbo, Christina Simeone, Andrew Duvall, and Eric Wood. 2021. There's No Place Like Home: Residential Parking, Electrical Access, and Implications for the Future of Electric Vehicle Charging Infrastructure. Golden, CO: National Renewable Energy Laboratory. NREL/TP-5400-81065. https://www.nrel.gov/docs/fy22osti/81065.pdf.
+
+== Sheet C-Data, header + first rows ==
+County FIPS | State FIPS | County Name | Home Access Scenario | EV Share of Stock | Home Charging Access
+1001 | 1 | Autauga, AL | baseline | 0.01 | 0.996
+1001 | 1 | Autauga, AL | baseline | 0.02 | 0.995
+1001 | 1 | Autauga, AL | baseline | 0.03 | 0.98299999999999998
+1001 | 1 | Autauga, AL | baseline | 0.04 | 0.97799999999999998
+
+== Measured grid ==
+data rows: 942,600 = 3,142 counties x 3 scenarios x 100 EV-share levels
+scenarios: baseline / low / high (314,200 rows each)
+EV Share of Stock grid: 0.01 to 1.00 in steps of 0.01 (100 levels)
+baseline median Home Charging Access: 0.991 at EV share 0.01; 0.973 at 0.05; 0.857 at 0.30; 0.489 at 1.00

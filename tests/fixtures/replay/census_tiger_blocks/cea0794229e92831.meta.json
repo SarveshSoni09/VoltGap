@@ -1,0 +1,36 @@
+{
+  "content_bytes": 1024,
+  "content_sha256": "71299721bd392b2b31cbaeb406c3fbaac85da114f05cd956770ef8e2e44f05b5",
+  "elapsed_ms": 119.9,
+  "headers": {
+    "age": "413983",
+    "cache-control": "public, max-age=14400",
+    "cf-cache-status": "HIT",
+    "cf-ray": "a2d59d4fa94aa679-ORD",
+    "connection": "keep-alive",
+    "content-length": "1024",
+    "content-range": "bytes 0-1023/147565957",
+    "content-security-policy": "default-src 'self' 'unsafe-inline' 'unsafe-eval' census.gov *.census.gov http://www.census.gov assets.adobedtm.com www.googletagmanager.com https://dpm.demdex.net https://cm.everesttech.net https://uscensusbureau.demdex.net dap.digitalgov.gov www.google-analytics.com; frame-ancestors 'self';",
+    "content-type": "application/zip",
+    "date": "Wed, 19 Aug 2026 02:09:09 GMT",
+    "expires": "Wed, 19 Aug 2026 06:09:09 GMT",
+    "last-modified": "Fri, 20 Sep 2024 19:24:22 GMT",
+    "referrer-policy": "strict-origin-when-cross-origin",
+    "server": "cloudflare",
+    "set-cookie": "__cf_bm=12bciHqna42l.Y_Z42LqXpmu44H9p5Xl6TFeqaPjwNU-1787105349.0624113-1.0.1.1-dXAz3vn4Ydd_cpvZDksTGbfPWqkyxSdyCD0PuqLCj2Es9McEJQxM4NbVGG1T9PpysYLkuMYBpuCZmCE6PuYzhShd74Z5ngRPD3NQWcpe79FPrLIizXGSqYX5drC0JLw_; HttpOnly; SameSite=None; Secure; Path=/; Domain=www2.census.gov; Expires=Wed, 19 Aug 2026 02:39:09 GMT",
+    "strict-transport-security": "max-age=31536000",
+    "vary": "Accept-Encoding",
+    "x-content-type-options": "nosniff",
+    "x-frame-options": "SAMEORIGIN",
+    "x-xss-protection": "1; mode=block"
+  },
+  "params": {},
+  "request_headers": {
+    "Range": "bytes=0-1023"
+  },
+  "retrieved_at": "2026-08-19T02:09:09+00:00",
+  "source_id": "census_tiger_blocks",
+  "status_code": 206,
+  "truncated": true,
+  "url": "https://www2.census.gov/geo/tiger/TIGER2023/TABBLOCK20/tl_2023_27_tabblock20.zip"
+}

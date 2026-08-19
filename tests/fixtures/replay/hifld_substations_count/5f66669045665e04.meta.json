@@ -1,0 +1,41 @@
+{
+  "content_bytes": 13,
+  "content_sha256": "dbd046824ac239bc2fa79b152b1152a43bdfc4e110a96862cefe043d9f57270a",
+  "elapsed_ms": 324.3,
+  "headers": {
+    "access-control-allow-credentials": "true",
+    "access-control-allow-headers": "Content-Type, Authorization, X-Esri-Authorization",
+    "access-control-allow-origin": "*",
+    "access-control-expose-headers": "Request-Context",
+    "cache-control": "public, max-age=30, s-maxage=30",
+    "connection": "keep-alive",
+    "content-encoding": "gzip",
+    "content-type": "application/json; charset=utf-8",
+    "date": "Wed, 19 Aug 2026 02:09:11 GMT",
+    "etag": "sd1428808_359009109",
+    "last-modified": "Mon, 13 Jan 2025 19:04:33 GMT",
+    "request-context": "appId=cid-v1:6959d3e4-1b50-49aa-a614-ab11f59afd47",
+    "strict-transport-security": "max-age=63072000",
+    "transfer-encoding": "chunked",
+    "vary": "X-Esri-Authorization",
+    "x-arcgis-correlation-id": "c46bc4c1fc8c1a85",
+    "x-arcgis-instance": "us1h00c00_MTSDS_Web_18",
+    "x-arcgis-trace-id": "20260819T020911Z-16469c864fddsvk5hC1CHIwu840000000udg000000006s59",
+    "x-arcgis-upstream": "us1h00c00-services",
+    "x-azure-ref": "20260819T020911Z-16469c864fddsvk5hC1CHIwu840000000udg000000006s59",
+    "x-cache": "TCP_MISS",
+    "x-esri-cache-hint-features": "true",
+    "x-fd-int-roxy-purgeid": "0"
+  },
+  "params": {
+    "f": "json",
+    "returnCountOnly": "true",
+    "where": "1=1"
+  },
+  "request_headers": {},
+  "retrieved_at": "2026-08-19T02:09:11+00:00",
+  "source_id": "hifld_substations_count",
+  "status_code": 200,
+  "truncated": false,
+  "url": "https://services.arcgis.com/G4S1dGvn7PIgYd6Y/ArcGIS/rest/services/HIFLD_electric_power_substations/FeatureServer/0/query"
+}

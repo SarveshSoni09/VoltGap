@@ -1,0 +1,26 @@
+developer.nrel.gov retirement - evidence
+retrieved 2026-08-19 UTC
+
+DNS resolution, public resolver 1.1.1.1:
+  $ dig +short @1.1.1.1 developer.nrel.gov
+  (no record)
+  $ dig +short @1.1.1.1 developer.nlr.gov
+  (resolves)
+
+HTTP:
+  $ curl https://developer.nrel.gov/api/alt-fuel-stations/v1.json?api_key=DEMO_KEY&limit=1
+  curl: (6) Could not resolve host: developer.nrel.gov
+
+  $ curl 'https://developer.nlr.gov/api/alt-fuel-stations/v1.json?api_key=DEMO_KEY&limit=1&fuel_type=ELEC'
+  HTTP 200
+  {"station_locator_url":"https://afdc.energy.gov/stations/","total_results":89685,
+   "station_counts":{"total":292399,"fuels":{"ELEC":{"total":292399,"stations":{"total":89671}}}}}
+
+Published statement: the NREL developer network moved to developer.nlr.gov and the
+developer.nrel.gov domain was retired on 29 May 2026.
+Source: https://developer.nlr.gov/docs/transportation/alt-fuel-stations-v1/
+
+Impact on delivered project material:
+  SETUP.md section 3 directs the operator to developer.nrel.gov/signup for the free
+  NREL Developer key. That URL no longer resolves. Keys must be obtained from
+  developer.nlr.gov.

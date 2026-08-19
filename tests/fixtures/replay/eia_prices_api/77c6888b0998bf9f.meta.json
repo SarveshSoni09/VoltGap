@@ -1,0 +1,32 @@
+{
+  "content_bytes": 163,
+  "content_sha256": "b71fb384d31b5e7ccc66d279785c9e6cd51fa51f07820a3363c849034b9608bd",
+  "elapsed_ms": 569.3,
+  "headers": {
+    "access-control-allow-origin": "*",
+    "connection": "keep-alive",
+    "content-encoding": "gzip",
+    "content-type": "application/json",
+    "date": "Wed, 19 Aug 2026 02:09:10 GMT",
+    "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+    "transfer-encoding": "chunked",
+    "vary": "Accept-Encoding",
+    "x-api-umbrella-request-id": "d02v3p3sfg27g7nfs3e0",
+    "x-cache": "MISS",
+    "x-content-type-options": "nosniff",
+    "x-frame-options": "DENY",
+    "x-vcap-request-id": "34611704-904b-4b25-4e69-29eafbbb41a0",
+    "x-xss-protection": "1; mode=block"
+  },
+  "params": {
+    "data[0]": "price",
+    "frequency": "monthly",
+    "length": "1"
+  },
+  "request_headers": {},
+  "retrieved_at": "2026-08-19T02:09:10+00:00",
+  "source_id": "eia_prices_api",
+  "status_code": 403,
+  "truncated": false,
+  "url": "https://api.eia.gov/v2/electricity/retail-sales/data/"
+}
