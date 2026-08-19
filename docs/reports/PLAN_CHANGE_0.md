@@ -4,7 +4,7 @@
 |---|---|
 | Raised in | Phase 0 (source contract) |
 | Date | 2026-08-19 |
-| Status | **OPEN — awaiting project owner decision** |
+| Status | **RESOLVED 2026-08-19 — Option A approved with modification. See §8.** |
 | Blocks | Phase 1 acceptance criterion "All G1–G14 regression tests pass" |
 | Does not block | Phase 0 delivery. Everything else in Phase 0 is complete. |
 
@@ -175,3 +175,55 @@ is complete and stops here regardless; this document does not block the Phase 0 
 
 No workaround has been implemented. `SOURCES.yml` records the true delivered values under
 `seed_state_ev_registrations.known_limitations` and points at this document.
+
+---
+
+## 8. Resolution — 2026-08-19
+
+**Approved: Option A, with modified replacement wording supplied by the project owner.**
+
+The owner accepted the finding that G9 as written is false against the delivered data, and
+accepted Option A's intent — keep a real, testable invariant rather than retire the rule —
+but rejected Option A's proposed wording on one specific point.
+
+**What Option A got wrong.** It proposed that a state failing a per-capita neighbouring-state
+outlier screen "be marked low-confidence". That inference is too strong. A state's genuine EV
+adoption rate can differ substantially from its neighbours for real reasons: income, state
+incentives, urbanisation, housing structure, vehicle preferences, climate, charging policy,
+gasoline and electricity prices, commute patterns, and local EV market maturity. **An outlier
+is a diagnostic requiring investigation, not proof of bad source quality.** Automatically
+attaching a low-confidence label would have propagated a fabricated quality signal into the
+§7.4 uncertainty model — the same class of error this document was raised to prevent.
+
+**The authoritative replacement**, now in `CLAUDE.md` §5 as G9:
+
+> **G9 — State registration vintage and plausibility validation.** Each ingested
+> state-registration dataset must resolve to a documented vintage, jurisdiction coverage must
+> be complete for the claimed geography, counts must be non-negative, and jurisdiction totals
+> must reconcile to the published total where one exists. The delivered seed file resolves
+> consistently to the 2023 AFDC vintage across all 51 jurisdictions. Per-capita and
+> year-over-year anomaly screening must be run as a diagnostic quality check, but an anomalous
+> state is flagged for review rather than automatically marked low-confidence. A
+> low-confidence designation requires corroborating evidence of a vintage, coverage,
+> definition, or source-quality problem.
+
+**Phase 1 regression behaviour for G9.** The suite verifies seven testable properties:
+
+1. registration vintage is resolved;
+2. claimed jurisdiction coverage is present;
+3. counts are valid and non-negative;
+4. published totals reconcile where available;
+5. anomaly screening executes;
+6. anomalies are surfaced as diagnostic review flags;
+7. **a low-confidence quality label cannot be assigned solely because a value is
+   statistically or geographically unusual.**
+
+Item 7 is a negative test and is the one that encodes the correction.
+
+**Propagated to:** `CLAUDE.md` §5 (with an inline amendment note and a §19 A1 log entry),
+`data/seed/MANIFEST.md` (dated correction appended, original text preserved),
+`docs/reports/ASSUMPTION_LEDGER.md`, and — when Phase 1 creates them —
+`docs/DATA_GOTCHAS.md` and the G1–G14 regression suite.
+
+**Audit trail preserved.** Sections 1–7 above are unchanged and continue to record the
+original false rule, the evidence that disproved it, and the options considered.

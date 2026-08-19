@@ -63,7 +63,8 @@ gate:
 #   3. coverage thresholds
 #   4. prior gate suites  (none: Phase 0 is the first phase)
 #   5. smoke-forward test for Phase 1, offline against real Phase 0 output
-#   6. UI copy lint    (not applicable: no UI exists before Phase 6)
+#   6. D3 / UI copy lint  (created in Phase 1 per spec amendment A9; not applicable
+#                          in Phase 0 because the lint does not exist yet)
 #   7. determinism check
 gate-0:
 	@echo "=== Phase 0 gate ==="
@@ -76,7 +77,7 @@ gate-0:
 	@echo "--- 4. prior gate suites: none, Phase 0 is the first phase ---"
 	@echo "--- 5. smoke-forward test for Phase 1 ---"
 	@$(PY) -m pytest tests/integration/test_smoke_forward.py -v
-	@echo "--- 6. UI copy lint: not applicable before Phase 6 ---"
+	@echo "--- 6. D3 copy lint: created in Phase 1 (amendment A9); N/A in Phase 0 ---"
 	@echo "--- 7. determinism ---"
 	@$(MAKE) --no-print-directory determinism
 	@echo "=== Phase 0 gate: PASS ==="

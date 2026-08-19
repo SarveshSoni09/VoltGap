@@ -1111,9 +1111,10 @@ sources:
     backtest_eligible: true
     known_limitations:
       - >-
-        No model in CLAUDE.md section 7 consumes eGRID. It appears in the section 3
-        repository layout but has no declared downstream consumer. Recorded rather
-        than resolved; see the Phase 0 report open questions.
+        No model in CLAUDE.md section 7 consumes eGRID. Resolved by the Phase 0 review
+        on 2026-08-19 (specification amendment A8): eGRID is demoted to Optional /
+        Future Work tier, and an emissions feature must not be invented in order to
+        justify keeping it in Core. See CLAUDE.md section 7.12.
       - "The URL embeds a revision date and changes between releases; it must be rediscovered."
 
   - id: hifld_transmission_service
