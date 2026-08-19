@@ -1,0 +1,1997 @@
+# VoltGap source contract
+#
+# STABLE, HUMAN-REVIEWED. This file records what each source is *expected* to be.
+# It changes only by deliberate edit and review.
+#
+# Live measurements — observed row counts, discovered schema, missingness, retrieval
+# metadata, and probe-assigned status — live in the generated sidecar
+# SOURCES.observed.json, written by pipeline/discovery/probe.py. That split is an
+# approved deviation from CLAUDE.md section 4.1, which originally put both in this
+# file; keeping them together made every live refresh dirty the reviewed contract and
+# made expectation indistinguishable from observation.
+#
+# schema.schema_version is the order-sensitive 16-hex hash of the discovered field
+# list (pipeline/discovery/measure.py: schema_hash). A column rename, reorder, or
+# addition changes it, and probe.py reports the change as drift.
+#
+# quality.drift_tolerance widens quality.expected_row_count when drift is evaluated.
+# 0.20 is the provisional default agreed for previously unseen sources; frozen seed
+# fixtures carry 0.0 because their bytes never change.
+
+meta:
+  contract_version: 1
+  phase: 0
+  written_by: Claude Code
+  reviewed_by: pending project owner review
+  notes: >-
+    Every entry below was probed live on 2026-08-19 UTC. Nothing here is assumed from
+    documentation alone; where an expectation could not be verified it is recorded as
+    such in known_limitations rather than filled with a plausible default (directive D8).
+
+# --------------------------------------------------------------------------------
+# Reusable blocks
+# --------------------------------------------------------------------------------
+
+.anchors:
+  afdc_registration_base: &afdc_registration_base
+    tier: core
+    retrieval:
+      method: scrape
+      endpoint: "https://afdc.energy.gov/vehicle-registration?year={year}"
+      auth: none
+      rate_limit: "not advertised; no 429 observed across 10 sequential requests"
+    coverage:
+      geographic: "US 50 states + DC"
+      historical_vintages_available: true
+      vintage_field: "year query parameter"
+      vintage_semantics: "registered light-duty stock through the selected year"
+    schema:
+      join_keys: [State]
+      stable_keys: true
+      schema_version: fdbd64efe4532f77
+    quality:
+      expected_row_count: [52, 52]
+      drift_tolerance: 0.0
+      expected_range_derivation: >-
+        Exact. 51 jurisdictions (50 states + DC) plus one "United States" total row.
+        Verified identical across all ten year pages probed.
+    license: "US Government work, public domain. Underlying counts derived from Experian."
+    update_cadence: "annual"
+    fallback_source: seed_state_ev_registrations
+    used_by: [demand_reconciliation, deployment_alignment]
+    backtest_eligible: true
+    known_limitations:
+      - "Counts are rounded to the nearest 100 vehicles."
+      - >-
+        The table contains a "United States" total row that must be excluded before
+        aggregation (domain rule G8).
+      - >-
+        Whether each year page is a contemporaneous snapshot or a retrospective
+        reconstruction from current VIN data is not stated by the publisher. If it is
+        retrospective, the series is survivorship-affected. Recorded as assumption
+        A-0.5 and to be tested in Phase 5.
+      - "No JSON or CSV endpoint exists; HTML scraping is the only retrieval method."
+
+  atlas_base: &atlas_base
+    tier: core
+    retrieval:
+      method: bulk_download
+      endpoint: "https://www.atlasevhub.com/public/dmv/{slug}.csv"
+      auth: none
+      rate_limit: "not advertised; no throttling observed"
+    coverage:
+      geographic: "single state"
+      temporal: "vehicle-level registrations with a repeated DMV snapshot series"
+      historical_vintages_available: true
+      vintage_field: "DMV Snapshot (Date)"
+      vintage_semantics: "observed registrations as of the named DMV snapshot"
+    quality:
+      drift_tolerance: 0.20
+      expected_range_derivation: >-
+        Provisional. Derived from the first verified live observation of a 65,536-byte
+        bounded sample, widened by the default +/-20% tolerance. The full files are
+        16 MB to 1.3 GB and are never fully retrieved by the probe.
+    license: "Published for public use by Atlas Public Policy; per-state DMV terms apply."
+    update_cadence: "varies by state, monthly to annual"
+    fallback_source: none
+    used_by: [demand_model, demand_validation, uncertainty_tiering]
+    backtest_eligible: true
+    known_limitations:
+      - >-
+        The host advertises accept-ranges: bytes and then ignores the Range request
+        header, answering HTTP 200 with the entire file. The probe bounds the transfer
+        by streaming and cutting off locally.
+      - >-
+        ZIP Code granularity does not nest inside census tracts. A ZIP-to-tract
+        crosswalk is required before these states can be used at tract grain
+        (assumption A-0.7).
+      - >-
+        Vehicle Count is a per-row count field, not an implicit 1; rows must be summed
+        on Vehicle Count rather than counted.
+
+  seed_frozen: &seed_frozen
+    tier: core
+    retrieval:
+      method: bulk_download
+      endpoint: "delivered file in data/seed/, see data/seed/SEED_INVENTORY.md"
+      auth: none
+      rate_limit: "not applicable"
+    update_cadence: "never; frozen fixture"
+    backtest_eligible: false
+
+# --------------------------------------------------------------------------------
+# Sources
+# --------------------------------------------------------------------------------
+
+sources:
+
+  # ---- AFDC (NREL / National Laboratory of the Rockies) --------------------------
+
+  - id: afdc_stations
+    name: AFDC Alternative Fuel Stations (electric)
+    tier: core
+    retrieval:
+      method: rest_api
+      endpoint: "https://developer.nlr.gov/api/alt-fuel-stations/v1.json"
+      auth: api_key_free
+      rate_limit: >-
+        Measured empirically: the shared DEMO_KEY credential returned HTTP 429 with
+        x-ratelimit-limit: 10 and retry-after: 78590 after ten requests. A free
+        personal key raises this substantially.
+    coverage:
+      geographic: "US 50 states + DC + PR, plus Canada when country is not filtered"
+      temporal: "current snapshot only"
+      historical_vintages_available: false
+      vintage_field: "Snapshot Date (charging-units export) / last-updated endpoint"
+      vintage_semantics: "present-day operational snapshot"
+    schema:
+      join_keys: [ID]
+      stable_keys: true
+      schema_version: f6860736f1304654
+      expected_field_count: 75
+    quality:
+      expected_row_count: [80000, 100000]
+      drift_tolerance: 0.20
+      expected_range_derivation: >-
+        Anchored on the live envelope observed during Phase 0 discovery on
+        2026-08-19: total_results 89,685 electric station records, 292,399 ports. The
+        Dec 2024 seed snapshot held 79,618 records, so the range spans both and is
+        widened by the default tolerance.
+    license: "US Government work, public domain"
+    update_cadence: "daily"
+    fallback_source: seed_afdc_stations_national_20241211
+    used_by: [supply, access, deployment_alignment]
+    backtest_eligible: false
+    known_limitations:
+      - >-
+        A record is one network's presence at a site, not a port and not a unit of
+        capacity (domain rule G1).
+      - "Status Code E / T / P; only E is operational supply (G2)."
+      - "Access Code includes private, which is not public supply (G3)."
+      - >-
+        Exact coordinate duplicates are usually co-located multi-network
+        infrastructure and must be aggregated to a site, not deleted (G4).
+      - >-
+        Open Date may reflect first appearance in the Station Locator rather than
+        actual opening, for automated network feeds (G10).
+      - >-
+        No historical snapshots are served, so any reconstructed historical network is
+        survivorship-biased and is labelled an approximate reconstruction (G11).
+      - >-
+        Not probed successfully in the final Phase 0 run: the DEMO_KEY hourly quota
+        was exhausted by earlier probes and the endpoint returned HTTP 429. The 75-
+        column schema was instead verified live against the charging-units export,
+        whose first 75 columns are byte-identical to this schema.
+
+  - id: afdc_last_updated
+    name: AFDC Station Locator last-updated timestamp
+    tier: core
+    retrieval:
+      method: rest_api
+      endpoint: "https://developer.nlr.gov/api/alt-fuel-stations/v1/last-updated.json"
+      auth: api_key_free
+      rate_limit: "shared with afdc_stations; DEMO_KEY limit measured at 10 per window"
+    coverage:
+      geographic: "not applicable"
+      temporal: "single timestamp"
+      historical_vintages_available: false
+      vintage_field: "last_updated"
+      vintage_semantics: "timestamp of the current AFDC snapshot"
+    schema:
+      join_keys: []
+      stable_keys: true
+      schema_version: 0ec0d1a693f910d2
+      expected_field_count: 1
+    quality:
+      expected_row_count: [1, 1]
+      drift_tolerance: 0.0
+      expected_range_derivation: "Exact. The endpoint returns a single object."
+    license: "US Government work, public domain"
+    update_cadence: "daily"
+    fallback_source: none
+    used_by: [manifest_freshness, supply]
+    backtest_eligible: false
+    known_limitations:
+      - "Establishes the vintage of the current snapshot only; no history is served."
+
+  - id: afdc_charging_units
+    name: AFDC EV Charging Units export
+    tier: core
+    retrieval:
+      method: rest_api
+      endpoint: "https://developer.nlr.gov/api/alt-fuel-stations/v1/ev-charging-units.csv"
+      auth: api_key_free
+      rate_limit: "shared with afdc_stations; DEMO_KEY limit measured at 10 per window"
+    coverage:
+      geographic: "US 50 states + DC + PR; probed Minnesota-scoped"
+      temporal: "current snapshot only"
+      historical_vintages_available: false
+      vintage_field: "Snapshot Date"
+      vintage_semantics: >-
+        Present-day snapshot. The column exists but the endpoint accepts no
+        snapshot/date parameter, so prior snapshots cannot be requested.
+    schema:
+      join_keys: [ID]
+      stable_keys: true
+      schema_version: c7ef314df7ff8fce
+      expected_field_count: 86
+    quality:
+      expected_row_count: [2400, 3600]
+      drift_tolerance: 0.20
+      expected_range_derivation: >-
+        Provisional, for the Minnesota-scoped probe only. First verified live
+        observation was 2,951 unit rows for Minnesota on 2026-08-19, widened by the
+        default tolerance. The national export holds 292,435 unit rows.
+    license: "US Government work, public domain"
+    update_cadence: "daily"
+    fallback_source: afdc_stations
+    used_by: [supply, power_ladder]
+    backtest_eligible: false
+    known_limitations:
+      - >-
+        One row is a charging unit that may hold one or more ports and one or more
+        connectors; rows are not ports.
+      - >-
+        55 rows nationally report a power output of exactly 0.00 kW, which is not a
+        valid power and must not be treated as a rung-1 reported value.
+      - >-
+        Rung-1 power coverage is uneven by connector: 99.9% for CCS and CHAdeMO but
+        73.4% for J3400 and 81.4% for J1772 (port-weighted, national).
+
+  # ---- AFDC state EV registration vintages (10 years) ---------------------------
+
+  - id: afdc_state_ev_registrations_2016
+    name: AFDC state EV registration counts, 2016 vintage
+    <<: *afdc_registration_base
+    coverage:
+      geographic: "US 50 states + DC"
+      temporal: "2016"
+      historical_vintages_available: true
+      vintage_field: "year query parameter"
+      vintage_semantics: "registered light-duty EV stock through 2016"
+
+  - id: afdc_state_ev_registrations_2017
+    name: AFDC state EV registration counts, 2017 vintage
+    <<: *afdc_registration_base
+    coverage:
+      geographic: "US 50 states + DC"
+      temporal: "2017"
+      historical_vintages_available: true
+      vintage_field: "year query parameter"
+      vintage_semantics: "registered light-duty EV stock through 2017"
+
+  - id: afdc_state_ev_registrations_2018
+    name: AFDC state EV registration counts, 2018 vintage
+    <<: *afdc_registration_base
+    coverage:
+      geographic: "US 50 states + DC"
+      temporal: "2018"
+      historical_vintages_available: true
+      vintage_field: "year query parameter"
+      vintage_semantics: "registered light-duty EV stock through 2018"
+
+  - id: afdc_state_ev_registrations_2019
+    name: AFDC state EV registration counts, 2019 vintage
+    <<: *afdc_registration_base
+    coverage:
+      geographic: "US 50 states + DC"
+      temporal: "2019"
+      historical_vintages_available: true
+      vintage_field: "year query parameter"
+      vintage_semantics: "registered light-duty EV stock through 2019"
+
+  - id: afdc_state_ev_registrations_2020
+    name: AFDC state EV registration counts, 2020 vintage
+    <<: *afdc_registration_base
+    coverage:
+      geographic: "US 50 states + DC"
+      temporal: "2020"
+      historical_vintages_available: true
+      vintage_field: "year query parameter"
+      vintage_semantics: "registered light-duty EV stock through 2020"
+
+  - id: afdc_state_ev_registrations_2021
+    name: AFDC state EV registration counts, 2021 vintage
+    <<: *afdc_registration_base
+    coverage:
+      geographic: "US 50 states + DC"
+      temporal: "2021"
+      historical_vintages_available: true
+      vintage_field: "year query parameter"
+      vintage_semantics: "registered light-duty EV stock through 2021"
+
+  - id: afdc_state_ev_registrations_2022
+    name: AFDC state EV registration counts, 2022 vintage
+    <<: *afdc_registration_base
+    coverage:
+      geographic: "US 50 states + DC"
+      temporal: "2022"
+      historical_vintages_available: true
+      vintage_field: "year query parameter"
+      vintage_semantics: "registered light-duty EV stock through 2022"
+
+  - id: afdc_state_ev_registrations_2023
+    name: AFDC state EV registration counts, 2023 vintage
+    <<: *afdc_registration_base
+    coverage:
+      geographic: "US 50 states + DC"
+      temporal: "2023"
+      historical_vintages_available: true
+      vintage_field: "year query parameter"
+      vintage_semantics: "registered light-duty EV stock through 2023"
+
+  - id: afdc_state_ev_registrations_2024
+    name: AFDC state EV registration counts, 2024 vintage
+    <<: *afdc_registration_base
+    coverage:
+      geographic: "US 50 states + DC"
+      temporal: "2024"
+      historical_vintages_available: true
+      vintage_field: "year query parameter"
+      vintage_semantics: "registered light-duty EV stock through 2024"
+
+  - id: afdc_state_ev_registrations_2025
+    name: AFDC state EV registration counts, 2025 vintage
+    <<: *afdc_registration_base
+    coverage:
+      geographic: "US 50 states + DC"
+      temporal: "2025"
+      historical_vintages_available: true
+      vintage_field: "year query parameter"
+      vintage_semantics: "registered light-duty EV stock through 2025"
+
+  # ---- Atlas EV Hub state DMV registrations (14 states) -------------------------
+
+  - id: atlas_ev_registrations_co
+    name: Atlas EV Hub DMV EV registrations, CO
+    <<: *atlas_base
+    retrieval:
+      method: bulk_download
+      endpoint: "https://www.atlasevhub.com/public/dmv/CO_EV_Registrations_03.csv"
+      auth: none
+      rate_limit: "not advertised; no throttling observed"
+    schema:
+      join_keys: ["ZIP Code", "Registration Date", "DMV Snapshot ID"]
+      stable_keys: true
+      schema_version: f9bf2ed08cb72100
+      expected_field_count: 13
+      granularity: zip
+    quality:
+      expected_row_count: [421, 632]
+      drift_tolerance: 0.20
+      expected_range_derivation: >-
+        Provisional. Rows decoded from the first verified 65,536-byte bounded sample
+        on 2026-08-19 (527 rows), widened by the default +/-20% tolerance. This
+        bounds the probe sample, not the file, which is 16 MB to 1.3 GB in full.
+
+  - id: atlas_ev_registrations_ct
+    name: Atlas EV Hub DMV EV registrations, CT
+    <<: *atlas_base
+    retrieval:
+      method: bulk_download
+      endpoint: "https://www.atlasevhub.com/public/dmv/CT_EV_Registrations_12.csv"
+      auth: none
+      rate_limit: "not advertised; no throttling observed"
+    schema:
+      join_keys: ["ZIP Code", "Registration Date", "DMV Snapshot ID"]
+      stable_keys: true
+      schema_version: f9bf2ed08cb72100
+      expected_field_count: 13
+      granularity: zip
+    quality:
+      expected_row_count: [424, 637]
+      drift_tolerance: 0.20
+      expected_range_derivation: >-
+        Provisional. Rows decoded from the first verified 65,536-byte bounded sample
+        on 2026-08-19 (531 rows), widened by the default +/-20% tolerance. This
+        bounds the probe sample, not the file, which is 16 MB to 1.3 GB in full.
+
+  - id: atlas_ev_registrations_me
+    name: Atlas EV Hub DMV EV registrations, ME
+    <<: *atlas_base
+    retrieval:
+      method: bulk_download
+      endpoint: "https://www.atlasevhub.com/public/dmv/ME_EV_Registrations_01.csv"
+      auth: none
+      rate_limit: "not advertised; no throttling observed"
+    schema:
+      join_keys: ["ZIP Code", "Registration Date", "DMV Snapshot ID"]
+      stable_keys: true
+      schema_version: f9bf2ed08cb72100
+      expected_field_count: 13
+      granularity: zip
+    quality:
+      expected_row_count: [404, 606]
+      drift_tolerance: 0.20
+      expected_range_derivation: >-
+        Provisional. Rows decoded from the first verified 65,536-byte bounded sample
+        on 2026-08-19 (505 rows), widened by the default +/-20% tolerance. This
+        bounds the probe sample, not the file, which is 16 MB to 1.3 GB in full.
+
+  - id: atlas_ev_registrations_mn
+    name: Atlas EV Hub DMV EV registrations, MN
+    <<: *atlas_base
+    retrieval:
+      method: bulk_download
+      endpoint: "https://www.atlasevhub.com/public/dmv/MN_EV_Registrations_01.csv"
+      auth: none
+      rate_limit: "not advertised; no throttling observed"
+    schema:
+      join_keys: ["ZIP Code", "Registration Date", "DMV Snapshot ID"]
+      stable_keys: true
+      schema_version: f9bf2ed08cb72100
+      expected_field_count: 13
+      granularity: zip
+    quality:
+      expected_row_count: [423, 634]
+      drift_tolerance: 0.20
+      expected_range_derivation: >-
+        Provisional. Rows decoded from the first verified 65,536-byte bounded sample
+        on 2026-08-19 (529 rows), widened by the default +/-20% tolerance. This
+        bounds the probe sample, not the file, which is 16 MB to 1.3 GB in full.
+
+  - id: atlas_ev_registrations_nc
+    name: Atlas EV Hub DMV EV registrations, NC
+    <<: *atlas_base
+    retrieval:
+      method: bulk_download
+      endpoint: "https://www.atlasevhub.com/public/dmv/NC_EV_Registrations.csv"
+      auth: none
+      rate_limit: "not advertised; no throttling observed"
+    schema:
+      join_keys: ["ZIP Code", "Registration Date", "DMV Snapshot ID"]
+      stable_keys: true
+      schema_version: f9bf2ed08cb72100
+      expected_field_count: 13
+      granularity: zip
+    quality:
+      expected_row_count: [431, 646]
+      drift_tolerance: 0.20
+      expected_range_derivation: >-
+        Provisional. Rows decoded from the first verified 65,536-byte bounded sample
+        on 2026-08-19 (539 rows), widened by the default +/-20% tolerance. This
+        bounds the probe sample, not the file, which is 16 MB to 1.3 GB in full.
+
+  - id: atlas_ev_registrations_nj
+    name: Atlas EV Hub DMV EV registrations, NJ
+    <<: *atlas_base
+    retrieval:
+      method: bulk_download
+      endpoint: "https://www.atlasevhub.com/public/dmv/NJ_EV_Registrations_12.csv"
+      auth: none
+      rate_limit: "not advertised; no throttling observed"
+    schema:
+      join_keys: ["ZIP Code", "Registration Date", "DMV Snapshot ID"]
+      stable_keys: true
+      schema_version: f9bf2ed08cb72100
+      expected_field_count: 13
+      granularity: zip
+    quality:
+      expected_row_count: [419, 628]
+      drift_tolerance: 0.20
+      expected_range_derivation: >-
+        Provisional. Rows decoded from the first verified 65,536-byte bounded sample
+        on 2026-08-19 (524 rows), widened by the default +/-20% tolerance. This
+        bounds the probe sample, not the file, which is 16 MB to 1.3 GB in full.
+
+  - id: atlas_ev_registrations_nm
+    name: Atlas EV Hub DMV EV registrations, NM
+    <<: *atlas_base
+    retrieval:
+      method: bulk_download
+      endpoint: "https://www.atlasevhub.com/public/dmv/NM_EV_Registrations_07_2026.csv"
+      auth: none
+      rate_limit: "not advertised; no throttling observed"
+    schema:
+      join_keys: ["ZIP Code", "Registration Date", "DMV Snapshot ID"]
+      stable_keys: true
+      schema_version: f9bf2ed08cb72100
+      expected_field_count: 13
+      granularity: zip
+    quality:
+      expected_row_count: [424, 636]
+      drift_tolerance: 0.20
+      expected_range_derivation: >-
+        Provisional. Rows decoded from the first verified 65,536-byte bounded sample
+        on 2026-08-19 (530 rows), widened by the default +/-20% tolerance. This
+        bounds the probe sample, not the file, which is 16 MB to 1.3 GB in full.
+
+  - id: atlas_ev_registrations_ny
+    name: Atlas EV Hub DMV EV registrations, NY
+    <<: *atlas_base
+    retrieval:
+      method: bulk_download
+      endpoint: "https://www.atlasevhub.com/public/dmv/NY_EV_Registrations_03.csv"
+      auth: none
+      rate_limit: "not advertised; no throttling observed"
+    schema:
+      join_keys: ["ZIP Code", "Registration Date", "DMV Snapshot ID"]
+      stable_keys: true
+      schema_version: f9bf2ed08cb72100
+      expected_field_count: 13
+      granularity: zip
+    quality:
+      expected_row_count: [420, 630]
+      drift_tolerance: 0.20
+      expected_range_derivation: >-
+        Provisional. Rows decoded from the first verified 65,536-byte bounded sample
+        on 2026-08-19 (525 rows), widened by the default +/-20% tolerance. This
+        bounds the probe sample, not the file, which is 16 MB to 1.3 GB in full.
+
+  - id: atlas_ev_registrations_or
+    name: Atlas EV Hub DMV EV registrations, OR
+    <<: *atlas_base
+    retrieval:
+      method: bulk_download
+      endpoint: "https://www.atlasevhub.com/public/dmv/OR_EV_Registrations_02.csv"
+      auth: none
+      rate_limit: "not advertised; no throttling observed"
+    schema:
+      join_keys: ["ZIP Code", "Registration Date", "DMV Snapshot ID"]
+      stable_keys: true
+      schema_version: f9bf2ed08cb72100
+      expected_field_count: 13
+      granularity: zip
+    quality:
+      expected_row_count: [426, 639]
+      drift_tolerance: 0.20
+      expected_range_derivation: >-
+        Provisional. Rows decoded from the first verified 65,536-byte bounded sample
+        on 2026-08-19 (533 rows), widened by the default +/-20% tolerance. This
+        bounds the probe sample, not the file, which is 16 MB to 1.3 GB in full.
+
+  - id: atlas_ev_registrations_tx
+    name: Atlas EV Hub DMV EV registrations, TX
+    <<: *atlas_base
+    retrieval:
+      method: bulk_download
+      endpoint: "https://www.atlasevhub.com/public/dmv/TX_EV_Registrations_03.csv"
+      auth: none
+      rate_limit: "not advertised; no throttling observed"
+    schema:
+      join_keys: ["ZIP Code", "Registration Date", "DMV Snapshot ID"]
+      stable_keys: true
+      schema_version: f9bf2ed08cb72100
+      expected_field_count: 13
+      granularity: zip
+    quality:
+      expected_row_count: [420, 630]
+      drift_tolerance: 0.20
+      expected_range_derivation: >-
+        Provisional. Rows decoded from the first verified 65,536-byte bounded sample
+        on 2026-08-19 (525 rows), widened by the default +/-20% tolerance. This
+        bounds the probe sample, not the file, which is 16 MB to 1.3 GB in full.
+
+  - id: atlas_ev_registrations_vt
+    name: Atlas EV Hub DMV EV registrations, VT
+    <<: *atlas_base
+    retrieval:
+      method: bulk_download
+      endpoint: "https://www.atlasevhub.com/public/dmv/VT_EV_Registrations_01.csv"
+      auth: none
+      rate_limit: "not advertised; no throttling observed"
+    schema:
+      join_keys: ["ZIP Code", "Registration Date", "DMV Snapshot ID"]
+      stable_keys: true
+      schema_version: f9bf2ed08cb72100
+      expected_field_count: 13
+      granularity: zip
+    quality:
+      expected_row_count: [416, 624]
+      drift_tolerance: 0.20
+      expected_range_derivation: >-
+        Provisional. Rows decoded from the first verified 65,536-byte bounded sample
+        on 2026-08-19 (520 rows), widened by the default +/-20% tolerance. This
+        bounds the probe sample, not the file, which is 16 MB to 1.3 GB in full.
+
+  - id: atlas_ev_registrations_mt
+    name: Atlas EV Hub DMV EV registrations, MT
+    <<: *atlas_base
+    retrieval:
+      method: bulk_download
+      endpoint: "https://www.atlasevhub.com/public/dmv/MT_EV_Registrations_01.csv"
+      auth: none
+      rate_limit: "not advertised; no throttling observed"
+    schema:
+      join_keys: [County, "Registration Date", "DMV Snapshot ID"]
+      stable_keys: true
+      schema_version: fbbb059d7e4761db
+      expected_field_count: 13
+      granularity: county
+    quality:
+      expected_row_count: [391, 586]
+      drift_tolerance: 0.20
+      expected_range_derivation: >-
+        Provisional. Rows decoded from the first verified 65,536-byte bounded sample
+        on 2026-08-19 (489 rows), widened by the default +/-20% tolerance. This
+        bounds the probe sample, not the file, which is 3.9 MB to 49 MB in full.
+
+  - id: atlas_ev_registrations_tn
+    name: Atlas EV Hub DMV EV registrations, TN
+    <<: *atlas_base
+    retrieval:
+      method: bulk_download
+      endpoint: "https://www.atlasevhub.com/public/dmv/TN_EV_Registrations_01.csv"
+      auth: none
+      rate_limit: "not advertised; no throttling observed"
+    schema:
+      join_keys: [County, "Registration Date", "DMV Snapshot ID"]
+      stable_keys: true
+      schema_version: fbbb059d7e4761db
+      expected_field_count: 13
+      granularity: county
+    quality:
+      expected_row_count: [389, 584]
+      drift_tolerance: 0.20
+      expected_range_derivation: >-
+        Provisional. Rows decoded from the first verified 65,536-byte bounded sample
+        on 2026-08-19 (487 rows), widened by the default +/-20% tolerance. This
+        bounds the probe sample, not the file, which is 3.9 MB to 49 MB in full.
+
+  - id: atlas_ev_registrations_va
+    name: Atlas EV Hub DMV EV registrations, VA
+    <<: *atlas_base
+    retrieval:
+      method: bulk_download
+      endpoint: "https://www.atlasevhub.com/public/dmv/VA_EV_Registrations_07_2026.csv"
+      auth: none
+      rate_limit: "not advertised; no throttling observed"
+    schema:
+      join_keys: [County, "Registration Date", "DMV Snapshot ID"]
+      stable_keys: true
+      schema_version: fbbb059d7e4761db
+      expected_field_count: 13
+      granularity: county
+    quality:
+      expected_row_count: [464, 697]
+      drift_tolerance: 0.20
+      expected_range_derivation: >-
+        Provisional. Rows decoded from the first verified 65,536-byte bounded sample
+        on 2026-08-19 (581 rows), widened by the default +/-20% tolerance. This
+        bounds the probe sample, not the file, which is 3.9 MB to 49 MB in full.
+
+  # ---- Census -------------------------------------------------------------------
+
+  - id: census_acs_api
+    name: Census ACS 5-year API
+    tier: core
+    retrieval:
+      method: rest_api
+      endpoint: "https://api.census.gov/data/{year}/acs/acs5"
+      auth: api_key_free
+      rate_limit: "500 requests per day per key without registration is no longer offered"
+    coverage:
+      geographic: "US, all census geographies"
+      temporal: "2009 onward, 5-year estimates"
+      historical_vintages_available: true
+      vintage_field: "year path segment"
+      vintage_semantics: "5-year pooled estimate ending in the named year"
+    schema:
+      join_keys: [GEO_ID]
+      stable_keys: true
+      schema_version: null
+      expected_field_count: null
+    quality:
+      expected_row_count: [1, 250000]
+      drift_tolerance: 0.20
+      expected_range_derivation: >-
+        Not established. The endpoint could not be exercised without a key, so no
+        verified observation exists. Deliberately left wide rather than guessed.
+    license: "US Government work, public domain"
+    update_cadence: "annual"
+    fallback_source: census_acs_bulk
+    used_by: [demand_model, home_charging, equity]
+    backtest_eligible: true
+    known_limitations:
+      - >-
+        Now returns an HTML "Missing Key" page without CENSUS_API_KEY. SETUP.md
+        describes the key as optional; that is no longer true for the API path.
+      - >-
+        Not blocking: the keyless bulk summary file (census_acs_bulk) supplies the
+        same estimates and is the primary retrieval path.
+
+  - id: census_acs_bulk
+    name: Census ACS 5-year table-based summary file
+    tier: core
+    retrieval:
+      method: bulk_download
+      endpoint: "https://www2.census.gov/programs-surveys/acs/summary_file/{year}/table-based-SF/data/5YRData/acsdt5y{year}-{table}.dat"
+      auth: none
+      rate_limit: "none advertised"
+    coverage:
+      geographic: "US, all published census geographies including tracts"
+      temporal: "2023 5-year release probed; earlier releases published on the same path"
+      historical_vintages_available: true
+      vintage_field: "year in the path"
+      vintage_semantics: "5-year pooled estimate ending in the named year"
+    schema:
+      join_keys: [GEO_ID]
+      stable_keys: true
+      schema_version: c13d49f5e6cc1222
+      expected_field_count: 7
+    quality:
+      expected_row_count: [1100, 1800]
+      drift_tolerance: 0.20
+      expected_range_derivation: >-
+        Provisional, bounded sample only. 1,421 rows decoded from the first 65,536
+        bytes of acsdt5y2023-b25003.dat on 2026-08-19, widened by the default
+        tolerance. The full B25003 file is 26,878,591 bytes.
+    license: "US Government work, public domain"
+    update_cadence: "annual"
+    fallback_source: census_acs_api
+    used_by: [demand_model, home_charging, equity]
+    backtest_eligible: true
+    known_limitations:
+      - "Pipe-delimited, one file per table; tables must be joined on GEO_ID."
+      - >-
+        Field count varies by table; the schema_version recorded here is for B25003
+        (housing tenure), the representative table probed.
+      - >-
+        For the retrospective backtest, the contemporaneous 5-year release must be
+        used for each origin, never a later release (directive D1).
+
+  - id: census_tiger_tracts
+    name: TIGER/Line census tract geometry
+    tier: core
+    retrieval:
+      method: bulk_download
+      endpoint: "https://www2.census.gov/geo/tiger/TIGER{year}/TRACT/tl_{year}_{state_fips}_tract.zip"
+      auth: none
+      rate_limit: "none advertised"
+    coverage:
+      geographic: "per state, all US states and territories"
+      temporal: "annual vintages"
+      historical_vintages_available: true
+      vintage_field: "year in the path"
+      vintage_semantics: "boundaries as of the named TIGER vintage"
+    schema:
+      join_keys: [GEOID]
+      stable_keys: true
+      schema_version: null
+      expected_field_count: null
+    quality:
+      expected_row_count: [1, 100000]
+      drift_tolerance: 0.20
+      expected_range_derivation: >-
+        Not measured. This is a zipped shapefile; the probe verifies reachability and
+        content type only, so no row count is claimed.
+    license: "US Government work, public domain"
+    update_cadence: "annual"
+    fallback_source: none
+    used_by: [spatial_allocation, access, equity]
+    backtest_eligible: true
+    known_limitations:
+      - "Tract boundaries change between decennial vintages; joins must be vintage-aware."
+      - "Minnesota (FIPS 27) was the probed state; the full file is 7,490,390 bytes."
+
+  - id: census_tiger_blocks
+    name: TIGER/Line 2020 census block geometry
+    tier: core
+    retrieval:
+      method: bulk_download
+      endpoint: "https://www2.census.gov/geo/tiger/TIGER{year}/TABBLOCK20/tl_{year}_{state_fips}_tabblock20.zip"
+      auth: none
+      rate_limit: "none advertised"
+    coverage:
+      geographic: "per state"
+      temporal: "2020 blocks, republished each TIGER vintage"
+      historical_vintages_available: true
+      vintage_field: "year in the path"
+      vintage_semantics: "2020 decennial block boundaries"
+    schema:
+      join_keys: [GEOID20]
+      stable_keys: true
+      schema_version: null
+      expected_field_count: null
+    quality:
+      expected_row_count: [1, 400000]
+      drift_tolerance: 0.20
+      expected_range_derivation: >-
+        Not measured; zipped shapefile, reachability probe only.
+    license: "US Government work, public domain"
+    update_cadence: "annual republication"
+    fallback_source: census_cenpop_blockgroup
+    used_by: [spatial_allocation, access]
+    backtest_eligible: true
+    known_limitations:
+      - >-
+        Carries INTPTLAT/INTPTLON internal points, which are geometric, not
+        population-weighted. Genuine block-level population weighting requires joining
+        block population from census_pl94171_blocks.
+      - "147,565,957 bytes for Minnesota alone; national coverage is a large download."
+
+  - id: census_cenpop_tract
+    name: Census 2020 population-weighted tract centroids
+    tier: core
+    retrieval:
+      method: bulk_download
+      endpoint: "https://www2.census.gov/geo/docs/reference/cenpop2020/tract/CenPop2020_Mean_TR{state_fips}.txt"
+      auth: none
+      rate_limit: "none advertised"
+    coverage:
+      geographic: "per state"
+      temporal: "2020 decennial"
+      historical_vintages_available: false
+      vintage_field: null
+      vintage_semantics: "2020 decennial population distribution"
+    schema:
+      join_keys: [STATEFP, COUNTYFP, TRACTCE]
+      stable_keys: true
+      schema_version: 8e89462770b4f4a8
+      expected_field_count: 6
+    quality:
+      expected_row_count: [1350, 1660]
+      drift_tolerance: 0.10
+      expected_range_derivation: >-
+        First verified live observation: 1,505 Minnesota tracts on 2026-08-19,
+        widened by 10% because a decennial product does not change between releases.
+    license: "US Government work, public domain"
+    update_cadence: "decennial"
+    fallback_source: none
+    used_by: [access, spatial_allocation]
+    backtest_eligible: false
+    known_limitations:
+      - >-
+        The first column name carries a UTF-8 byte order mark, so the discovered
+        field is "\ufeffSTATEFP". The join key is recorded here by its logical name;
+        staging must strip the BOM.
+      - >-
+        Tract-level population weighting is coarser than the block-level weighting
+        CLAUDE.md section 7.6 specifies.
+
+  - id: census_cenpop_blockgroup
+    name: Census 2020 population-weighted block group centroids
+    tier: core
+    retrieval:
+      method: bulk_download
+      endpoint: "https://www2.census.gov/geo/docs/reference/cenpop2020/blkgrp/CenPop2020_Mean_BG{state_fips}.txt"
+      auth: none
+      rate_limit: "none advertised"
+    coverage:
+      geographic: "per state"
+      temporal: "2020 decennial"
+      historical_vintages_available: false
+      vintage_field: null
+      vintage_semantics: "2020 decennial population distribution"
+    schema:
+      join_keys: [STATEFP, COUNTYFP, TRACTCE, BLKGRPCE]
+      stable_keys: true
+      schema_version: b9564338070d70ee
+      expected_field_count: 7
+    quality:
+      expected_row_count: [4200, 5200]
+      drift_tolerance: 0.10
+      expected_range_derivation: >-
+        First verified live observation: 4,706 Minnesota block groups on 2026-08-19,
+        widened by 10%.
+    license: "US Government work, public domain"
+    update_cadence: "decennial"
+    fallback_source: census_cenpop_tract
+    used_by: [access, spatial_allocation]
+    backtest_eligible: false
+    known_limitations:
+      - >-
+        The first column name carries a UTF-8 byte order mark, so the discovered
+        field is "\ufeffSTATEFP". The join key is recorded here by its logical name;
+        staging must strip the BOM.
+      - >-
+        This is the finest ready-made population-weighted centroid the Census Bureau
+        publishes. It is one level coarser than block.
+
+  - id: census_cenpop_block
+    name: Census 2020 population-weighted block centroids (does not exist)
+    tier: core
+    retrieval:
+      method: bulk_download
+      endpoint: "https://www2.census.gov/geo/docs/reference/cenpop2020/block/CenPop2020_Mean_BLK{state_fips}.txt"
+      auth: none
+      rate_limit: "not applicable"
+    coverage:
+      geographic: "none"
+      temporal: "none"
+      historical_vintages_available: false
+      vintage_field: null
+      vintage_semantics: "not applicable"
+    schema:
+      join_keys: []
+      stable_keys: false
+      schema_version: null
+      expected_field_count: null
+    quality:
+      expected_row_count: [0, 0]
+      drift_tolerance: 0.0
+      expected_range_derivation: >-
+        Exact. The path returns HTTP 404. The CenPop2020 directory listing publishes
+        only county/, tract/ and blkgrp/.
+    license: "not applicable"
+    update_cadence: "not applicable"
+    fallback_source: census_tiger_blocks
+    used_by: [spatial_allocation, access]
+    backtest_eligible: false
+    known_limitations:
+      - >-
+        Probed specifically to establish absence. CLAUDE.md sections 7.5 and 7.6 call
+        for block-level population weights; no ready-made block-level
+        population-weighted centroid product exists. The constructible path is
+        census_tiger_blocks joined to census_pl94171_blocks. Recorded as assumption
+        A-0.6.
+
+  - id: census_pl94171_blocks
+    name: 2020 P.L. 94-171 redistricting file, block population
+    tier: core
+    retrieval:
+      method: bulk_download
+      endpoint: "https://www2.census.gov/programs-surveys/decennial/2020/data/01-Redistricting_File--PL_94-171/{State_Name}/{st}2020.pl.zip"
+      auth: none
+      rate_limit: "none advertised"
+    coverage:
+      geographic: "per state, block level"
+      temporal: "2020 decennial"
+      historical_vintages_available: false
+      vintage_field: null
+      vintage_semantics: "2020 decennial census counts"
+    schema:
+      join_keys: [GEOID]
+      stable_keys: true
+      schema_version: null
+      expected_field_count: null
+    quality:
+      expected_row_count: [1, 400000]
+      drift_tolerance: 0.20
+      expected_range_derivation: "Not measured; zipped fixed-width archive, reachability probe only."
+    license: "US Government work, public domain"
+    update_cadence: "decennial"
+    fallback_source: census_cenpop_blockgroup
+    used_by: [spatial_allocation, access]
+    backtest_eligible: false
+    known_limitations:
+      - "Keyless bulk path confirmed; the API path for the same data requires a key."
+      - "Subject to 2020 differential privacy noise injection at block level."
+
+  # ---- Energy, grid and equity ---------------------------------------------------
+
+  - id: nrel_home_charging
+    name: NREL county EV home charging access shares
+    tier: core
+    retrieval:
+      method: bulk_download
+      endpoint: "https://data.nlr.gov/system/files/278/1734741167-NREL_county_EV_home_charging_access.xlsx"
+      auth: none
+      rate_limit: "none advertised"
+    coverage:
+      geographic: "3,142 US counties"
+      temporal: "not a time series"
+      historical_vintages_available: false
+      vintage_field: "EV Share of Stock"
+      vintage_semantics: >-
+        NOT current values and NOT a single dated projection. The file is a parametric
+        scenario surface: 942,600 rows = 3,142 counties x 3 access scenarios
+        (baseline / low / high) x 100 EV-share-of-stock levels from 0.01 to 1.00.
+        Home Charging Access is a function of assumed fleet EV penetration, published
+        with the 2030 National Charging Network study.
+    schema:
+      join_keys: ["County FIPS"]
+      stable_keys: true
+      schema_version: null
+      expected_field_count: 6
+    quality:
+      expected_row_count: [942600, 942600]
+      drift_tolerance: 0.0
+      expected_range_derivation: >-
+        Exact, measured by parsing the workbook on 2026-08-19: 3,142 counties x 3
+        scenarios x 100 EV-share levels = 942,600 rows on the C-Data sheet.
+    license: "NREL Data Catalog terms; DOI 10.7799/2483609"
+    update_cadence: "static publication"
+    fallback_source: none
+    used_by: [home_charging_exploratory_index]
+    backtest_eligible: false
+    known_limitations:
+      - >-
+        Because the shares are not present-day values, CLAUDE.md section 7.2's
+        fallback path applies: home charging ships as a clearly labelled exploratory
+        index, is EXCLUDED from the primary siting objective function, and is exposed
+        only as a user-selectable weight with a sensitivity display.
+      - >-
+        The workbook declares the namespace http://purl.oclc.org/ooxml/spreadsheetml/main
+        rather than the standard schemas.openxmlformats.org namespace, so openpyxl
+        reports zero worksheets. It must be parsed from the underlying XML.
+      - "Median baseline home charging access falls from 0.991 at 1% EV share to 0.489 at 100%."
+
+  - id: eia_prices_api
+    name: EIA Open Data v2 API, electricity retail sales
+    tier: optional
+    retrieval:
+      method: rest_api
+      endpoint: "https://api.eia.gov/v2/electricity/retail-sales/data/"
+      auth: api_key_free
+      rate_limit: "not advertised; no anonymous access at all"
+    coverage:
+      geographic: "US states"
+      temporal: "monthly and annual series"
+      historical_vintages_available: true
+      vintage_field: "period"
+      vintage_semantics: "observed price for the named period"
+    schema:
+      join_keys: [stateid, period]
+      stable_keys: true
+      schema_version: null
+      expected_field_count: null
+    quality:
+      expected_row_count: [1, 1000000]
+      drift_tolerance: 0.20
+      expected_range_derivation: "Not established; the endpoint cannot be exercised without a key."
+    license: "US Government work, public domain"
+    update_cadence: "monthly"
+    fallback_source: eia_prices_bulk
+    used_by: [economics]
+    backtest_eligible: true
+    known_limitations:
+      - >-
+        Returns HTTP 403 with code API_KEY_MISSING for any request without a key.
+        There is no demo credential. Optional tier, so no Core model is blocked.
+
+  - id: eia_prices_bulk
+    name: EIA state average electricity price, bulk workbook
+    tier: optional
+    retrieval:
+      method: bulk_download
+      endpoint: "https://www.eia.gov/electricity/data/state/avgprice_annual.xlsx"
+      auth: none
+      rate_limit: "none advertised"
+    coverage:
+      geographic: "US states"
+      temporal: "annual series"
+      historical_vintages_available: true
+      vintage_field: "Year column"
+      vintage_semantics: "observed annual average price"
+    schema:
+      join_keys: [State, Year]
+      stable_keys: true
+      schema_version: null
+      expected_field_count: null
+    quality:
+      expected_row_count: [1, 100000]
+      drift_tolerance: 0.20
+      expected_range_derivation: "Not measured; workbook, reachability probe only (253,341 bytes)."
+    license: "US Government work, public domain"
+    update_cadence: "annual"
+    fallback_source: none
+    used_by: [economics]
+    backtest_eligible: true
+    known_limitations:
+      - "Keyless fallback for the Optional-tier economics model only."
+
+  - id: egrid
+    name: EPA eGRID 2023 (rev 2)
+    tier: optional
+    retrieval:
+      method: bulk_download
+      endpoint: "https://www.epa.gov/system/files/documents/2025-06/egrid2023_data_rev2.xlsx"
+      auth: none
+      rate_limit: "none advertised"
+    coverage:
+      geographic: "US, eGRID subregions"
+      temporal: "2023 data year"
+      historical_vintages_available: true
+      vintage_field: "data year in the filename"
+      vintage_semantics: "emissions and generation for the named data year"
+    schema:
+      join_keys: [SUBRGN]
+      stable_keys: true
+      schema_version: null
+      expected_field_count: null
+    quality:
+      expected_row_count: [1, 100000]
+      drift_tolerance: 0.20
+      expected_range_derivation: "Not measured; workbook, reachability probe only."
+    license: "US Government work, public domain"
+    update_cadence: "annual, with revisions"
+    fallback_source: none
+    used_by: []
+    backtest_eligible: true
+    known_limitations:
+      - >-
+        No model in CLAUDE.md section 7 consumes eGRID. It appears in the section 3
+        repository layout but has no declared downstream consumer. Recorded rather
+        than resolved; see the Phase 0 report open questions.
+      - "The URL embeds a revision date and changes between releases; it must be rediscovered."
+
+  - id: hifld_transmission_service
+    name: HIFLD electric power transmission lines, live feature service
+    tier: core
+    retrieval:
+      method: rest_api
+      endpoint: "https://services1.arcgis.com/Hp6G80Pky0om7QvQ/arcgis/rest/services/Electric_Power_Transmission_Lines/FeatureServer/0"
+      auth: none
+      rate_limit: "maxRecordCount 2000 per query; no throttling observed"
+    coverage:
+      geographic: "US"
+      temporal: "current"
+      historical_vintages_available: false
+      vintage_field: null
+      vintage_semantics: "current published network"
+    schema:
+      join_keys: [OBJECTID, ID]
+      stable_keys: true
+      schema_version: db221bb99bcc9699
+      expected_field_count: 93
+    quality:
+      expected_row_count: [1, 1]
+      drift_tolerance: 0.0
+      expected_range_derivation: "Exact. The layer metadata endpoint returns a single object."
+    license: "HIFLD Open; public"
+    update_cadence: "irregular"
+    fallback_source: seed_hifld_transmission_lines
+    used_by: [grid_proximity_display]
+    backtest_eligible: false
+    known_limitations:
+      - >-
+        The live service holds 52,244 features while the delivered seed GeoJSON holds
+        94,216. The two are not the same extract and the reason is not documented by
+        the publisher. Recorded as assumption A-0.8.
+      - "Must be tiled; never loaded as GeoJSON in a browser (domain rule G12)."
+
+  - id: hifld_transmission_count
+    name: HIFLD transmission lines, live feature count
+    tier: core
+    retrieval:
+      method: rest_api
+      endpoint: "https://services1.arcgis.com/Hp6G80Pky0om7QvQ/arcgis/rest/services/Electric_Power_Transmission_Lines/FeatureServer/0/query"
+      auth: none
+      rate_limit: "no throttling observed"
+    coverage:
+      geographic: "US"
+      temporal: "current"
+      historical_vintages_available: false
+      vintage_field: null
+      vintage_semantics: "current published network"
+    schema:
+      join_keys: []
+      stable_keys: true
+      schema_version: fc8309b768fd7aa2
+      expected_field_count: 2
+    quality:
+      expected_row_count: [1, 1]
+      drift_tolerance: 0.0
+      expected_range_derivation: "Exact. returnCountOnly returns a single object."
+    license: "HIFLD Open; public"
+    update_cadence: "irregular"
+    fallback_source: none
+    used_by: [source_verification]
+    backtest_eligible: false
+    known_limitations:
+      - "Observed count on 2026-08-19: 52,244 features."
+
+  - id: hifld_substations
+    name: HIFLD electric power substations (no national layer located)
+    tier: core
+    retrieval:
+      method: rest_api
+      endpoint: "https://services.arcgis.com/G4S1dGvn7PIgYd6Y/ArcGIS/rest/services/HIFLD_electric_power_substations/FeatureServer/0"
+      auth: none
+      rate_limit: "no throttling observed"
+    coverage:
+      geographic: "unknown; not national"
+      temporal: "unknown"
+      historical_vintages_available: false
+      vintage_field: null
+      vintage_semantics: "unknown"
+    schema:
+      join_keys: [OBJECTID]
+      stable_keys: false
+      schema_version: 4c32b1860f360efd
+      expected_field_count: 85
+    quality:
+      expected_row_count: [1, 1]
+      drift_tolerance: 0.0
+      expected_range_derivation: >-
+        Exact. This spec probes the ArcGIS layer metadata endpoint, which returns a
+        single object; the row count is therefore always 1 and says nothing about
+        national coverage. The substantive expectation - that a national HIFLD
+        substation layer holds on the order of 55,000 to 80,000 features - is not
+        expressible as a row count here. It is enforced instead by the regression
+        test tests/regression/test_source_findings.py::test_hifld_substations_service_is_not_national,
+        which asserts the observed feature count is far below national scale.
+    license: "unknown; the HIFLD Open hub page returns HTTP 404"
+    update_cadence: "unknown"
+    fallback_source: hifld_transmission_service
+    used_by: [candidate_filtering, grid_proximity]
+    backtest_eligible: false
+    known_limitations:
+      - >-
+        DEGRADED. No national HIFLD substation layer was located. The HIFLD ArcGIS
+        organisation (Hp6G80Pky0om7QvQ, 526 services) publishes
+        Electric_Power_Transmission_Lines but no substation layer; the EIA Atlas
+        organisation (79 services) has none either; hifld-geoplatform.hub.arcgis.com
+        returns HTTP 404; an ArcGIS Online title search returned no authoritative
+        match. The best candidate found holds 128 features.
+      - >-
+        This blocks CLAUDE.md section 7.8 candidate filtering ("within a configured
+        distance of a substation") and section 7.9 grid proximity as specified. See
+        assumption A-0.9 and the Phase 0 report.
+      - >-
+        No substitute is silently used (directive D8). The fallback recorded here,
+        transmission-line proximity, is a weaker proxy still and would require the
+        section 7.9 / D6 language caveats to be strengthened, not relaxed.
+
+  - id: hifld_substations_count
+    name: HIFLD substations candidate service, feature count
+    tier: core
+    retrieval:
+      method: rest_api
+      endpoint: "https://services.arcgis.com/G4S1dGvn7PIgYd6Y/ArcGIS/rest/services/HIFLD_electric_power_substations/FeatureServer/0/query"
+      auth: none
+      rate_limit: "no throttling observed"
+    coverage:
+      geographic: "unknown; not national"
+      temporal: "unknown"
+      historical_vintages_available: false
+      vintage_field: null
+      vintage_semantics: "unknown"
+    schema:
+      join_keys: []
+      stable_keys: true
+      schema_version: 7999983afe209055
+      expected_field_count: 1
+    quality:
+      expected_row_count: [1, 1]
+      drift_tolerance: 0.0
+      expected_range_derivation: "Exact. returnCountOnly returns a single object."
+    license: "unknown"
+    update_cadence: "unknown"
+    fallback_source: none
+    used_by: [source_verification]
+    backtest_eligible: false
+    known_limitations:
+      - >-
+        Observed count on 2026-08-19: 128 features. This is the evidence that the
+        service is not a national substation layer.
+
+  - id: cejst_archive
+    name: CEJST v2.0 disadvantaged communities, archived
+    tier: core
+    retrieval:
+      method: bulk_download
+      endpoint: "https://web.archive.org/web/2024/https://static-data-screeningtool.geoplatform.gov/data-versions/2.0/data/score/downloadable/2.0-communities.csv"
+      auth: none
+      rate_limit: "Internet Archive fair use; no documented limit"
+    coverage:
+      geographic: "US census tracts"
+      temporal: "CEJST version 2.0"
+      historical_vintages_available: false
+      vintage_field: null
+      vintage_semantics: >-
+        Archived historical policy classification. Executive Order 14008, which
+        established Justice40, was revoked on 20 January 2025.
+    schema:
+      join_keys: ["Census tract 2010 ID"]
+      stable_keys: true
+      schema_version: 01c262d2caee61df
+      expected_field_count: 136
+    quality:
+      expected_row_count: [75, 115]
+      drift_tolerance: 0.20
+      expected_range_derivation: >-
+        Provisional, bounded sample only. 92 rows decoded from the first 65,536 bytes
+        on 2026-08-19; the file is 45,316,831 bytes in full and covers roughly 74,000
+        tracts.
+    license: "US Government work, public domain (archived copy served by the Internet Archive)"
+    update_cadence: "none; the source is retired"
+    fallback_source: none
+    used_by: [equity_archived_overlay]
+    backtest_eligible: false
+    known_limitations:
+      - >-
+        The live host no longer resolves: neither screeningtool.geoplatform.gov nor
+        static-data-screeningtool.geoplatform.gov has a DNS record. The Internet
+        Archive is the only retrieval path found.
+      - >-
+        Per CLAUDE.md section 8 this may only be shown as an archived historical
+        equity classification, labelled with its vintage, and the UI must state that
+        it reflects a policy framework no longer in force. The primary equity measure
+        is built from current ACS-derived indicators instead.
+      - "Keyed on 2010 tract IDs, which do not align with 2020 tract boundaries."
+      - >-
+        Dependence on a third-party archive is a single point of failure. A local
+        mirrored copy should be taken before Phase 6.
+
+  - id: fhwa_traffic
+    name: FHWA Highway Performance Monitoring System
+    tier: extension
+    retrieval:
+      method: scrape
+      endpoint: "https://www.fhwa.dot.gov/policyinformation/hpms.cfm"
+      auth: none
+      rate_limit: "none advertised"
+    coverage:
+      geographic: "US"
+      temporal: "annual submissions"
+      historical_vintages_available: true
+      vintage_field: "data year"
+      vintage_semantics: "reported traffic for the named data year"
+    schema:
+      join_keys: []
+      stable_keys: false
+      schema_version: null
+      expected_field_count: null
+    quality:
+      expected_row_count: [1, 10000000]
+      drift_tolerance: 0.20
+      expected_range_derivation: >-
+        Not established. Only the landing page was probed; no stable direct data URL
+        was identified in Phase 0.
+    license: "US Government work, public domain"
+    update_cadence: "annual"
+    fallback_source: none
+    used_by: [deployment_alignment]
+    backtest_eligible: true
+    known_limitations:
+      - >-
+        Landing page reachable, but no machine-retrievable dataset endpoint was
+        established. Traffic is named in CLAUDE.md section 10.2.3 as part of the
+        reduced backtest feature set, so this must be resolved before Phase 5.
+
+  # ---- Washington (tract-granularity registrations) ------------------------------
+
+  - id: wa_ev_population
+    name: Washington State EV population (Socrata)
+    tier: core
+    retrieval:
+      method: rest_api
+      endpoint: "https://data.wa.gov/resource/f6w7-q2d2.json"
+      auth: none
+      rate_limit: "Socrata unthrottled without an app token; a free token raises limits"
+    coverage:
+      geographic: "Washington State"
+      temporal: "current snapshot"
+      historical_vintages_available: false
+      vintage_field: null
+      vintage_semantics: "currently registered vehicles as of the last DOL refresh"
+    schema:
+      join_keys: [dol_vehicle_id, _2020_census_tract]
+      stable_keys: true
+      schema_version: cb03bd40902db894
+      expected_field_count: 19
+      granularity: tract
+    quality:
+      expected_row_count: [160, 240]
+      drift_tolerance: 0.20
+      expected_range_derivation: >-
+        Provisional, bounded sample only ($limit=200). The full dataset held 294,193
+        vehicle rows when counted via the Socrata count query on 2026-08-19.
+    license: "Open Data Commons Open Database License"
+    update_cadence: "monthly"
+    fallback_source: none
+    used_by: [demand_model, demand_validation, uncertainty_tiering]
+    backtest_eligible: false
+    known_limitations:
+      - >-
+        The only sub-state registration source found at CENSUS TRACT granularity
+        (_2020_census_tract). Every other state is ZIP or county.
+      - >-
+        A current snapshot with no registration-date field, so it yields no historical
+        vintages and cannot be used at a backtest cutoff.
+      - "Vehicle-grain rows; one row is one vehicle, so rows are counted, not summed."
+
+  - id: wa_ev_population_meta
+    name: Washington State EV population, Socrata metadata
+    tier: core
+    retrieval:
+      method: rest_api
+      endpoint: "https://data.wa.gov/api/views/f6w7-q2d2.json"
+      auth: none
+      rate_limit: "none observed"
+    coverage:
+      geographic: "Washington State"
+      temporal: "current"
+      historical_vintages_available: false
+      vintage_field: "rowsUpdatedAt"
+      vintage_semantics: "epoch timestamp of the last row update"
+    schema:
+      join_keys: []
+      stable_keys: true
+      schema_version: a07408415ff26716
+      expected_field_count: 42
+    quality:
+      expected_row_count: [1, 1]
+      drift_tolerance: 0.0
+      expected_range_derivation: "Exact. Returns a single metadata object."
+    license: "Open Data Commons Open Database License"
+    update_cadence: "monthly"
+    fallback_source: none
+    used_by: [source_verification]
+    backtest_eligible: false
+    known_limitations:
+      - "Supplies the license and column list used to populate wa_ev_population."
+
+  # ---- Delivered seed files (frozen fixtures) ------------------------------------
+
+  - id: seed_afdc_stations_national_20241211
+    name: AFDC national stations snapshot, 11 Dec 2024
+    <<: *seed_frozen
+    coverage:
+      geographic: "as delivered; see data/seed/SEED_INVENTORY.md"
+      temporal: "frozen snapshot as delivered"
+      historical_vintages_available: false
+      vintage_field: null
+      vintage_semantics: "frozen fixture; the bytes never change"
+    schema:
+      join_keys: [ID]
+      stable_keys: true
+      schema_version: f6860736f1304654
+      expected_field_count: 75
+    quality:
+      expected_row_count: [79618, 79618]
+      drift_tolerance: 0.0
+      expected_range_derivation: >-
+        Exact and frozen. 79618 data rows measured from the delivered file, whose
+        SHA-256 is recorded in data/seed/SEED_INVENTORY.md. Per the approved Phase 0
+        decision, frozen fixture expectations never drift with the live source.
+    license: "as delivered; provenance recorded in data/seed/SEED_INVENTORY.md"
+    fallback_source: none
+    used_by: ['supply', 'access', 'deployment_alignment', 'regression_tests']
+    known_limitations:
+      - >-
+        Frozen regression fixture for domain rules G1, G2, G3, G4, G10, G11, G14.
+      - >-
+        Measured composition: Status Code E 73,972 / T 5,217 / P 429; Access Code public 74,956 / private 4,662; ports L1 3,018 + L2 173,892 + DCFC 51,752 = 228,662; 1,756 exact coordinate-duplicate rows; 455 null Open Date.
+      - >-
+        EV Connector Types is a space-delimited concatenated string, not a normalised field (G14).
+      - >-
+        79,618 station records represent 228,662 ports: counting records as capacity understates supply roughly threefold and unevenly across states (G1).
+
+  - id: seed_afdc_stations_mn_20241210
+    name: AFDC Minnesota stations extract, 10 Dec 2024
+    <<: *seed_frozen
+    coverage:
+      geographic: "as delivered; see data/seed/SEED_INVENTORY.md"
+      temporal: "frozen snapshot as delivered"
+      historical_vintages_available: false
+      vintage_field: null
+      vintage_semantics: "frozen fixture; the bytes never change"
+    schema:
+      join_keys: [ID]
+      stable_keys: true
+      schema_version: f6860736f1304654
+      expected_field_count: 75
+    quality:
+      expected_row_count: [985, 985]
+      drift_tolerance: 0.0
+      expected_range_derivation: >-
+        Exact and frozen. 985 data rows measured from the delivered file, whose
+        SHA-256 is recorded in data/seed/SEED_INVENTORY.md. Per the approved Phase 0
+        decision, frozen fixture expectations never drift with the live source.
+    license: "as delivered; provenance recorded in data/seed/SEED_INVENTORY.md"
+    fallback_source: none
+    used_by: ['supply', 'integration_tests']
+    known_limitations:
+      - >-
+        Identical 75-column schema to the national file (same schema hash).
+      - >-
+        Two-state integration fixture per CLAUDE.md section 14.
+
+  - id: seed_state_ev_registrations
+    name: State EV registration counts (dated to the 2023 AFDC vintage in Phase 0)
+    <<: *seed_frozen
+    coverage:
+      geographic: "as delivered; see data/seed/SEED_INVENTORY.md"
+      temporal: "frozen snapshot as delivered"
+      historical_vintages_available: false
+      vintage_field: null
+      vintage_semantics: "frozen fixture; the bytes never change"
+    schema:
+      join_keys: [State]
+      stable_keys: true
+      schema_version: 26aff9b55ac10513
+      expected_field_count: 2
+    quality:
+      expected_row_count: [52, 52]
+      drift_tolerance: 0.0
+      expected_range_derivation: >-
+        Exact and frozen. 52 data rows measured from the delivered file, whose
+        SHA-256 is recorded in data/seed/SEED_INVENTORY.md. Per the approved Phase 0
+        decision, frozen fixture expectations never drift with the live source.
+    license: "as delivered; provenance recorded in data/seed/SEED_INVENTORY.md"
+    fallback_source: none
+    used_by: ['demand_reconciliation', 'regression_tests']
+    known_limitations:
+      - >-
+        Stock, not sales. Never labelled EV sales (G8).
+      - >-
+        Contains a Total row (3,555,445) that equals the sum of the 51 jurisdiction rows exactly and must be excluded before aggregation (G8).
+      - >-
+        Delivered undated. Phase 0 dated it: rounding every value half-up to the nearest 100 reproduces the AFDC 2023 vintage table for 51 of 51 jurisdictions.
+      - >-
+        CLAUDE.md domain rule G9 states Oregon reports 6,436. The delivered file records Oregon at 64,361. See docs/reports/PLAN_CHANGE_0.md.
+
+  - id: seed_mn_county_ev_registrations
+    name: Minnesota county EV registrations
+    <<: *seed_frozen
+    coverage:
+      geographic: "as delivered; see data/seed/SEED_INVENTORY.md"
+      temporal: "frozen snapshot as delivered"
+      historical_vintages_available: false
+      vintage_field: null
+      vintage_semantics: "frozen fixture; the bytes never change"
+    schema:
+      join_keys: [county]
+      stable_keys: true
+      schema_version: 68213b5134d110eb
+      expected_field_count: 2
+    quality:
+      expected_row_count: [87, 87]
+      drift_tolerance: 0.0
+      expected_range_derivation: >-
+        Exact and frozen. 87 data rows measured from the delivered file, whose
+        SHA-256 is recorded in data/seed/SEED_INVENTORY.md. Per the approved Phase 0
+        decision, frozen fixture expectations never drift with the live source.
+    license: "as delivered; provenance recorded in data/seed/SEED_INVENTORY.md"
+    fallback_source: none
+    used_by: ['demand_model', 'regression_tests']
+    known_limitations:
+      - >-
+        Single point in time; no vintage field.
+      - >-
+        County names must be joined via FIPS, never by name, because names collide across states (G13).
+      - >-
+        Contains blank values.
+
+  - id: seed_il_county_ev_monthly_panel
+    name: Illinois monthly county EV panel, 2017-11 to 2024-11
+    <<: *seed_frozen
+    coverage:
+      geographic: "as delivered; see data/seed/SEED_INVENTORY.md"
+      temporal: "frozen snapshot as delivered"
+      historical_vintages_available: false
+      vintage_field: null
+      vintage_semantics: "frozen fixture; the bytes never change"
+    schema:
+      join_keys: ["Month-Year"]
+      stable_keys: true
+      schema_version: a62f1991b3e86589
+      expected_field_count: 106
+    quality:
+      expected_row_count: [84, 84]
+      drift_tolerance: 0.0
+      expected_range_derivation: >-
+        Exact and frozen. 84 data rows measured from the delivered file, whose
+        SHA-256 is recorded in data/seed/SEED_INVENTORY.md. Per the approved Phase 0
+        decision, frozen fixture expectations never drift with the live source.
+    license: "as delivered; provenance recorded in data/seed/SEED_INVENTORY.md"
+    fallback_source: none
+    used_by: ['forecast', 'demand_model', 'regression_tests']
+    known_limitations:
+      - >-
+        Wide format: one column per county, 84 monthly rows.
+      - >-
+        Trailing columns Chicago, Unknown County and Total Count are not counties and must be excluded from county aggregations.
+      - >-
+        The longest sub-state EV time series in the delivered set; basis for the Extension-tier forecast bakeoff (CLAUDE.md section 7.10).
+      - >-
+        County names require FIPS resolution before joining (G13).
+
+  - id: seed_il_stations
+    name: Illinois charging stations
+    <<: *seed_frozen
+    coverage:
+      geographic: "as delivered; see data/seed/SEED_INVENTORY.md"
+      temporal: "frozen snapshot as delivered"
+      historical_vintages_available: false
+      vintage_field: null
+      vintage_semantics: "frozen fixture; the bytes never change"
+    schema:
+      join_keys: ["Station Name", Latitude, Longitude]
+      stable_keys: false
+      schema_version: 40bfaa7adfa315cb
+      expected_field_count: 13
+    quality:
+      expected_row_count: [1626, 1626]
+      drift_tolerance: 0.0
+      expected_range_derivation: >-
+        Exact and frozen. 1626 data rows measured from the delivered file, whose
+        SHA-256 is recorded in data/seed/SEED_INVENTORY.md. Per the approved Phase 0
+        decision, frozen fixture expectations never drift with the live source.
+    license: "as delivered; provenance recorded in data/seed/SEED_INVENTORY.md"
+    fallback_source: none
+    used_by: ['supply', 'regression_tests']
+    known_limitations:
+      - >-
+        Reduced column set relative to the 75-column AFDC schema.
+      - >-
+        Status Code filtering still applies (G2).
+
+  - id: seed_mn_stations_simplified
+    name: Minnesota charging stations, simplified
+    <<: *seed_frozen
+    coverage:
+      geographic: "as delivered; see data/seed/SEED_INVENTORY.md"
+      temporal: "frozen snapshot as delivered"
+      historical_vintages_available: false
+      vintage_field: null
+      vintage_semantics: "frozen fixture; the bytes never change"
+    schema:
+      join_keys: []
+      stable_keys: true
+      schema_version: 8f995b3355a6d8a9
+      expected_field_count: 6
+    quality:
+      expected_row_count: [985, 985]
+      drift_tolerance: 0.0
+      expected_range_derivation: >-
+        Exact and frozen. 985 data rows measured from the delivered file, whose
+        SHA-256 is recorded in data/seed/SEED_INVENTORY.md. Per the approved Phase 0
+        decision, frozen fixture expectations never drift with the live source.
+    license: "as delivered; provenance recorded in data/seed/SEED_INVENTORY.md"
+    fallback_source: none
+    used_by: ['regression_tests']
+    known_limitations:
+      - >-
+        Six columns only; overlaps seed_afdc_stations_mn_20241210 row for row (985 each).
+      - >-
+        Redundant with the fuller Minnesota extract; retained for provenance.
+
+  - id: seed_iea_global_ev_2024
+    name: IEA Global EV Data 2024
+    <<: *seed_frozen
+    coverage:
+      geographic: "as delivered; see data/seed/SEED_INVENTORY.md"
+      temporal: "frozen snapshot as delivered"
+      historical_vintages_available: false
+      vintage_field: null
+      vintage_semantics: "frozen fixture; the bytes never change"
+    schema:
+      join_keys: [region, category, parameter, mode, powertrain, year]
+      stable_keys: true
+      schema_version: 1db2dd3c19cb368d
+      expected_field_count: 8
+    quality:
+      expected_row_count: [12654, 12654]
+      drift_tolerance: 0.0
+      expected_range_derivation: >-
+        Exact and frozen. 12654 data rows measured from the delivered file, whose
+        SHA-256 is recorded in data/seed/SEED_INVENTORY.md. Per the approved Phase 0
+        decision, frozen fixture expectations never drift with the live source.
+    license: "as delivered; provenance recorded in data/seed/SEED_INVENTORY.md"
+    fallback_source: none
+    used_by: ['context_only', 'regression_tests']
+    known_limitations:
+      - >-
+        category has three values for the USA: Historical, Projection-STEPS, Projection-APS. STEPS and APS are ALTERNATIVE SCENARIOS; summing them double counts (G5). Summed, USA 2035 EV sales reach 25,559,900, which exceeds total annual US light vehicle sales and is not a real figure.
+      - >-
+        USA projection years are only 2025, 2030 and 2035. Do not interpolate silently (G6).
+      - >-
+        mode has four values (Cars, Buses, Trucks, Vans); stacking all four is valid only when total fleet is the intent (G7).
+      - >-
+        Any query touching IEA projections must filter category explicitly.
+
+  - id: seed_ev_model_launch
+    name: EV model specifications with launch year
+    <<: *seed_frozen
+    coverage:
+      geographic: "as delivered; see data/seed/SEED_INVENTORY.md"
+      temporal: "frozen snapshot as delivered"
+      historical_vintages_available: false
+      vintage_field: null
+      vintage_semantics: "frozen fixture; the bytes never change"
+    schema:
+      join_keys: []
+      stable_keys: true
+      schema_version: 590fc0f6dc632e91
+      expected_field_count: 9
+    quality:
+      expected_row_count: [91, 91]
+      drift_tolerance: 0.0
+      expected_range_derivation: >-
+        Exact and frozen. 91 data rows measured from the delivered file, whose
+        SHA-256 is recorded in data/seed/SEED_INVENTORY.md. Per the approved Phase 0
+        decision, frozen fixture expectations never drift with the live source.
+    license: "as delivered; provenance recorded in data/seed/SEED_INVENTORY.md"
+    fallback_source: none
+    used_by: ['context_only']
+    known_limitations:
+      - >-
+        Currency fields are strings containing $ and thousands separators; parsing only.
+      - >-
+        data/seed/MANIFEST.md states 90 data rows; the delivered file parses to 91. Recorded as a documentation discrepancy, not a data fault.
+
+  - id: seed_hifld_transmission_lines
+    name: HIFLD electric power transmission lines, delivered GeoJSON
+    <<: *seed_frozen
+    coverage:
+      geographic: "US"
+      temporal: "frozen snapshot as delivered"
+      historical_vintages_available: false
+      vintage_field: null
+      vintage_semantics: "frozen fixture; the bytes never change"
+    schema:
+      join_keys: [OBJECTID, ID]
+      stable_keys: true
+      schema_version: 589c394faae8811b
+      expected_field_count: 19
+    quality:
+      expected_row_count: [200, 200]
+      drift_tolerance: 0.0
+      expected_range_derivation: >-
+        Exact, for the bounded streamed sample of 200 features that the probe reads.
+        The full file holds 94,216 features, counted by streaming grep, and is
+        144,115,564 bytes.
+    license: "as delivered; provenance recorded in data/seed/SEED_INVENTORY.md"
+    fallback_source: hifld_transmission_service
+    used_by: [grid_proximity_display, regression_tests]
+    known_limitations:
+      - >-
+        137 MiB. Excluded from version control; its SHA-256 is recorded in
+        data/seed/SEED_INVENTORY.md so the file stays verifiable.
+      - >-
+        Must be filtered by voltage and tiled. It is never loaded as GeoJSON in a
+        browser, and the probe never parses it as a single object; it is read as a
+        stream (domain rule G12).
+      - >-
+        94,216 features here against 52,244 in the live HIFLD service. The two
+        extracts do not agree and the publisher does not document why.
+
+
+# --------------------------------------------------------------------------------
+# Phase 0 research findings
+#
+# These are conclusions no unit test can prove true, because their truth lives
+# outside this repository. Each therefore carries a resolved value, the URL it came
+# from, when it was retrieved, a supporting quote, and the SHA-256 of a cached
+# evidence artifact under docs/evidence/, so the claim stays auditable if the source
+# page later changes. The executable gate verifies resolution-with-evidence, never
+# external truth.
+# --------------------------------------------------------------------------------
+
+findings:
+
+  - id: F-1
+    question: >-
+      Does the AFDC charging units endpoint expose per-connector power_kw and
+      port_count, and what is the measured missingness of each?
+    resolved_value: >-
+      YES to both, with per-connector granularity. The endpoint returns one row per
+      charging unit with paired columns for five connector standards: 'EV
+      {J1772|CCS|CHAdeMO|J3400|J3271} Connector Count' and 'EV {..} Power Output (kW)'.
+      Connector counts are effectively complete (0.004% missing over 292,435 national
+      unit rows). Power is present conditional on the connector existing at, port-
+      weighted and nationally, 82.76% overall and 88.11% on the public + operational
+      subset (Status Code = E and Access Code = public), which is the subset the supply
+      model uses. Per connector, port-weighted: CCS 99.93%, CHAdeMO 99.86%, J1772
+      81.36%, J3400 73.35%, J3271 100.00%. Rung-1 coverage is therefore far above the
+      40% threshold in CLAUDE.md section 7.1, so no prominent LIMITATIONS.md entry is
+      triggered on that ground.
+    evidence_url: "https://developer.nlr.gov/docs/transportation/alt-fuel-stations-v1/ev-charging-units/"
+    retrieved_at: "2026-08-19T00:00:00Z"
+    evidence_quote: >-
+      Each row in the spreadsheet represents an EV charging unit that might have one or
+      more ports and one or more connectors.
+    evidence_artifact: "docs/evidence/F-1_afdc_connector_power_coverage.json"
+    evidence_sha256: "69f46b7ddd5aa8ecbeac87ac16c32456f892e552d99afec86f3e90f22b3e6b24"
+
+  - id: F-2
+    question: >-
+      Are the NREL county home charging access shares current values or 2030 scenario
+      projections?
+    resolved_value: >-
+      NEITHER, and the distinction matters. They are a parametric scenario surface, not
+      a dated observation: 942,600 rows = 3,142 counties x 3 access scenarios (baseline
+      / low / high) x 100 levels of an 'EV Share of Stock' parameter running 0.01 to
+      1.00. Home Charging Access is published as a function of assumed fleet EV
+      penetration, from the 2030 National Charging Network study (Wood et al. 2023),
+      modelled on Ge et al. (2021). Because they are not present-day values, CLAUDE.md
+      section 7.2's fallback path applies: home charging access ships as a clearly
+      labelled exploratory index, is EXCLUDED from the primary siting objective
+      function, and is exposed only as a user-selectable weight with a sensitivity
+      display.
+    evidence_url: "https://data.nlr.gov/submissions/278"
+    retrieved_at: "2026-08-19T00:00:00Z"
+    evidence_quote: >-
+      Modeled county-level home electric vehicle (EV) charging access shares from the
+      study, 'The 2030 National Charging Network: Estimating U.S. Light-Duty Demand for
+      Electric Vehicle Charging Infrastructure' by Wood et al. (2023).
+    evidence_artifact: "docs/evidence/F-2_nrel_home_charging_semantics.txt"
+    evidence_sha256: "a11035f49567ca4b1d40c3c3387e2a5d3d08073df00434a5a05ff65b8be0e5f1"
+
+  - id: F-3
+    question: >-
+      Do historical state-level EV registration vintages exist anywhere obtainable?
+    resolved_value: >-
+      YES, at both state and sub-state level, and no login is required for either. State
+      level: AFDC publishes ten annual vintages, 2016 through 2025, one HTML table per
+      year at afdc.energy.gov/vehicle-registration?year={year}, each with 51
+      jurisdictions plus a 'United States' total row. Counts are rounded to the nearest
+      100 and derive from Experian VIN data. Sub-state level: the Atlas EV Hub state DMV
+      exports carry a repeated 'DMV Snapshot (Date)' series alongside per-vehicle
+      'Registration Date', the earliest snapshot observed being 2017-12-31 for New
+      Jersey. Consequence for CLAUDE.md section 10.2.3: the reconciliation constraint
+      CAN be applied at the 2020, 2021 and 2022 backtest cutoffs, so the unconstrained-
+      propensity fallback described there is NOT triggered. A secondary result: the
+      delivered, undated seed file data/seed/EV_Registration_Counts_by_State.csv was
+      dated to the 2023 vintage, because rounding its values half-up to the nearest 100
+      reproduces the AFDC 2023 table for 51 of 51 jurisdictions (0 of 51 against 2022 or
+      2024).
+    evidence_url: "https://afdc.energy.gov/vehicle-registration"
+    retrieved_at: "2026-08-19T00:00:00Z"
+    evidence_quote: >-
+      Counts are rounded to the closest 100 vehicles and reflect the total number of
+      light-duty registered vehicles through the selected year. Fuel types are based on
+      vehicle identification numbers (VINs).
+    evidence_artifact: "docs/evidence/F-3_state_registration_vintages.json"
+    evidence_sha256: "dcbe5ab961afaebe2b30e05d449776dd6bc8312a9c65efae9e15afe248685951"
+
+  - id: F-4
+    question: >-
+      Exactly which states have usable open sub-state EV registration data, at what
+      granularity, and over what time period?
+    resolved_value: >-
+      Sixteen distinct states, from three independent sources, none login-gated. (1)
+      Atlas EV Hub publishes 14 states with a uniform 13-column vehicle-grain schema:
+      ZIP Code granularity for CO, CT, ME, MN, NC, NJ, NM, NY, OR, TX, VT (11 states)
+      and County granularity for MT, TN, VA (3 states). Every file carries Registration
+      Date, Vehicle Count, DMV Snapshot ID, DMV Snapshot (Date) and Latest DMV Snapshot
+      Flag, so both current and historical vintages are reconstructable. File sizes run
+      3.9 MB (MT) to 1.3 GB (NY). (2) Washington State publishes 294,193 vehicle rows on
+      Socrata carrying _2020_census_tract, the ONLY census-tract-granularity
+      registration source found, but as a current snapshot with no registration date, so
+      it yields no historical vintages. (3) The delivered seed files add Illinois
+      (county, 84 monthly observations 2017-11 to 2024-11) and Minnesota (county, single
+      snapshot); Minnesota also appears in Atlas at ZIP grain. Bearing on later phases:
+      11 of the 16 need a ZIP-to-tract crosswalk before they can be used at tract grain,
+      and only Washington is natively tract-level.
+    evidence_url: "https://www.atlasevhub.com/materials/state-ev-registration-data/"
+    retrieved_at: "2026-08-19T00:00:00Z"
+    evidence_quote: >-
+      Datasets should be updated on as frequent a basis as possible, ideally monthly or
+      quarterly.
+    evidence_artifact: "docs/evidence/F-4_tier_a_states.json"
+    evidence_sha256: "11c1a5231b2baac1085cfc2b733f3e8b3ef6484c648193d5b636aacfeede42e5"
+
+  - id: F-5
+    question: >-
+      Is the NREL developer API host named in the delivered SETUP.md still valid?
+    resolved_value: >-
+      NO. developer.nrel.gov has no DNS A record from any resolver tested and the NREL
+      developer network has moved to developer.nlr.gov, the old domain having been
+      retired on 29 May 2026. The replacement host serves the same v1 API paths and was
+      verified live with DEMO_KEY (HTTP 200, total_results 89,685 electric station
+      records, 292,399 ports). SETUP.md section 3 directs the operator to
+      developer.nrel.gov/signup for the free key; that URL no longer resolves and keys
+      must be obtained from developer.nlr.gov. This is a correction to delivered project
+      material, not a specification change.
+    evidence_url: "https://developer.nlr.gov/docs/transportation/alt-fuel-stations-v1/"
+    retrieved_at: "2026-08-19T00:00:00Z"
+    evidence_quote: >-
+      Update any developer.nrel.gov references in your code to developer.nlr.gov; the
+      developer.nrel.gov domain was retired on May 29, 2026.
+    evidence_artifact: "docs/evidence/F-5_nlr_host_migration.txt"
+    evidence_sha256: "a4cd4dd7316a0659d3f00e8916ed93eb514f024b0ae9c40322e0eec0089acee8"
+
+  - id: F-6
+    question: >-
+      Is CEJST retrievable, and in what status?
+    resolved_value: >-
+      The live host is gone and an archived copy is retrievable. Neither
+      screeningtool.geoplatform.gov nor static-data-screeningtool.geoplatform.gov has a
+      DNS record. The CEJST v2.0 communities CSV (45,316,831 bytes, 136 columns) was
+      retrieved successfully through the Internet Archive. This is consistent with
+      CLAUDE.md section 8: Executive Order 14008 was revoked on 20 January 2025, so
+      CEJST may appear only as an archived historical equity classification, vintage-
+      labelled, with the UI stating the framework is no longer in force. Dependence on a
+      third-party archive is a single point of failure and a local mirror should be
+      taken before Phase 6.
+    evidence_url: "https://web.archive.org/web/2024/https://static-data-screeningtool.geoplatform.gov/data-versions/2.0/data/score/downloadable/2.0-communities.csv"
+    retrieved_at: "2026-08-19T00:00:00Z"
+    evidence_quote: >-
+      HTTP 200, 45,316,831 bytes, CSV with 136 columns retrieved from the Internet
+      Archive; both live hostnames return no DNS record.
+    evidence_artifact: "docs/evidence/F-6_cejst_offline.txt"
+    evidence_sha256: "821acf320f77d7193c5c0500a2d8e321e61a5cde6800f5e7838f2ec74f666dcb"
+
+  - id: F-7
+    question: >-
+      Are block-level population-weighted centroids available, as CLAUDE.md sections 7.5
+      and 7.6 assume?
+    resolved_value: >-
+      NO ready-made product exists at block level; the finest published is block group.
+      The CenPop2020 directory publishes only county/, tract/ and blkgrp/, and the block
+      path returns HTTP 404. Genuine block-level population weighting is still
+      constructible and still free: TIGER/Line tl_{year}_{ss}_tabblock20.zip supplies
+      block geometry with INTPTLAT/INTPTLON, and the 2020 P.L. 94-171 redistricting file
+      supplies block population, both verified reachable without a key. Section 7.5
+      permits 'population-weighted centroids OR block-level allocation' while section
+      7.6 requires 'block-level population weights'; which path is taken is a Phase 2
+      decision, recorded here so it is made on evidence rather than assumed.
+    evidence_url: "https://www2.census.gov/geo/docs/reference/cenpop2020/"
+    retrieved_at: "2026-08-19T00:00:00Z"
+    evidence_quote: >-
+      Directory listing publishes blkgrp/, county/ and tract/ only; https://www2.census.
+      gov/geo/docs/reference/cenpop2020/block/CenPop2020_Mean_BLK27.txt returns HTTP
+      404.
+    evidence_artifact: "docs/evidence/F-7_no_block_population_centroids.txt"
+    evidence_sha256: "24cf97b163956fd4e50217286075777ebfc7119035e05bf585f9e7a28eb9eead"
+
+  - id: F-8
+    question: >-
+      Is a national HIFLD electric substation layer obtainable?
+    resolved_value: >-
+      NOT FOUND. Five distinct searches failed to locate one: the HIFLD ArcGIS
+      organisation publishes 526 services of which none is a substation layer; the EIA
+      Energy Atlas organisation publishes 79, none matching; hifld-
+      geoplatform.hub.arcgis.com/datasets/electric-substations returns HTTP 404; an
+      ArcGIS Online title search returned no authoritative national match; and the best
+      candidate service holds 128 features against a historical national count on the
+      order of 55,000 to 80,000. This degrades CLAUDE.md section 7.8 candidate filtering
+      ('within a configured distance of a substation') and section 7.9 grid proximity
+      ('distance to nearest HIFLD substation, plus voltage class'). Per directive D8 no
+      substitute has been silently adopted. Live HIFLD transmission lines remain
+      available at 52,244 features, but line proximity is a weaker proxy than substation
+      proximity and would make the directive D6 language constraints more important, not
+      less.
+    evidence_url: "https://services.arcgis.com/G4S1dGvn7PIgYd6Y/ArcGIS/rest/services/HIFLD_electric_power_substations/FeatureServer/0/query?where=1%3D1&returnCountOnly=true&f=json"
+    retrieved_at: "2026-08-19T00:00:00Z"
+    evidence_quote: >-
+      {"count" : 128}
+    evidence_artifact: "docs/evidence/F-8_hifld_substations_absent.txt"
+    evidence_sha256: "eb8a17b48db74227993bb57e78d9e937bf67ac2e80723c932f622934a416f64f"
+
+  - id: F-9
+    question: >-
+      Does the delivered data support domain rule G9's claim of inconsistent state
+      reporting vintages, and its Oregon example?
+    resolved_value: >-
+      NO on both counts. G9 and data/seed/MANIFEST.md both state that Oregon reports
+      6,436, below Kansas at 11,271 and Iowa at 9,031, and call that ordering
+      implausible. The delivered file records Oregon at 64,361, not 6,436; the stated
+      figure appears to be a truncation. At 64,361 the ordering is unremarkable. The
+      general claim was tested separately and also fails: rounding every delivered value
+      half-up to the nearest 100 reproduces the AFDC 2023 vintage for 51 of 51
+      jurisdictions (and 0 of 51 for 2022 or 2024), so the file is one consistent
+      vintage across all states rather than a mixture. Because CLAUDE.md section 14
+      requires a regression test for every domain rule G1 to G14, a test asserting G9 as
+      written would fail against the delivered data. Escalated through
+      docs/reports/PLAN_CHANGE_0.md rather than worked around.
+    evidence_url: "data/seed/EV_Registration_Counts_by_State.csv"
+    retrieved_at: "2026-08-19T00:00:00Z"
+    evidence_quote: >-
+      Oregon,64361 / Kansas,11271 / Iowa,9031 / Maine,7377 / Total,3555445
+    evidence_artifact: "docs/evidence/F-9_g9_oregon_discrepancy.txt"
+    evidence_sha256: "f8ad9770ef909f667d07fe20aa7b371cb62f73071a3ec2c8fd315d0797ce2855"
+
+  - id: F-10
+    question: >-
+      What is the AFDC API rate limit in practice?
+    resolved_value: >-
+      The shared DEMO_KEY credential is limited to 10 requests per window. Measured by
+      exhausting it during the Phase 0 probe run: the endpoint returned HTTP 429 with
+      x-ratelimit-limit 10, x-ratelimit-remaining 0 and retry-after 78,590 seconds
+      (about 21.8 hours). All three AFDC probe specs share this quota, so one full probe
+      run consumes it. A free personal key from developer.nlr.gov is required for
+      repeated probing and for any scheduled refresh. No credential is fabricated,
+      entered or persisted by this pipeline; the operator supplies NREL_API_KEY in the
+      environment.
+    evidence_url: "https://developer.nlr.gov/api/alt-fuel-stations/v1.json"
+    retrieved_at: "2026-08-19T00:00:00Z"
+    evidence_quote: >-
+      HTTP 429; x-ratelimit-limit: 10; x-ratelimit-remaining: 0; retry-after: 78590
+    evidence_artifact: "docs/evidence/F-10_demo_key_rate_limit.txt"
+    evidence_sha256: "cd260d09483e8510085faf32b53084b72f92bb5a325f15e6633d0b1b91cc859b"

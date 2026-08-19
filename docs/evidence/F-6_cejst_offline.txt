@@ -1,0 +1,18 @@
+CEJST live host offline - evidence
+retrieved 2026-08-19 UTC
+
+  $ dig +short @1.1.1.1 screeningtool.geoplatform.gov
+  (no record)
+  $ dig +short @1.1.1.1 static-data-screeningtool.geoplatform.gov
+  (no record)
+  $ curl https://screeningtool.geoplatform.gov/en/downloads
+  http=000 (connection failed)
+
+Archived copy, Internet Archive:
+  $ curl -L 'https://web.archive.org/web/2024/https://static-data-screeningtool.geoplatform.gov/data-versions/2.0/data/score/downloadable/2.0-communities.csv'
+  HTTP 200, 45,316,831 bytes, CSV with 136 columns
+
+Context: Executive Order 14008, which established Justice40, was revoked on
+20 January 2025. CLAUDE.md section 8 therefore permits CEJST only as an archived
+historical equity classification, vintage-labelled, and forbids describing the
+project as evaluating current Justice40 compliance.

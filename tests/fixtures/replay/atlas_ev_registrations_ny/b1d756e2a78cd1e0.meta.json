@@ -1,0 +1,29 @@
+{
+  "content_bytes": 65536,
+  "content_sha256": "f6b38c5f30fa2b2d011a8e8d81588f6875d0dbdd0764dce7a5c576f3906d45cc",
+  "elapsed_ms": 369.9,
+  "headers": {
+    "accept-ranges": "bytes",
+    "cache-control": "no-cache, no-store, must-revalidate",
+    "content-length": "1320829913",
+    "content-type": "text/csv",
+    "date": "Wed, 19 Aug 2026 02:08:58 GMT",
+    "expires": "0",
+    "host-header": "c2hhcmVkLmJsdWVob3N0LmNvbQ==",
+    "last-modified": "Wed, 18 Mar 2026 21:56:33 GMT",
+    "pragma": "no-cache",
+    "server": "nginx/1.29.8",
+    "x-proxy-cache": "MISS",
+    "x-server-cache": "true"
+  },
+  "params": {},
+  "request_headers": {
+    "Range": "bytes=0-65535",
+    "User-Agent": "VoltGap-Phase0-Probe (+https://github.com/voltgap)"
+  },
+  "retrieved_at": "2026-08-19T02:08:58+00:00",
+  "source_id": "atlas_ev_registrations_ny",
+  "status_code": 200,
+  "truncated": true,
+  "url": "https://www.atlasevhub.com/public/dmv/NY_EV_Registrations_03.csv"
+}

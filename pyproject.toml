@@ -37,7 +37,9 @@ target-version = "py311"
 select = ["E", "F", "I", "UP", "B", "SIM", "N", "RUF"]
 
 [tool.mypy]
-python_version = "3.11"
+# No python_version pin: mypy checks against the interpreter actually in use, which
+# is the 3.12 the project pins with uv. Pinning 3.11 here made the bundled numpy
+# stubs unparseable.
 strict = true
 warn_unreachable = true
 files = ["pipeline", "tests"]

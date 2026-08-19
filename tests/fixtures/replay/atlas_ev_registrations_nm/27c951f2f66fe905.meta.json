@@ -1,0 +1,29 @@
+{
+  "content_bytes": 65536,
+  "content_sha256": "ca2055bcffa469c8f77ec8a5bb72e0f538ad41d4e9cd2683f4f6d341d9fa89a6",
+  "elapsed_ms": 386.3,
+  "headers": {
+    "accept-ranges": "bytes",
+    "cache-control": "no-cache, no-store, must-revalidate",
+    "content-length": "68250337",
+    "content-type": "text/csv",
+    "date": "Wed, 19 Aug 2026 02:08:57 GMT",
+    "expires": "0",
+    "host-header": "c2hhcmVkLmJsdWVob3N0LmNvbQ==",
+    "last-modified": "Wed, 29 Jul 2026 20:19:50 GMT",
+    "pragma": "no-cache",
+    "server": "nginx/1.29.8",
+    "x-proxy-cache": "MISS",
+    "x-server-cache": "true"
+  },
+  "params": {},
+  "request_headers": {
+    "Range": "bytes=0-65535",
+    "User-Agent": "VoltGap-Phase0-Probe (+https://github.com/voltgap)"
+  },
+  "retrieved_at": "2026-08-19T02:08:58+00:00",
+  "source_id": "atlas_ev_registrations_nm",
+  "status_code": 200,
+  "truncated": true,
+  "url": "https://www.atlasevhub.com/public/dmv/NM_EV_Registrations_07_2026.csv"
+}

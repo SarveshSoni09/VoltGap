@@ -1,0 +1,35 @@
+{
+  "content_bytes": 65536,
+  "content_sha256": "4ad18f2e3907bb316c34df3534b348354fd21f41f89dbb60bb265b23fd42f2f6",
+  "elapsed_ms": 236.3,
+  "headers": {
+    "age": "346145",
+    "cache-control": "public, max-age=14400",
+    "cf-cache-status": "HIT",
+    "cf-ray": "a2d59d491c3e13f9-ORD",
+    "connection": "keep-alive",
+    "content-length": "65536",
+    "content-range": "bytes 0-65535/26878591",
+    "content-security-policy": "default-src 'self' 'unsafe-inline' 'unsafe-eval' census.gov *.census.gov http://www.census.gov assets.adobedtm.com www.googletagmanager.com https://dpm.demdex.net https://cm.everesttech.net https://uscensusbureau.demdex.net dap.digitalgov.gov www.google-analytics.com; frame-ancestors 'self';",
+    "date": "Wed, 19 Aug 2026 02:09:08 GMT",
+    "expires": "Wed, 19 Aug 2026 06:09:08 GMT",
+    "last-modified": "Thu, 31 Oct 2024 14:53:59 GMT",
+    "referrer-policy": "strict-origin-when-cross-origin",
+    "server": "cloudflare",
+    "set-cookie": "__cf_bm=4QzBfyth4Tfp_03zbXAhu3MFDqgtZF6YQKnEx58sFUo-1787105348.0214603-1.0.1.1-z3Um3kxYaCPQajNezrRr_pzxpx310XUekBbLxGfkD9kRaWuHDQpAI4Enh1MGtz2qaNRoJmC7ZweREN1Bg9WP3zG9smaVHQCaaRyWRVGWb9LrOHgLqERnP6VxsoyExf9A; HttpOnly; SameSite=None; Secure; Path=/; Domain=www2.census.gov; Expires=Wed, 19 Aug 2026 02:39:08 GMT",
+    "strict-transport-security": "max-age=31536000",
+    "vary": "Accept-Encoding",
+    "x-content-type-options": "nosniff",
+    "x-frame-options": "SAMEORIGIN",
+    "x-xss-protection": "1; mode=block"
+  },
+  "params": {},
+  "request_headers": {
+    "Range": "bytes=0-65535"
+  },
+  "retrieved_at": "2026-08-19T02:09:08+00:00",
+  "source_id": "census_acs_bulk",
+  "status_code": 206,
+  "truncated": true,
+  "url": "https://www2.census.gov/programs-surveys/acs/summary_file/2023/table-based-SF/data/5YRData/acsdt5y2023-b25003.dat"
+}

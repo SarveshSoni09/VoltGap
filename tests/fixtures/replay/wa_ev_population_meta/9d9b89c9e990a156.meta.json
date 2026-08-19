@@ -1,0 +1,25 @@
+{
+  "content_bytes": 13750,
+  "content_sha256": "edfddb8587e31f044c34e0096a549f138908f266af201d9a4d2959533474ba98",
+  "elapsed_ms": 389.6,
+  "headers": {
+    "access-control-allow-origin": "*",
+    "connection": "keep-alive",
+    "content-encoding": "gzip",
+    "content-type": "application/json; charset=utf-8",
+    "date": "Wed, 19 Aug 2026 02:09:14 GMT",
+    "server": "nginx",
+    "strict-transport-security": "max-age=31536000; includeSubDomains",
+    "transfer-encoding": "chunked",
+    "vary": "Accept-Encoding",
+    "x-socrata-region": "aws-us-east-1-fedramp-prod",
+    "x-socrata-requestid": "f7800b17ff649b012c2fb04476b90a4d"
+  },
+  "params": {},
+  "request_headers": {},
+  "retrieved_at": "2026-08-19T02:09:14+00:00",
+  "source_id": "wa_ev_population_meta",
+  "status_code": 200,
+  "truncated": false,
+  "url": "https://data.wa.gov/api/views/f6w7-q2d2.json"
+}

@@ -1,0 +1,29 @@
+{
+  "content_bytes": 65536,
+  "content_sha256": "a86e683320531a93db7eb3226dfb822acb16e64ab9c2dd8d0a2497710cd0b703",
+  "elapsed_ms": 266.2,
+  "headers": {
+    "accept-ranges": "bytes",
+    "cache-control": "no-cache, no-store, must-revalidate",
+    "content-length": "86988084",
+    "content-type": "text/csv",
+    "date": "Wed, 19 Aug 2026 02:08:57 GMT",
+    "expires": "0",
+    "host-header": "c2hhcmVkLmJsdWVob3N0LmNvbQ==",
+    "last-modified": "Wed, 18 Mar 2026 21:53:48 GMT",
+    "pragma": "no-cache",
+    "server": "nginx/1.29.8",
+    "x-proxy-cache": "MISS",
+    "x-server-cache": "true"
+  },
+  "params": {},
+  "request_headers": {
+    "Range": "bytes=0-65535",
+    "User-Agent": "VoltGap-Phase0-Probe (+https://github.com/voltgap)"
+  },
+  "retrieved_at": "2026-08-19T02:08:57+00:00",
+  "source_id": "atlas_ev_registrations_nj",
+  "status_code": 200,
+  "truncated": true,
+  "url": "https://www.atlasevhub.com/public/dmv/NJ_EV_Registrations_12.csv"
+}

@@ -1,0 +1,29 @@
+{
+  "content_bytes": 65536,
+  "content_sha256": "f8f82210b9d91a54d76909d5952454e66a45ffc6242d13bffcadda2eb3236aba",
+  "elapsed_ms": 353.4,
+  "headers": {
+    "accept-ranges": "bytes",
+    "cache-control": "no-cache, no-store, must-revalidate",
+    "content-length": "664460416",
+    "content-type": "text/csv",
+    "date": "Wed, 19 Aug 2026 02:08:55 GMT",
+    "expires": "0",
+    "host-header": "c2hhcmVkLmJsdWVob3N0LmNvbQ==",
+    "last-modified": "Tue, 24 Mar 2026 20:46:38 GMT",
+    "pragma": "no-cache",
+    "server": "nginx/1.29.8",
+    "x-proxy-cache": "MISS",
+    "x-server-cache": "true"
+  },
+  "params": {},
+  "request_headers": {
+    "Range": "bytes=0-65535",
+    "User-Agent": "VoltGap-Phase0-Probe (+https://github.com/voltgap)"
+  },
+  "retrieved_at": "2026-08-19T02:08:55+00:00",
+  "source_id": "atlas_ev_registrations_co",
+  "status_code": 200,
+  "truncated": true,
+  "url": "https://www.atlasevhub.com/public/dmv/CO_EV_Registrations_03.csv"
+}

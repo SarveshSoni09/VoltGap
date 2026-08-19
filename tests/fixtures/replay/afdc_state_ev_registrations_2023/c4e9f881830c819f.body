@@ -1,0 +1,2449 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+    <!-- Google Tag Manager -->
+  <script nonce="Bx0B1C8gBNTgcHzb54BZow==">
+//<![CDATA[
+
+    (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+    new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+    j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+    'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+    })(window,document,'script','tadaAnalyticsDataLayer','GTM-NVFRH9K');
+
+//]]>
+</script>  <!-- End Google Tag Manager -->
+
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Alternative Fuels Data Center: Vehicle Registration Counts by State</title>
+  <link href="https://fonts.googleapis.com/css?family=Karla:400,400i,700,700i" rel="stylesheet">
+    
+    <link rel="stylesheet" href="/vite/assets/application-BeT0KcPR.css" media="all" data-turbolinks-track="reload" />
+    <script src="/vite/assets/application-MwBwFncz.js" crossorigin="anonymous" type="module" data-turbolinks-track="reload"></script><link rel="modulepreload" href="/vite/assets/faCircleInfo-Dr358RSQ.js" as="script" crossorigin="anonymous" data-turbolinks-track="reload">
+<link rel="modulepreload" href="/vite/assets/index-Duz0x7wZ.js" as="script" crossorigin="anonymous" data-turbolinks-track="reload">
+<link rel="modulepreload" href="/vite/assets/collapse-D2AEFEiF.js" as="script" crossorigin="anonymous" data-turbolinks-track="reload">
+<link rel="modulepreload" href="/vite/assets/dropdown-BmNKGkOm.js" as="script" crossorigin="anonymous" data-turbolinks-track="reload">
+<link rel="modulepreload" href="/vite/assets/sweetalert2.esm-LloW_tko.js" as="script" crossorigin="anonymous" data-turbolinks-track="reload">
+<link rel="modulepreload" href="/vite/assets/_commonjsHelpers-CE1G-McA.js" as="script" crossorigin="anonymous" data-turbolinks-track="reload">
+<link rel="modulepreload" href="/vite/assets/selector-engine-jyzRItqX.js" as="script" crossorigin="anonymous" data-turbolinks-track="reload">
+<link rel="modulepreload" href="/vite/assets/index-ZZvFhStn.js" as="script" crossorigin="anonymous" data-turbolinks-track="reload">
+    
+
+<meta property="og:url" content="https://afdc.energy.gov/vehicle-registration?year=2023" />
+
+  
+
+
+
+</head>
+<body class="">
+    <!-- Google Tag Manager (noscript) -->
+  <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-NVFRH9K"
+  height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+  <!-- End Google Tag Manager (noscript) -->
+
+  <header class="d-print-none eere-header">
+    <div class="container-xxl d-block">
+  <img alt="U.S. Department of Energy | Office of Critical Minerals and Energy Innovation" width="325" height="43" class="eere-logo-header my-3" usemap="#eere-bannermap" src="/assets/eere-app-template-mea/logo-cmei-header-66178450.webp" />
+  <map id="eere-bannermap" name="eere-bannermap">
+    <area shape="rect" coords="1,1,160,42" href="https://www.energy.gov" alt="U.S. Department of Energy">
+    <area shape="rect" coords="160,1,325,42" href="https://www.energy.gov/cmei" alt="Office of Critical Minerals and Energy Innovation">
+  </map>
+</div>
+
+<div class="navbar p-0 eere-banner">
+  <div class="container-xxl d-block">
+    <div class="row align-items-center">
+      <div class="col-lg my-1 my-lg-0">
+        <div class="row align-items-center">
+          <div class="col">
+            <a class="navbar-brand py-2 py-md-4" href="/">Alternative Fuels Data Center</a>
+          </div>
+
+            <div class="col-auto eere-nav-banner d-none d-md-block text-white fw-normal">
+                <a class="eere-no-link-underline" href="/about">About</a>
+  <span class="px-2">|</span>
+  <a class="eere-no-link-underline" href="/contacts">Contacts</a>
+
+            </div>
+
+            <div class="col-auto d-block d-lg-none">
+              <button type="button" class="btn btn-light btn-sm eere-btn-toggler lh-1 p-2 eere-enable-template-icons" data-bs-toggle="collapse" data-bs-target="#eere-searchbar" aria-controls="eere-searchbar" aria-expanded="false" aria-label="Toggle search">
+                <i class="fa-solid fa-magnifying-glass fa-fw eere-toggler-icon eere-toggler-icon-collapsed"></i>
+                <i class="fa-solid fa-xmark fa-fw eere-toggler-icon eere-toggler-icon-expanded"></i>
+              </button>
+            </div>
+
+            <form id="eere-searchbar" class="col-lg-auto collapse d-lg-block my-1 my-lg-0 text-end" action="https://search.usa.gov/search" accept-charset="UTF-8" method="get">
+              <div class="d-inline-block">
+                <input type="hidden" name="affiliate" id="eere-affiliate" value="afdc.energy.gov" autocomplete="off" />
+                <div class="input-group">
+                  <input type="text" name="query" id="eere-query" value="" size="20" maxlength="2000" placeholder="search site" class="form-control" aria-label="search site" />
+                  <button class="btn btn-link text-white eere-enable-template-icons" type="submit" aria-label="Search">
+                    <i class="fa-solid fa-magnifying-glass fa-width-auto"></i>
+                  </button>
+                </div>
+              </div>
+</form>        </div>
+      </div>
+    </div>
+
+    <div class="row align-items-center mb-2 d-flex d-md-none">
+      <div class="col">
+        <button type="button" class="btn btn-light eere-btn-toggler lh-1 py-2" data-bs-toggle="collapse" data-bs-target="#eere-nav-top-navbar" aria-expanded="false" aria-controls="eere-nav-top-navbar">
+          <i class="fa-solid fa-bars fa-fw"></i> Menu
+        </button>
+      </div>
+
+        <div class="col-auto eere-nav-banner text-white fw-normal">
+            <a class="eere-no-link-underline" href="/about">About</a>
+  <span class="px-2">|</span>
+  <a class="eere-no-link-underline" href="/contacts">Contacts</a>
+
+        </div>
+    </div>
+  </div>
+</div>
+
+      <nav class="navbar navbar-expand-md eere-topnav p-0" aria-label="Main menu">
+    <div class="container-xxl gx-0 gx-md-4">
+      <div id="eere-nav-top-navbar" class="collapse navbar-collapse d-md-flex justify-content-between">
+        <div class="eere-primary-nav">
+          <ul class="navbar-nav"><li class="dropdown"><button type="button" class="dropdown-toggle eere-enable-template-icons" data-bs-toggle="dropdown" aria-expanded="false" data-bs-display="dynamic">Fuels &amp; Vehicles<i class="fa-solid fa-angle-down fa-width-auto"></i></button><div class="dropdown-menu">
+  <div class="row">
+    <div class="col-md-auto">
+      <ul class="list-unstyled">
+        <li>
+          <a class="dropdown-item eere-dropdown-menu-section-header" href="/fuels">Fuels & Vehicles</a>
+        </li>
+        <li>
+          <a class="dropdown-item" href="/fuels/biodiesel"><strong>Biodiesel</strong></a>
+          |
+          <a class="dropdown-item" href="/vehicles/diesel">Diesel Vehicles</a>
+        </li>
+        <li>
+          <a class="dropdown-item" href="/fuels/electricity"><strong>Electricity</strong></a>
+          |
+          <a class="dropdown-item" href="/vehicles/electric">Electric Vehicles</a>
+        </li>
+        <li>
+          <a class="dropdown-item" href="/fuels/ethanol"><strong>Ethanol</strong></a>
+          |
+          <a class="dropdown-item" href="/vehicles/flexible-fuel">Flex Fuel Vehicles</a>
+        </li>
+        <li>
+          <a class="dropdown-item" href="/fuels/hydrogen"><strong>Hydrogen</strong></a>
+          |
+          <a class="dropdown-item" href="/vehicles/fuel-cell">Fuel Cell Vehicles</a>
+        </li>
+        <li>
+          <a class="dropdown-item" href="/fuels/natural-gas"><strong>Natural Gas</strong></a>
+          |
+          <a class="dropdown-item" href="/vehicles/natural-gas">Natural Gas Vehicles</a>
+        </li>
+        <li>
+          <a class="dropdown-item" href="/fuels/propane"><strong>Propane</strong></a>
+          |
+          <a class="dropdown-item" href="/vehicles/propane">Propane Vehicles</a>
+        </li>
+        <li>
+          <a class="dropdown-item" href="/fuels/renewable-diesel"><strong>Renewable Diesel</strong></a>
+        </li>
+        <li>
+          <a class="dropdown-item" href="/fuels/sustainable-aviation-fuel"><strong>Sustainable Aviation Fuel</strong></a>
+        </li>
+        <li>
+          <a class="dropdown-item" href="/fuels/emerging"><strong>Emerging Fuels</strong></a>
+        </li>
+        <li>
+          <a class="dropdown-item" href="/fuels/prices"><strong>Fuel Prices</strong></a>
+        </li>
+      </ul>
+    </div>
+
+    <div class="col-md-auto eere-dropdown-menu-featured-content">
+      <ul class="list-unstyled d-flex flex-column gap-4">
+        <li>
+          <a class="dropdown-item d-flex align-items-center" href="/vehicles/search/">
+            <span><i class="fa-solid fa-car fa-2xl fa-fw me-3"></i></span>
+            Alternative Fuel &amp; Advanced Vehicle Search
+          </a>
+        </li>
+        <li>
+          <a class="dropdown-item d-flex align-items-center" href="/calc/">
+            <span><i class="fa-solid fa-calculator fa-2xl fa-fw me-3"></i></span>
+            Vehicle Cost Calculator
+          </a>
+        </li>
+      </ul>
+    </div>
+  </div>
+</div>
+</li><li class="dropdown"><button type="button" class="dropdown-toggle eere-enable-template-icons" data-bs-toggle="dropdown" aria-expanded="false" data-bs-display="dynamic">Conserve Fuel<i class="fa-solid fa-angle-down fa-width-auto"></i></button><div class="dropdown-menu">
+  <ul class="list-unstyled">
+    <li><a class="dropdown-item eere-dropdown-menu-section-header" href="/conserve">Conserve Fuel</a></li>
+    <li><a class="dropdown-item" href="/conserve/idle-reduction-basics">Idle Reduction</a></li>
+    <li><a class="dropdown-item" href="/conserve/equipment">Parts &amp; Equipment</a></li>
+    <li><a class="dropdown-item" href="/conserve/driving-behavior">Driving Behavior</a></li>
+    <li><a class="dropdown-item" href="/conserve/rightsizing">Fleet Rightsizing</a></li>
+    <li><a class="dropdown-item" href="/conserve/system-efficiency">System Efficiency</a></li>
+  </ul>
+</div>
+</li><li class="dropdown"><button type="button" class="dropdown-toggle eere-enable-template-icons" data-bs-toggle="dropdown" aria-expanded="false" data-bs-display="dynamic">Station Locator<i class="fa-solid fa-angle-down fa-width-auto"></i></button><div class="dropdown-menu">
+  <ul class="list-unstyled">
+    <li><a class="dropdown-item eere-dropdown-menu-section-header" href="/stations">Station Locator</a></li>
+    <li><a class="dropdown-item" href="/stations">Find Stations</a></li>
+    <li><a class="dropdown-item" href="/stations/trends">Analyze Trends</a></li>
+    <li><a class="dropdown-item" href="/stations/corridors">Build Corridors</a></li>
+    <li><a class="dropdown-item" href="/stations/charging-networks">Charging Networks</a></li>
+    <li><a class="dropdown-item" href="/stations/about">About the Tool</a></li>
+  </ul>
+</div>
+</li><li class="dropdown"><button type="button" class="dropdown-toggle eere-enable-template-icons" data-bs-toggle="dropdown" aria-expanded="false" data-bs-display="dynamic">Laws &amp; Incentives<i class="fa-solid fa-angle-down fa-width-auto"></i></button><div class="dropdown-menu dropdown-menu-end dropdown-menu-lg-start">
+  <div class="row">
+    <div class="col-md-auto">
+      <ul class="list-unstyled">
+        <li><a class="dropdown-item eere-dropdown-menu-section-header" href="/laws">Laws & Incentives</a></li>
+        <li><a class="dropdown-item" href="/laws/search">Search</a></li>
+        <li><a class="dropdown-item" href="/laws/fed_summary">Federal</a></li>
+        <li><a class="dropdown-item" href="/laws/state">State</a></li>
+        <li><a class="dropdown-item" href="/laws/local_examples">Local Examples</a></li>
+        <li><a class="dropdown-item" href="/laws/utility-incentives">Utility Incentives</a></li>
+        <li><a class="dropdown-item" href="/laws/matrix">Summary Tables</a></li>
+      </ul>
+    </div>
+    <div class="col-md-auto eere-dropdown-menu-featured-content">
+      <ul class="list-unstyled d-flex flex-column gap-4">
+        <li>
+          <a class="dropdown-item d-flex align-items-center" href="/project-assistance">
+            <span><i class="fa-solid fa-hand-holding-dollar fa-2xl fa-fw me-3"></i></span>
+            Project Assistance &amp; Funding Opportunities
+          </a>
+        </li>
+      </ul>
+    </div>
+  </div>
+</div>
+</li><li class="d-lg-block d-xl-none dropdown"><button type="button" class="dropdown-toggle eere-enable-template-icons" data-bs-toggle="dropdown" aria-expanded="false" data-bs-display="dynamic">More<i class="fa-solid fa-angle-down fa-width-auto"></i></button><div class="dropdown-menu dropdown-menu-end dropdown-menu-lg-start">
+  <ul class="list-unstyled">
+    <li>
+      <a class="dropdown-item" href="/data">Maps &amp; Data</a>
+    </li>
+    <li>
+      <a class="dropdown-item" href="/case">Case Studies</a>
+    </li>
+    <li>
+      <a class="dropdown-item" href="/publications">Publications</a>
+    </li>
+    <li>
+      <a class="dropdown-item" href="/tools">Tools</a>
+    </li>
+  </ul>
+</div>
+</li></ul>
+        </div>
+          <div class="d-none d-xl-block eere-secondary-nav">
+            <ul class="navbar-nav"><li class="eere-nav-selected eere-nav-active-leaf"><a class="eere-nav-selected" href="/data">Maps &amp; Data</a></li><li><a href="/case">Case Studies</a></li><li><a href="/publications">Publications</a></li><li><a href="/tools">Tools</a></li></ul>
+          </div>
+      </div>
+    </div>
+  </nav>
+
+  </header>
+    <div class="container-xxl eere-utilities">
+    <nav class="eere-breadcrumbs" aria-label="Breadcrumbs">
+      <ol class="breadcrumb"><li class="breadcrumb-item eere-nav-selected"><a href="/">AFDC</a></li><li class="breadcrumb-item eere-nav-selected active" aria-current="page"><span>Maps &amp; Data</span></li></ol>
+    </nav>
+  </div>
+
+  <div class="container-xxl mt-4">
+  <div class="row">
+    <main class="col-lg eere-content-body">
+        <h1>Vehicle Registration Counts by State</h1>
+
+
+
+<form class="col-sm-4 col-md-4 col-lg-2 float-end mb-4 ms-4" action="/vehicle-registration" accept-charset="UTF-8" method="get">
+  <label for="year" aria-hidden="false" style="display: none;">Year</label>
+  <select id="year" name="year" onchange="this.form.submit()" class="form-select bg-light">
+    <option value="2025">2025</option>
+<option value="2024">2024</option>
+<option selected="selected" value="2023">2023</option>
+<option value="2022">2022</option>
+<option value="2021">2021</option>
+<option value="2020">2020</option>
+<option value="2019">2019</option>
+<option value="2018">2018</option>
+<option value="2017">2017</option>
+<option value="2016">2016</option>
+  </select>
+</form>
+<p>This page provides approximate light-duty vehicle registration counts derived by the National Laboratory of the Rockies with data from Experian Information Solutions. Counts are rounded to the closest 100 vehicles and reflect the total number of light-duty registered vehicles through the selected year. Fuel types are based on vehicle identification numbers (VINs), which do not reflect aftermarket conversions to use different fuels or power sources.</p>
+
+<p>For a map comparing the density of light-duty vehicles per state and charts comparing registration counts over time, see <a href="/transatlas/">TransAtlas</a>.</p>
+
+<table id="vehicle_registration" class="table table-bordered table-striped eere-table-sticky-header">
+  <caption>2023 Light-Duty Vehicle Registration Counts by State and Fuel Type</caption>
+  <thead>
+    </tr>
+    <tr>
+      <th id="state">State</th>
+        <th id="Electric">Electric (EV)</th>
+        <th id="PHEV">Plug-In Hybrid Electric (PHEV)</th>
+        <th id="HEV">Hybrid Electric (HEV)</th>
+        <th id="Biodiesel">Biodiesel</th>
+        <th id="Flex">Ethanol/Flex (E85)</th>
+        <th id="CNG">Compressed Natural Gas (CNG)</th>
+        <th id="Propane">Propane</th>
+        <th id="Hydrogen">Hydrogen</th>
+        <th id="Methanol">Methanol</th>
+        <th id="Gas">Gasoline</th>
+        <th id="Diesel">Diesel</th>
+        <th id="Unknown">Unknown Fuel</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td headers="state">Alabama</td>
+          <td headers="Electric">
+            13,000
+          </td>
+          <td headers="PHEV">
+            5,800
+          </td>
+          <td headers="HEV">
+            63,300
+          </td>
+          <td headers="Biodiesel">
+            54,200
+          </td>
+          <td headers="Flex">
+            441,200
+          </td>
+          <td headers="CNG">
+            100
+          </td>
+          <td headers="Propane">
+            100
+          </td>
+          <td headers="Hydrogen">
+            0
+          </td>
+          <td headers="Methanol">
+            0
+          </td>
+          <td headers="Gas">
+            4,102,200
+          </td>
+          <td headers="Diesel">
+            127,000
+          </td>
+          <td headers="Unknown">
+            29,000
+          </td>
+      </tr>
+      <tr>
+        <td headers="state">Alaska</td>
+          <td headers="Electric">
+            2,700
+          </td>
+          <td headers="PHEV">
+            900
+          </td>
+          <td headers="HEV">
+            10,600
+          </td>
+          <td headers="Biodiesel">
+            9,600
+          </td>
+          <td headers="Flex">
+            46,800
+          </td>
+          <td headers="CNG">
+            0
+          </td>
+          <td headers="Propane">
+            0
+          </td>
+          <td headers="Hydrogen">
+            0
+          </td>
+          <td headers="Methanol">
+            0
+          </td>
+          <td headers="Gas">
+            454,300
+          </td>
+          <td headers="Diesel">
+            29,800
+          </td>
+          <td headers="Unknown">
+            5,100
+          </td>
+      </tr>
+      <tr>
+        <td headers="state">Arizona</td>
+          <td headers="Electric">
+            89,800
+          </td>
+          <td headers="PHEV">
+            25,600
+          </td>
+          <td headers="HEV">
+            175,700
+          </td>
+          <td headers="Biodiesel">
+            68,600
+          </td>
+          <td headers="Flex">
+            437,100
+          </td>
+          <td headers="CNG">
+            600
+          </td>
+          <td headers="Propane">
+            700
+          </td>
+          <td headers="Hydrogen">
+            0
+          </td>
+          <td headers="Methanol">
+            0
+          </td>
+          <td headers="Gas">
+            5,469,000
+          </td>
+          <td headers="Diesel">
+            197,700
+          </td>
+          <td headers="Unknown">
+            64,200
+          </td>
+      </tr>
+      <tr>
+        <td headers="state">Arkansas</td>
+          <td headers="Electric">
+            7,100
+          </td>
+          <td headers="PHEV">
+            3,200
+          </td>
+          <td headers="HEV">
+            37,000
+          </td>
+          <td headers="Biodiesel">
+            37,000
+          </td>
+          <td headers="Flex">
+            276,700
+          </td>
+          <td headers="CNG">
+            200
+          </td>
+          <td headers="Propane">
+            0
+          </td>
+          <td headers="Hydrogen">
+            0
+          </td>
+          <td headers="Methanol">
+            0
+          </td>
+          <td headers="Gas">
+            2,246,100
+          </td>
+          <td headers="Diesel">
+            90,700
+          </td>
+          <td headers="Unknown">
+            10,300
+          </td>
+      </tr>
+      <tr>
+        <td headers="state">California</td>
+          <td headers="Electric">
+            1,256,600
+          </td>
+          <td headers="PHEV">
+            410,700
+          </td>
+          <td headers="HEV">
+            1,703,200
+          </td>
+          <td headers="Biodiesel">
+            201,600
+          </td>
+          <td headers="Flex">
+            1,314,600
+          </td>
+          <td headers="CNG">
+            10,100
+          </td>
+          <td headers="Propane">
+            1,500
+          </td>
+          <td headers="Hydrogen">
+            16,900
+          </td>
+          <td headers="Methanol">
+            0
+          </td>
+          <td headers="Gas">
+            31,191,900
+          </td>
+          <td headers="Diesel">
+            735,300
+          </td>
+          <td headers="Unknown">
+            7,900
+          </td>
+      </tr>
+      <tr>
+        <td headers="state">Colorado</td>
+          <td headers="Electric">
+            90,100
+          </td>
+          <td headers="PHEV">
+            37,500
+          </td>
+          <td headers="HEV">
+            152,700
+          </td>
+          <td headers="Biodiesel">
+            68,100
+          </td>
+          <td headers="Flex">
+            334,300
+          </td>
+          <td headers="CNG">
+            300
+          </td>
+          <td headers="Propane">
+            100
+          </td>
+          <td headers="Hydrogen">
+            0
+          </td>
+          <td headers="Methanol">
+            0
+          </td>
+          <td headers="Gas">
+            4,508,800
+          </td>
+          <td headers="Diesel">
+            203,400
+          </td>
+          <td headers="Unknown">
+            46,500
+          </td>
+      </tr>
+      <tr>
+        <td headers="state">Connecticut</td>
+          <td headers="Electric">
+            31,600
+          </td>
+          <td headers="PHEV">
+            18,400
+          </td>
+          <td headers="HEV">
+            75,300
+          </td>
+          <td headers="Biodiesel">
+            10,900
+          </td>
+          <td headers="Flex">
+            133,600
+          </td>
+          <td headers="CNG">
+            100
+          </td>
+          <td headers="Propane">
+            0
+          </td>
+          <td headers="Hydrogen">
+            0
+          </td>
+          <td headers="Methanol">
+            0
+          </td>
+          <td headers="Gas">
+            2,612,600
+          </td>
+          <td headers="Diesel">
+            42,300
+          </td>
+          <td headers="Unknown">
+            20,900
+          </td>
+      </tr>
+      <tr>
+        <td headers="state">Delaware</td>
+          <td headers="Electric">
+            8,400
+          </td>
+          <td headers="PHEV">
+            3,800
+          </td>
+          <td headers="HEV">
+            22,900
+          </td>
+          <td headers="Biodiesel">
+            5,100
+          </td>
+          <td headers="Flex">
+            63,900
+          </td>
+          <td headers="CNG">
+            0
+          </td>
+          <td headers="Propane">
+            0
+          </td>
+          <td headers="Hydrogen">
+            0
+          </td>
+          <td headers="Methanol">
+            0
+          </td>
+          <td headers="Gas">
+            791,300
+          </td>
+          <td headers="Diesel">
+            14,200
+          </td>
+          <td headers="Unknown">
+            5,100
+          </td>
+      </tr>
+      <tr>
+        <td headers="state">District of Columbia</td>
+          <td headers="Electric">
+            8,100
+          </td>
+          <td headers="PHEV">
+            3,700
+          </td>
+          <td headers="HEV">
+            18,100
+          </td>
+          <td headers="Biodiesel">
+            400
+          </td>
+          <td headers="Flex">
+            16,800
+          </td>
+          <td headers="CNG">
+            100
+          </td>
+          <td headers="Propane">
+            0
+          </td>
+          <td headers="Hydrogen">
+            0
+          </td>
+          <td headers="Methanol">
+            0
+          </td>
+          <td headers="Gas">
+            262,500
+          </td>
+          <td headers="Diesel">
+            1,800
+          </td>
+          <td headers="Unknown">
+            600
+          </td>
+      </tr>
+      <tr>
+        <td headers="state">Florida</td>
+          <td headers="Electric">
+            254,900
+          </td>
+          <td headers="PHEV">
+            57,300
+          </td>
+          <td headers="HEV">
+            414,500
+          </td>
+          <td headers="Biodiesel">
+            170,500
+          </td>
+          <td headers="Flex">
+            1,101,100
+          </td>
+          <td headers="CNG">
+            400
+          </td>
+          <td headers="Propane">
+            100
+          </td>
+          <td headers="Hydrogen">
+            0
+          </td>
+          <td headers="Methanol">
+            0
+          </td>
+          <td headers="Gas">
+            16,136,500
+          </td>
+          <td headers="Diesel">
+            351,800
+          </td>
+          <td headers="Unknown">
+            96,100
+          </td>
+      </tr>
+      <tr>
+        <td headers="state">Georgia</td>
+          <td headers="Electric">
+            92,400
+          </td>
+          <td headers="PHEV">
+            22,700
+          </td>
+          <td headers="HEV">
+            175,300
+          </td>
+          <td headers="Biodiesel">
+            92,500
+          </td>
+          <td headers="Flex">
+            719,400
+          </td>
+          <td headers="CNG">
+            300
+          </td>
+          <td headers="Propane">
+            200
+          </td>
+          <td headers="Hydrogen">
+            0
+          </td>
+          <td headers="Methanol">
+            0
+          </td>
+          <td headers="Gas">
+            8,256,400
+          </td>
+          <td headers="Diesel">
+            206,300
+          </td>
+          <td headers="Unknown">
+            76,900
+          </td>
+      </tr>
+      <tr>
+        <td headers="state">Hawaii</td>
+          <td headers="Electric">
+            25,600
+          </td>
+          <td headers="PHEV">
+            7,300
+          </td>
+          <td headers="HEV">
+            36,400
+          </td>
+          <td headers="Biodiesel">
+            3,400
+          </td>
+          <td headers="Flex">
+            37,300
+          </td>
+          <td headers="CNG">
+            0
+          </td>
+          <td headers="Propane">
+            0
+          </td>
+          <td headers="Hydrogen">
+            0
+          </td>
+          <td headers="Methanol">
+            0
+          </td>
+          <td headers="Gas">
+            951,000
+          </td>
+          <td headers="Diesel">
+            15,400
+          </td>
+          <td headers="Unknown">
+            3,700
+          </td>
+      </tr>
+      <tr>
+        <td headers="state">Idaho</td>
+          <td headers="Electric">
+            8,500
+          </td>
+          <td headers="PHEV">
+            4,600
+          </td>
+          <td headers="HEV">
+            43,700
+          </td>
+          <td headers="Biodiesel">
+            45,900
+          </td>
+          <td headers="Flex">
+            132,900
+          </td>
+          <td headers="CNG">
+            100
+          </td>
+          <td headers="Propane">
+            100
+          </td>
+          <td headers="Hydrogen">
+            0
+          </td>
+          <td headers="Methanol">
+            0
+          </td>
+          <td headers="Gas">
+            1,568,600
+          </td>
+          <td headers="Diesel">
+            138,600
+          </td>
+          <td headers="Unknown">
+            31,600
+          </td>
+      </tr>
+      <tr>
+        <td headers="state">Illinois</td>
+          <td headers="Electric">
+            99,600
+          </td>
+          <td headers="PHEV">
+            33,400
+          </td>
+          <td headers="HEV">
+            285,400
+          </td>
+          <td headers="Biodiesel">
+            61,500
+          </td>
+          <td headers="Flex">
+            772,900
+          </td>
+          <td headers="CNG">
+            300
+          </td>
+          <td headers="Propane">
+            0
+          </td>
+          <td headers="Hydrogen">
+            0
+          </td>
+          <td headers="Methanol">
+            0
+          </td>
+          <td headers="Gas">
+            8,560,300
+          </td>
+          <td headers="Diesel">
+            170,200
+          </td>
+          <td headers="Unknown">
+            59,600
+          </td>
+      </tr>
+      <tr>
+        <td headers="state">Indiana</td>
+          <td headers="Electric">
+            26,100
+          </td>
+          <td headers="PHEV">
+            12,900
+          </td>
+          <td headers="HEV">
+            119,100
+          </td>
+          <td headers="Biodiesel">
+            56,300
+          </td>
+          <td headers="Flex">
+            576,300
+          </td>
+          <td headers="CNG">
+            300
+          </td>
+          <td headers="Propane">
+            0
+          </td>
+          <td headers="Hydrogen">
+            0
+          </td>
+          <td headers="Methanol">
+            0
+          </td>
+          <td headers="Gas">
+            5,166,200
+          </td>
+          <td headers="Diesel">
+            156,400
+          </td>
+          <td headers="Unknown">
+            58,500
+          </td>
+      </tr>
+      <tr>
+        <td headers="state">Iowa</td>
+          <td headers="Electric">
+            9,000
+          </td>
+          <td headers="PHEV">
+            6,100
+          </td>
+          <td headers="HEV">
+            57,200
+          </td>
+          <td headers="Biodiesel">
+            41,700
+          </td>
+          <td headers="Flex">
+            331,300
+          </td>
+          <td headers="CNG">
+            100
+          </td>
+          <td headers="Propane">
+            0
+          </td>
+          <td headers="Hydrogen">
+            0
+          </td>
+          <td headers="Methanol">
+            0
+          </td>
+          <td headers="Gas">
+            2,545,400
+          </td>
+          <td headers="Diesel">
+            105,000
+          </td>
+          <td headers="Unknown">
+            57,500
+          </td>
+      </tr>
+      <tr>
+        <td headers="state">Kansas</td>
+          <td headers="Electric">
+            11,300
+          </td>
+          <td headers="PHEV">
+            5,600
+          </td>
+          <td headers="HEV">
+            50,400
+          </td>
+          <td headers="Biodiesel">
+            27,900
+          </td>
+          <td headers="Flex">
+            253,500
+          </td>
+          <td headers="CNG">
+            200
+          </td>
+          <td headers="Propane">
+            100
+          </td>
+          <td headers="Hydrogen">
+            0
+          </td>
+          <td headers="Methanol">
+            0
+          </td>
+          <td headers="Gas">
+            2,168,600
+          </td>
+          <td headers="Diesel">
+            87,400
+          </td>
+          <td headers="Unknown">
+            16,100
+          </td>
+      </tr>
+      <tr>
+        <td headers="state">Kentucky</td>
+          <td headers="Electric">
+            11,600
+          </td>
+          <td headers="PHEV">
+            5,600
+          </td>
+          <td headers="HEV">
+            67,100
+          </td>
+          <td headers="Biodiesel">
+            36,900
+          </td>
+          <td headers="Flex">
+            361,200
+          </td>
+          <td headers="CNG">
+            300
+          </td>
+          <td headers="Propane">
+            0
+          </td>
+          <td headers="Hydrogen">
+            0
+          </td>
+          <td headers="Methanol">
+            0
+          </td>
+          <td headers="Gas">
+            3,415,000
+          </td>
+          <td headers="Diesel">
+            117,600
+          </td>
+          <td headers="Unknown">
+            24,400
+          </td>
+      </tr>
+      <tr>
+        <td headers="state">Louisiana</td>
+          <td headers="Electric">
+            8,200
+          </td>
+          <td headers="PHEV">
+            4,000
+          </td>
+          <td headers="HEV">
+            40,200
+          </td>
+          <td headers="Biodiesel">
+            64,200
+          </td>
+          <td headers="Flex">
+            380,100
+          </td>
+          <td headers="CNG">
+            100
+          </td>
+          <td headers="Propane">
+            0
+          </td>
+          <td headers="Hydrogen">
+            0
+          </td>
+          <td headers="Methanol">
+            0
+          </td>
+          <td headers="Gas">
+            3,142,800
+          </td>
+          <td headers="Diesel">
+            115,500
+          </td>
+          <td headers="Unknown">
+            19,100
+          </td>
+      </tr>
+      <tr>
+        <td headers="state">Maine</td>
+          <td headers="Electric">
+            7,400
+          </td>
+          <td headers="PHEV">
+            7,600
+          </td>
+          <td headers="HEV">
+            33,600
+          </td>
+          <td headers="Biodiesel">
+            12,000
+          </td>
+          <td headers="Flex">
+            104,500
+          </td>
+          <td headers="CNG">
+            0
+          </td>
+          <td headers="Propane">
+            0
+          </td>
+          <td headers="Hydrogen">
+            0
+          </td>
+          <td headers="Methanol">
+            0
+          </td>
+          <td headers="Gas">
+            1,036,100
+          </td>
+          <td headers="Diesel">
+            26,900
+          </td>
+          <td headers="Unknown">
+            7,900
+          </td>
+      </tr>
+      <tr>
+        <td headers="state">Maryland</td>
+          <td headers="Electric">
+            72,100
+          </td>
+          <td headers="PHEV">
+            31,300
+          </td>
+          <td headers="HEV">
+            168,700
+          </td>
+          <td headers="Biodiesel">
+            32,100
+          </td>
+          <td headers="Flex">
+            309,300
+          </td>
+          <td headers="CNG">
+            300
+          </td>
+          <td headers="Propane">
+            0
+          </td>
+          <td headers="Hydrogen">
+            0
+          </td>
+          <td headers="Methanol">
+            0
+          </td>
+          <td headers="Gas">
+            4,327,800
+          </td>
+          <td headers="Diesel">
+            86,900
+          </td>
+          <td headers="Unknown">
+            31,500
+          </td>
+      </tr>
+      <tr>
+        <td headers="state">Massachusetts</td>
+          <td headers="Electric">
+            73,800
+          </td>
+          <td headers="PHEV">
+            43,800
+          </td>
+          <td headers="HEV">
+            187,300
+          </td>
+          <td headers="Biodiesel">
+            21,300
+          </td>
+          <td headers="Flex">
+            285,000
+          </td>
+          <td headers="CNG">
+            200
+          </td>
+          <td headers="Propane">
+            0
+          </td>
+          <td headers="Hydrogen">
+            0
+          </td>
+          <td headers="Methanol">
+            0
+          </td>
+          <td headers="Gas">
+            4,791,300
+          </td>
+          <td headers="Diesel">
+            58,400
+          </td>
+          <td headers="Unknown">
+            30,000
+          </td>
+      </tr>
+      <tr>
+        <td headers="state">Michigan</td>
+          <td headers="Electric">
+            50,300
+          </td>
+          <td headers="PHEV">
+            29,100
+          </td>
+          <td headers="HEV">
+            148,100
+          </td>
+          <td headers="Biodiesel">
+            70,400
+          </td>
+          <td headers="Flex">
+            873,700
+          </td>
+          <td headers="CNG">
+            300
+          </td>
+          <td headers="Propane">
+            0
+          </td>
+          <td headers="Hydrogen">
+            0
+          </td>
+          <td headers="Methanol">
+            0
+          </td>
+          <td headers="Gas">
+            7,129,600
+          </td>
+          <td headers="Diesel">
+            174,500
+          </td>
+          <td headers="Unknown">
+            49,400
+          </td>
+      </tr>
+      <tr>
+        <td headers="state">Minnesota</td>
+          <td headers="Electric">
+            37,100
+          </td>
+          <td headers="PHEV">
+            16,100
+          </td>
+          <td headers="HEV">
+            124,500
+          </td>
+          <td headers="Biodiesel">
+            52,700
+          </td>
+          <td headers="Flex">
+            516,400
+          </td>
+          <td headers="CNG">
+            100
+          </td>
+          <td headers="Propane">
+            0
+          </td>
+          <td headers="Hydrogen">
+            0
+          </td>
+          <td headers="Methanol">
+            0
+          </td>
+          <td headers="Gas">
+            4,219,200
+          </td>
+          <td headers="Diesel">
+            127,900
+          </td>
+          <td headers="Unknown">
+            24,500
+          </td>
+      </tr>
+      <tr>
+        <td headers="state">Mississippi</td>
+          <td headers="Electric">
+            3,600
+          </td>
+          <td headers="PHEV">
+            2,000
+          </td>
+          <td headers="HEV">
+            28,200
+          </td>
+          <td headers="Biodiesel">
+            34,900
+          </td>
+          <td headers="Flex">
+            295,200
+          </td>
+          <td headers="CNG">
+            100
+          </td>
+          <td headers="Propane">
+            0
+          </td>
+          <td headers="Hydrogen">
+            0
+          </td>
+          <td headers="Methanol">
+            0
+          </td>
+          <td headers="Gas">
+            2,275,600
+          </td>
+          <td headers="Diesel">
+            75,200
+          </td>
+          <td headers="Unknown">
+            8,500
+          </td>
+      </tr>
+      <tr>
+        <td headers="state">Missouri</td>
+          <td headers="Electric">
+            26,900
+          </td>
+          <td headers="PHEV">
+            13,900
+          </td>
+          <td headers="HEV">
+            113,900
+          </td>
+          <td headers="Biodiesel">
+            70,400
+          </td>
+          <td headers="Flex">
+            575,500
+          </td>
+          <td headers="CNG">
+            900
+          </td>
+          <td headers="Propane">
+            100
+          </td>
+          <td headers="Hydrogen">
+            0
+          </td>
+          <td headers="Methanol">
+            0
+          </td>
+          <td headers="Gas">
+            4,608,600
+          </td>
+          <td headers="Diesel">
+            178,200
+          </td>
+          <td headers="Unknown">
+            37,600
+          </td>
+      </tr>
+      <tr>
+        <td headers="state">Montana</td>
+          <td headers="Electric">
+            4,600
+          </td>
+          <td headers="PHEV">
+            2,500
+          </td>
+          <td headers="HEV">
+            21,100
+          </td>
+          <td headers="Biodiesel">
+            37,900
+          </td>
+          <td headers="Flex">
+            94,500
+          </td>
+          <td headers="CNG">
+            0
+          </td>
+          <td headers="Propane">
+            0
+          </td>
+          <td headers="Hydrogen">
+            0
+          </td>
+          <td headers="Methanol">
+            0
+          </td>
+          <td headers="Gas">
+            780,700
+          </td>
+          <td headers="Diesel">
+            69,600
+          </td>
+          <td headers="Unknown">
+            10,800
+          </td>
+      </tr>
+      <tr>
+        <td headers="state">Nebraska</td>
+          <td headers="Electric">
+            6,900
+          </td>
+          <td headers="PHEV">
+            3,800
+          </td>
+          <td headers="HEV">
+            32,600
+          </td>
+          <td headers="Biodiesel">
+            28,900
+          </td>
+          <td headers="Flex">
+            197,100
+          </td>
+          <td headers="CNG">
+            100
+          </td>
+          <td headers="Propane">
+            0
+          </td>
+          <td headers="Hydrogen">
+            0
+          </td>
+          <td headers="Methanol">
+            0
+          </td>
+          <td headers="Gas">
+            1,600,400
+          </td>
+          <td headers="Diesel">
+            76,100
+          </td>
+          <td headers="Unknown">
+            25,300
+          </td>
+      </tr>
+      <tr>
+        <td headers="state">Nevada</td>
+          <td headers="Electric">
+            47,400
+          </td>
+          <td headers="PHEV">
+            10,600
+          </td>
+          <td headers="HEV">
+            69,600
+          </td>
+          <td headers="Biodiesel">
+            27,200
+          </td>
+          <td headers="Flex">
+            125,600
+          </td>
+          <td headers="CNG">
+            200
+          </td>
+          <td headers="Propane">
+            100
+          </td>
+          <td headers="Hydrogen">
+            0
+          </td>
+          <td headers="Methanol">
+            0
+          </td>
+          <td headers="Gas">
+            2,169,300
+          </td>
+          <td headers="Diesel">
+            85,800
+          </td>
+          <td headers="Unknown">
+            20,300
+          </td>
+      </tr>
+      <tr>
+        <td headers="state">New Hampshire</td>
+          <td headers="Electric">
+            9,900
+          </td>
+          <td headers="PHEV">
+            6,600
+          </td>
+          <td headers="HEV">
+            36,800
+          </td>
+          <td headers="Biodiesel">
+            13,900
+          </td>
+          <td headers="Flex">
+            89,600
+          </td>
+          <td headers="CNG">
+            100
+          </td>
+          <td headers="Propane">
+            0
+          </td>
+          <td headers="Hydrogen">
+            0
+          </td>
+          <td headers="Methanol">
+            0
+          </td>
+          <td headers="Gas">
+            1,185,300
+          </td>
+          <td headers="Diesel">
+            29,200
+          </td>
+          <td headers="Unknown">
+            12,300
+          </td>
+      </tr>
+      <tr>
+        <td headers="state">New Jersey</td>
+          <td headers="Electric">
+            134,800
+          </td>
+          <td headers="PHEV">
+            40,900
+          </td>
+          <td headers="HEV">
+            174,200
+          </td>
+          <td headers="Biodiesel">
+            27,800
+          </td>
+          <td headers="Flex">
+            392,100
+          </td>
+          <td headers="CNG">
+            300
+          </td>
+          <td headers="Propane">
+            0
+          </td>
+          <td headers="Hydrogen">
+            0
+          </td>
+          <td headers="Methanol">
+            0
+          </td>
+          <td headers="Gas">
+            6,433,000
+          </td>
+          <td headers="Diesel">
+            84,600
+          </td>
+          <td headers="Unknown">
+            36,400
+          </td>
+      </tr>
+      <tr>
+        <td headers="state">New Mexico</td>
+          <td headers="Electric">
+            10,300
+          </td>
+          <td headers="PHEV">
+            4,900
+          </td>
+          <td headers="HEV">
+            44,300
+          </td>
+          <td headers="Biodiesel">
+            32,100
+          </td>
+          <td headers="Flex">
+            151,600
+          </td>
+          <td headers="CNG">
+            100
+          </td>
+          <td headers="Propane">
+            100
+          </td>
+          <td headers="Hydrogen">
+            0
+          </td>
+          <td headers="Methanol">
+            0
+          </td>
+          <td headers="Gas">
+            1,597,600
+          </td>
+          <td headers="Diesel">
+            88,500
+          </td>
+          <td headers="Unknown">
+            22,900
+          </td>
+      </tr>
+      <tr>
+        <td headers="state">New York</td>
+          <td headers="Electric">
+            131,300
+          </td>
+          <td headers="PHEV">
+            92,300
+          </td>
+          <td headers="HEV">
+            314,000
+          </td>
+          <td headers="Biodiesel">
+            54,300
+          </td>
+          <td headers="Flex">
+            591,100
+          </td>
+          <td headers="CNG">
+            400
+          </td>
+          <td headers="Propane">
+            100
+          </td>
+          <td headers="Hydrogen">
+            0
+          </td>
+          <td headers="Methanol">
+            0
+          </td>
+          <td headers="Gas">
+            9,905,500
+          </td>
+          <td headers="Diesel">
+            150,500
+          </td>
+          <td headers="Unknown">
+            79,100
+          </td>
+      </tr>
+      <tr>
+        <td headers="state">North Carolina</td>
+          <td headers="Electric">
+            70,200
+          </td>
+          <td headers="PHEV">
+            23,700
+          </td>
+          <td headers="HEV">
+            210,600
+          </td>
+          <td headers="Biodiesel">
+            80,200
+          </td>
+          <td headers="Flex">
+            655,000
+          </td>
+          <td headers="CNG">
+            300
+          </td>
+          <td headers="Propane">
+            100
+          </td>
+          <td headers="Hydrogen">
+            0
+          </td>
+          <td headers="Methanol">
+            0
+          </td>
+          <td headers="Gas">
+            7,764,000
+          </td>
+          <td headers="Diesel">
+            209,700
+          </td>
+          <td headers="Unknown">
+            71,700
+          </td>
+      </tr>
+      <tr>
+        <td headers="state">North Dakota</td>
+          <td headers="Electric">
+            1,000
+          </td>
+          <td headers="PHEV">
+            800
+          </td>
+          <td headers="HEV">
+            8,200
+          </td>
+          <td headers="Biodiesel">
+            20,400
+          </td>
+          <td headers="Flex">
+            89,900
+          </td>
+          <td headers="CNG">
+            0
+          </td>
+          <td headers="Propane">
+            0
+          </td>
+          <td headers="Hydrogen">
+            0
+          </td>
+          <td headers="Methanol">
+            0
+          </td>
+          <td headers="Gas">
+            625,300
+          </td>
+          <td headers="Diesel">
+            44,600
+          </td>
+          <td headers="Unknown">
+            7,200
+          </td>
+      </tr>
+      <tr>
+        <td headers="state">Ohio</td>
+          <td headers="Electric">
+            50,400
+          </td>
+          <td headers="PHEV">
+            24,000
+          </td>
+          <td headers="HEV">
+            199,800
+          </td>
+          <td headers="Biodiesel">
+            70,300
+          </td>
+          <td headers="Flex">
+            833,500
+          </td>
+          <td headers="CNG">
+            700
+          </td>
+          <td headers="Propane">
+            100
+          </td>
+          <td headers="Hydrogen">
+            0
+          </td>
+          <td headers="Methanol">
+            0
+          </td>
+          <td headers="Gas">
+            8,881,400
+          </td>
+          <td headers="Diesel">
+            196,200
+          </td>
+          <td headers="Unknown">
+            60,900
+          </td>
+      </tr>
+      <tr>
+        <td headers="state">Oklahoma</td>
+          <td headers="Electric">
+            22,800
+          </td>
+          <td headers="PHEV">
+            33,000
+          </td>
+          <td headers="HEV">
+            56,400
+          </td>
+          <td headers="Biodiesel">
+            63,100
+          </td>
+          <td headers="Flex">
+            352,400
+          </td>
+          <td headers="CNG">
+            1,800
+          </td>
+          <td headers="Propane">
+            200
+          </td>
+          <td headers="Hydrogen">
+            0
+          </td>
+          <td headers="Methanol">
+            0
+          </td>
+          <td headers="Gas">
+            3,567,500
+          </td>
+          <td headers="Diesel">
+            145,700
+          </td>
+          <td headers="Unknown">
+            45,000
+          </td>
+      </tr>
+      <tr>
+        <td headers="state">Oregon</td>
+          <td headers="Electric">
+            64,400
+          </td>
+          <td headers="PHEV">
+            28,800
+          </td>
+          <td headers="HEV">
+            156,900
+          </td>
+          <td headers="Biodiesel">
+            55,500
+          </td>
+          <td headers="Flex">
+            184,600
+          </td>
+          <td headers="CNG">
+            100
+          </td>
+          <td headers="Propane">
+            100
+          </td>
+          <td headers="Hydrogen">
+            0
+          </td>
+          <td headers="Methanol">
+            0
+          </td>
+          <td headers="Gas">
+            3,074,300
+          </td>
+          <td headers="Diesel">
+            217,000
+          </td>
+          <td headers="Unknown">
+            51,000
+          </td>
+      </tr>
+      <tr>
+        <td headers="state">Pennsylvania</td>
+          <td headers="Electric">
+            70,200
+          </td>
+          <td headers="PHEV">
+            38,900
+          </td>
+          <td headers="HEV">
+            245,400
+          </td>
+          <td headers="Biodiesel">
+            73,900
+          </td>
+          <td headers="Flex">
+            661,700
+          </td>
+          <td headers="CNG">
+            500
+          </td>
+          <td headers="Propane">
+            100
+          </td>
+          <td headers="Hydrogen">
+            0
+          </td>
+          <td headers="Methanol">
+            0
+          </td>
+          <td headers="Gas">
+            8,886,400
+          </td>
+          <td headers="Diesel">
+            192,100
+          </td>
+          <td headers="Unknown">
+            41,800
+          </td>
+      </tr>
+      <tr>
+        <td headers="state">Rhode Island</td>
+          <td headers="Electric">
+            6,400
+          </td>
+          <td headers="PHEV">
+            5,100
+          </td>
+          <td headers="HEV">
+            22,100
+          </td>
+          <td headers="Biodiesel">
+            3,100
+          </td>
+          <td headers="Flex">
+            41,900
+          </td>
+          <td headers="CNG">
+            0
+          </td>
+          <td headers="Propane">
+            0
+          </td>
+          <td headers="Hydrogen">
+            0
+          </td>
+          <td headers="Methanol">
+            0
+          </td>
+          <td headers="Gas">
+            782,000
+          </td>
+          <td headers="Diesel">
+            11,000
+          </td>
+          <td headers="Unknown">
+            6,000
+          </td>
+      </tr>
+      <tr>
+        <td headers="state">South Carolina</td>
+          <td headers="Electric">
+            20,900
+          </td>
+          <td headers="PHEV">
+            9,000
+          </td>
+          <td headers="HEV">
+            83,100
+          </td>
+          <td headers="Biodiesel">
+            44,600
+          </td>
+          <td headers="Flex">
+            404,600
+          </td>
+          <td headers="CNG">
+            100
+          </td>
+          <td headers="Propane">
+            100
+          </td>
+          <td headers="Hydrogen">
+            0
+          </td>
+          <td headers="Methanol">
+            0
+          </td>
+          <td headers="Gas">
+            4,325,000
+          </td>
+          <td headers="Diesel">
+            110,100
+          </td>
+          <td headers="Unknown">
+            44,900
+          </td>
+      </tr>
+      <tr>
+        <td headers="state">South Dakota</td>
+          <td headers="Electric">
+            1,700
+          </td>
+          <td headers="PHEV">
+            1,300
+          </td>
+          <td headers="HEV">
+            11,900
+          </td>
+          <td headers="Biodiesel">
+            21,500
+          </td>
+          <td headers="Flex">
+            98,800
+          </td>
+          <td headers="CNG">
+            0
+          </td>
+          <td headers="Propane">
+            0
+          </td>
+          <td headers="Hydrogen">
+            0
+          </td>
+          <td headers="Methanol">
+            0
+          </td>
+          <td headers="Gas">
+            718,300
+          </td>
+          <td headers="Diesel">
+            51,200
+          </td>
+          <td headers="Unknown">
+            13,300
+          </td>
+      </tr>
+      <tr>
+        <td headers="state">Tennessee</td>
+          <td headers="Electric">
+            33,200
+          </td>
+          <td headers="PHEV">
+            11,000
+          </td>
+          <td headers="HEV">
+            113,300
+          </td>
+          <td headers="Biodiesel">
+            53,100
+          </td>
+          <td headers="Flex">
+            509,000
+          </td>
+          <td headers="CNG">
+            200
+          </td>
+          <td headers="Propane">
+            100
+          </td>
+          <td headers="Hydrogen">
+            0
+          </td>
+          <td headers="Methanol">
+            0
+          </td>
+          <td headers="Gas">
+            5,620,500
+          </td>
+          <td headers="Diesel">
+            160,700
+          </td>
+          <td headers="Unknown">
+            37,700
+          </td>
+      </tr>
+      <tr>
+        <td headers="state">Texas</td>
+          <td headers="Electric">
+            230,100
+          </td>
+          <td headers="PHEV">
+            55,300
+          </td>
+          <td headers="HEV">
+            445,100
+          </td>
+          <td headers="Biodiesel">
+            460,700
+          </td>
+          <td headers="Flex">
+            2,315,400
+          </td>
+          <td headers="CNG">
+            1,300
+          </td>
+          <td headers="Propane">
+            1,300
+          </td>
+          <td headers="Hydrogen">
+            0
+          </td>
+          <td headers="Methanol">
+            0
+          </td>
+          <td headers="Gas">
+            21,392,800
+          </td>
+          <td headers="Diesel">
+            772,800
+          </td>
+          <td headers="Unknown">
+            121,800
+          </td>
+      </tr>
+      <tr>
+        <td headers="state">Utah</td>
+          <td headers="Electric">
+            40,000
+          </td>
+          <td headers="PHEV">
+            13,000
+          </td>
+          <td headers="HEV">
+            83,200
+          </td>
+          <td headers="Biodiesel">
+            68,500
+          </td>
+          <td headers="Flex">
+            185,200
+          </td>
+          <td headers="CNG">
+            2,200
+          </td>
+          <td headers="Propane">
+            500
+          </td>
+          <td headers="Hydrogen">
+            0
+          </td>
+          <td headers="Methanol">
+            0
+          </td>
+          <td headers="Gas">
+            2,499,600
+          </td>
+          <td headers="Diesel">
+            158,000
+          </td>
+          <td headers="Unknown">
+            26,000
+          </td>
+      </tr>
+      <tr>
+        <td headers="state">Vermont</td>
+          <td headers="Electric">
+            7,800
+          </td>
+          <td headers="PHEV">
+            5,700
+          </td>
+          <td headers="HEV">
+            20,300
+          </td>
+          <td headers="Biodiesel">
+            7,000
+          </td>
+          <td headers="Flex">
+            36,600
+          </td>
+          <td headers="CNG">
+            0
+          </td>
+          <td headers="Propane">
+            0
+          </td>
+          <td headers="Hydrogen">
+            0
+          </td>
+          <td headers="Methanol">
+            0
+          </td>
+          <td headers="Gas">
+            496,000
+          </td>
+          <td headers="Diesel">
+            14,700
+          </td>
+          <td headers="Unknown">
+            5,000
+          </td>
+      </tr>
+      <tr>
+        <td headers="state">Virginia</td>
+          <td headers="Electric">
+            84,900
+          </td>
+          <td headers="PHEV">
+            26,800
+          </td>
+          <td headers="HEV">
+            229,400
+          </td>
+          <td headers="Biodiesel">
+            44,300
+          </td>
+          <td headers="Flex">
+            484,800
+          </td>
+          <td headers="CNG">
+            300
+          </td>
+          <td headers="Propane">
+            0
+          </td>
+          <td headers="Hydrogen">
+            0
+          </td>
+          <td headers="Methanol">
+            0
+          </td>
+          <td headers="Gas">
+            6,670,000
+          </td>
+          <td headers="Diesel">
+            152,800
+          </td>
+          <td headers="Unknown">
+            30,200
+          </td>
+      </tr>
+      <tr>
+        <td headers="state">Washington</td>
+          <td headers="Electric">
+            152,100
+          </td>
+          <td headers="PHEV">
+            41,200
+          </td>
+          <td headers="HEV">
+            307,200
+          </td>
+          <td headers="Biodiesel">
+            73,800
+          </td>
+          <td headers="Flex">
+            337,700
+          </td>
+          <td headers="CNG">
+            100
+          </td>
+          <td headers="Propane">
+            100
+          </td>
+          <td headers="Hydrogen">
+            0
+          </td>
+          <td headers="Methanol">
+            0
+          </td>
+          <td headers="Gas">
+            5,583,000
+          </td>
+          <td headers="Diesel">
+            274,200
+          </td>
+          <td headers="Unknown">
+            46,700
+          </td>
+      </tr>
+      <tr>
+        <td headers="state">West Virginia</td>
+          <td headers="Electric">
+            2,800
+          </td>
+          <td headers="PHEV">
+            1,800
+          </td>
+          <td headers="HEV">
+            22,400
+          </td>
+          <td headers="Biodiesel">
+            17,300
+          </td>
+          <td headers="Flex">
+            123,400
+          </td>
+          <td headers="CNG">
+            100
+          </td>
+          <td headers="Propane">
+            0
+          </td>
+          <td headers="Hydrogen">
+            0
+          </td>
+          <td headers="Methanol">
+            0
+          </td>
+          <td headers="Gas">
+            1,281,500
+          </td>
+          <td headers="Diesel">
+            46,400
+          </td>
+          <td headers="Unknown">
+            15,200
+          </td>
+      </tr>
+      <tr>
+        <td headers="state">Wisconsin</td>
+          <td headers="Electric">
+            24,900
+          </td>
+          <td headers="PHEV">
+            12,500
+          </td>
+          <td headers="HEV">
+            123,600
+          </td>
+          <td headers="Biodiesel">
+            52,900
+          </td>
+          <td headers="Flex">
+            536,200
+          </td>
+          <td headers="CNG">
+            300
+          </td>
+          <td headers="Propane">
+            0
+          </td>
+          <td headers="Hydrogen">
+            0
+          </td>
+          <td headers="Methanol">
+            0
+          </td>
+          <td headers="Gas">
+            4,604,700
+          </td>
+          <td headers="Diesel">
+            147,500
+          </td>
+          <td headers="Unknown">
+            26,400
+          </td>
+      </tr>
+      <tr>
+        <td headers="state">Wyoming</td>
+          <td headers="Electric">
+            1,100
+          </td>
+          <td headers="PHEV">
+            800
+          </td>
+          <td headers="HEV">
+            8,400
+          </td>
+          <td headers="Biodiesel">
+            21,200
+          </td>
+          <td headers="Flex">
+            57,700
+          </td>
+          <td headers="CNG">
+            0
+          </td>
+          <td headers="Propane">
+            0
+          </td>
+          <td headers="Hydrogen">
+            0
+          </td>
+          <td headers="Methanol">
+            0
+          </td>
+          <td headers="Gas">
+            489,100
+          </td>
+          <td headers="Diesel">
+            60,900
+          </td>
+          <td headers="Unknown">
+            13,700
+          </td>
+      </tr>
+  </tbody>
+  <tfoot>
+    <tr>
+      <td headers="state">United States</td>
+        <td headers="Electric">
+          3,555,900
+        </td>
+        <td headers="PHEV">
+          1,307,200
+        </td>
+        <td headers="HEV">
+          7,392,300
+        </td>
+        <td headers="Biodiesel">
+          2,803,600
+        </td>
+        <td headers="Flex">
+          20,240,600
+        </td>
+        <td headers="CNG">
+          24,700
+        </td>
+        <td headers="Propane">
+          6,000
+        </td>
+        <td headers="Hydrogen">
+          16,900
+        </td>
+        <td headers="Methanol">
+          0
+        </td>
+        <td headers="Gas">
+          242,870,900
+        </td>
+        <td headers="Diesel">
+          7,184,300
+        </td>
+        <td headers="Unknown">
+          1,694,100
+        </td>
+    </tr>
+  </tfoot>
+</table>
+
+
+
+      </main>
+  </div>
+</div>
+
+  <footer class="eere-footer-site">
+    <div class="eere-footer-program eere-footer-program-site-container py-4">
+      <div class="container-xxl">
+        <div class="eere-footer-program-site">
+            <div class="d-print-none">
+    <div class="row">
+      <div class="col-lg-4">
+        <div class="row small eere-link-underline">
+          <div class="col-auto">
+            <a href="mailto:technicalresponse@icf.com"><img alt="TRS" width="50" height="50" class="mt-1" src="/vite/assets/trs-DXiu77Hs.svg" /></a>
+          </div>
+          <div class="col-auto">
+            <h2 class="fs-6 fw-bold mt-1">Need project assistance?</h2>
+            <p class="mb-0"><a href="mailto:technicalresponse@icf.com">Technical Response Service</a></p>
+            <p class="mb-0"><a href="tel:800-254-6735" itemprop="telephone">800-254-6735</a></p>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-8 mt-4 mt-lg-0">
+        <ul class="eere-footer-bottom-menu d-flex align-items-center flex-wrap justify-content-xl-end py-0">
+  <li class="fw-bold"><a href="/fuels/">Fuels & Vehicles</a></li>
+  <li class="fw-bold"><a href="/stations">Station Locator</a></li>
+  <li class="fw-bold"><a href="/laws">Laws & Incentives</a></li>
+  <li class="fw-bold"><a href="/data_download">Data Downloads</a></li>
+  <li class="fw-bold"><a href="https://developer.nlr.gov/docs/transportation">Developer APIs</a></li>
+</ul>
+
+      </div>
+    </div>
+  </div>
+
+        </div>
+      </div>
+    </div>
+
+  <div class="eere-footer-program py-4">
+    <div class="container-xxl">
+      <div class="row eere-footer-programbar eere-link-underline">
+        <div class="col-lg-4 mb-2 mb-lg-0">
+          <a href="https://www.energy.gov/cmei"><img alt="U.S. Department of Energy | Office of Critical Minerals and Energy Innovation" width="284" height="37" class="eere-logo-footer" src="/assets/eere-app-template-mea/logo-cmei-header-66178450.webp" /></a>
+        </div>
+
+          <div class="col-lg-8 text-lg-end mt-2">
+            The AFDC is a resource of the U.S. Department of Energy's <a href="https://energy.gov/eere/vehicles/technology-integration">Transportation Technologies Office</a>.
+          </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="eere-footer-top">
+    <div class="container-xxl">
+      <div class="row pb-2">
+        <div class="col-md-3 pt-5 pb-5">
+          <a href="https://www.energy.gov"><img alt="U.S. Department of Energy" width="157" height="43" class="eere-logo-doe" src="/assets/eere-app-template-mea/logo-doe-ca91bb99.webp" /></a>
+        </div>
+        <div class="col-md-3 pt-0 pb-3 pt-md-5 pb-md-4">
+          <h2 class="text-white mt-1 mb-3 fs-5">Quick Links</h2>
+          <ul class="eere-footer-list">
+            <li><a href="https://www.energy.gov/our-leadership-offices">Leadership & Offices</a></li>
+            <li><a href="https://www.energy.gov/mission">Mission</a></li>
+            <li><a href="https://www.energy.gov/contact-us">Contact Us</a></li>
+            <li><a href="https://www.energy.gov/work-us-department-energy">Careers</a></li>
+          </ul>
+        </div>
+        <div class="col-md-3 pt-0 pb-3 pt-md-5 pb-md-5">
+          <h2 class="text-white mt-1 mb-3 fs-5">Resources</h2>
+          <ul class="eere-footer-list">
+            <li><a href="https://www.energy.gov/budget-performance">Budget & Performance</a></li>
+            <li><a href="https://www.directives.doe.gov">Directives, Delegations, & Requirements</a></li>
+            <li><a href="https://www.energy.gov/gc/freedom-information-act">Freedom of Information Act (FOIA)</a></li>
+            <li><a href="https://www.energy.gov/ig/office-inspector-general">Inspector General</a></li>
+            <li><a href="https://www.energy.gov/cio/privacy-program">Privacy Program</a></li>
+          </ul>
+        </div>
+        <div class="col-md-3 pt-0 pb-3 pt-md-5 pb-md-5">
+          <h2 class="text-white mt-1 mb-3 fs-5">Federal Government</h2>
+          <ul class="eere-footer-list">
+            <li><a href="https://www.usa.gov">USA.gov</a></li>
+            <li><a href="https://www.whitehouse.gov">The White House</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="eere-footer-bottom">
+    <div class="container-xxl">
+      <ul class="eere-footer-bottom-menu d-flex align-items-center flex-wrap">
+        <li><a href="https://www.energy.gov/open-government">Open Gov</a></li>
+        <li><a href="https://www.energy.gov/cio/accessibility-standard-statement">Accessibility</a></li>
+        <li><a href="https://www.energy.gov/about-us/web-policies/privacy">Privacy</a></li>
+        <li><a href="https://www.energy.gov/cio/department-energy-information-quality-guidelines">Information Quality</a></li>
+        <li><a href="https://www.energy.gov/web-policies">Web Policies</a></li>
+        <li><a href="https://www.energy.gov/cio/articles/vulnerability-disclosure-policy">Vulnerability Disclosure Program</a></li>
+        <li><a href="https://www.energy.gov/whistleblower-protection-and-nondisclosure-agreements">Whistleblower Protection</a></li>
+      </ul>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
+

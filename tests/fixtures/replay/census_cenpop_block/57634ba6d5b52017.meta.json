@@ -1,0 +1,33 @@
+{
+  "content_bytes": 18409,
+  "content_sha256": "b8f987240729e49e8db4cd543fab9b56d788182e74001ef14efa769aad4c7c67",
+  "elapsed_ms": 267.7,
+  "headers": {
+    "age": "161",
+    "cache-control": "public, max-age=14400",
+    "cf-cache-status": "HIT",
+    "cf-ray": "a2d59d4a0f8d7fb0-ORD",
+    "connection": "keep-alive",
+    "content-encoding": "gzip",
+    "content-security-policy": "default-src 'self' 'unsafe-inline' 'unsafe-eval' census.gov *.census.gov http://www.census.gov assets.adobedtm.com www.googletagmanager.com https://dpm.demdex.net https://cm.everesttech.net https://uscensusbureau.demdex.net dap.digitalgov.gov www.google-analytics.com https://static.cloudflareinsights.com; frame-ancestors 'self';",
+    "content-type": "text/html",
+    "date": "Wed, 19 Aug 2026 02:09:08 GMT",
+    "expires": "Wed, 19 Aug 2026 06:09:08 GMT",
+    "referrer-policy": "strict-origin-when-cross-origin",
+    "server": "cloudflare",
+    "set-cookie": "__cf_bm=gmWjNrq0K5lES.mA6IYtS52ET9crutqrbpd9We_25gY-1787105348.1696835-1.0.1.1-VUHeaYkrXSTUNotqQOxrVL8Kc36thj4GmgW32XPv5_86UI5oQhs5xCEtKfR5miv4TqZwn7eCOH7p8qy67zo7JWDigOE_UBFf3mxdoC6bD4OXc9jKa5RgNqJDr3N1ck1t; HttpOnly; SameSite=None; Secure; Path=/; Domain=www2.census.gov; Expires=Wed, 19 Aug 2026 02:39:08 GMT",
+    "strict-transport-security": "max-age=31536000",
+    "transfer-encoding": "chunked",
+    "vary": "Accept-Encoding",
+    "x-content-type-options": "nosniff",
+    "x-frame-options": "SAMEORIGIN",
+    "x-xss-protection": "1; mode=block"
+  },
+  "params": {},
+  "request_headers": {},
+  "retrieved_at": "2026-08-19T02:09:08+00:00",
+  "source_id": "census_cenpop_block",
+  "status_code": 404,
+  "truncated": false,
+  "url": "https://www2.census.gov/geo/docs/reference/cenpop2020/block/CenPop2020_Mean_BLK27.txt"
+}

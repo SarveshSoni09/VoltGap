@@ -1,0 +1,42 @@
+{
+  "content_bytes": 39,
+  "content_sha256": "7dd10abed54e37fba8a0b58dfdd94db7d8d01e59f3fc408c6b1cdaa8626bc839",
+  "elapsed_ms": 477.9,
+  "headers": {
+    "access-control-allow-methods": "GET, POST, OPTIONS",
+    "access-control-allow-origin": "*",
+    "access-control-max-age": "86400",
+    "age": "0",
+    "cache-control": "max-age=0, private, must-revalidate",
+    "connection": "keep-alive",
+    "content-encoding": "gzip",
+    "content-type": "application/json; charset=utf-8",
+    "date": "Wed, 19 Aug 2026 02:08:51 GMT",
+    "etag": "W/\"7dd10abed54e37fba8a0b58dfdd94db7\"",
+    "referrer-policy": "strict-origin-when-cross-origin",
+    "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+    "transfer-encoding": "chunked",
+    "vary": "Accept-Encoding, Origin",
+    "via": "https/1.1 api-umbrella (ApacheTrafficServer [cMsSf ])",
+    "x-api-umbrella-request-id": "d02v3kftqgmp27td26ng",
+    "x-cache": "MISS",
+    "x-content-type-options": "nosniff",
+    "x-frame-options": "SAMEORIGIN",
+    "x-permitted-cross-domain-policies": "none",
+    "x-ratelimit-limit": "10",
+    "x-ratelimit-remaining": "0",
+    "x-request-id": "fb55817b287e70b18152308c77bf6a0b",
+    "x-runtime": "0.003683",
+    "x-vcap-request-id": "d3df1bd4-19fc-417c-56dc-710aa0c25331",
+    "x-xss-protection": "1; mode=block"
+  },
+  "params": {
+    "api_key": "<redacted>"
+  },
+  "request_headers": {},
+  "retrieved_at": "2026-08-19T02:08:51+00:00",
+  "source_id": "afdc_last_updated",
+  "status_code": 200,
+  "truncated": false,
+  "url": "https://developer.nlr.gov/api/alt-fuel-stations/v1/last-updated.json"
+}

@@ -1,0 +1,36 @@
+{
+  "content_bytes": 1024,
+  "content_sha256": "fb727ccb156de4572ab1b100fd8de9856daf020e8cdfe171c78abf72ece3bc6f",
+  "elapsed_ms": 287.5,
+  "headers": {
+    "age": "209520",
+    "cache-control": "public, max-age=14400",
+    "cf-cache-status": "HIT",
+    "cf-ray": "a2d59d4ebedf7699-SEA",
+    "connection": "keep-alive",
+    "content-length": "1024",
+    "content-range": "bytes 0-1023/29625918",
+    "content-security-policy": "default-src 'self' 'unsafe-inline' 'unsafe-eval' census.gov *.census.gov http://www.census.gov assets.adobedtm.com www.googletagmanager.com https://dpm.demdex.net https://cm.everesttech.net https://uscensusbureau.demdex.net dap.digitalgov.gov www.google-analytics.com https://static.cloudflareinsights.com; frame-ancestors 'self';",
+    "content-type": "application/zip",
+    "date": "Wed, 19 Aug 2026 02:09:08 GMT",
+    "expires": "Wed, 19 Aug 2026 06:09:08 GMT",
+    "last-modified": "Thu, 12 Aug 2021 17:19:10 GMT",
+    "referrer-policy": "strict-origin-when-cross-origin",
+    "server": "cloudflare",
+    "set-cookie": "__cf_bm=wQ0iV0KLpoLoF7qCFEBdG5rI0BBUozWKLhP9dXwt4oc-1787105348.9161577-1.0.1.1-lwALL0C_fflqCEwlZQw.VDpNHm.T.960bfoHwX3XDH.Kxr.fRC32_daB96xM5rKvbZgXgp2_.lw.9fWDBvug.mnntVO7Z4nmMxDPfoP4JlzbS0a8bue.be_AVQBBnl1v; HttpOnly; SameSite=None; Secure; Path=/; Domain=www2.census.gov; Expires=Wed, 19 Aug 2026 02:39:08 GMT",
+    "strict-transport-security": "max-age=31536000",
+    "vary": "Accept-Encoding",
+    "x-content-type-options": "nosniff",
+    "x-frame-options": "SAMEORIGIN",
+    "x-xss-protection": "1; mode=block"
+  },
+  "params": {},
+  "request_headers": {
+    "Range": "bytes=0-1023"
+  },
+  "retrieved_at": "2026-08-19T02:09:08+00:00",
+  "source_id": "census_pl94171_blocks",
+  "status_code": 206,
+  "truncated": true,
+  "url": "https://www2.census.gov/programs-surveys/decennial/2020/data/01-Redistricting_File--PL_94-171/Minnesota/mn2020.pl.zip"
+}

@@ -1,0 +1,90 @@
+{
+  "atlas_ev_hub": {
+    "states": 14,
+    "zip_grain": [
+      "CO",
+      "CT",
+      "ME",
+      "MN",
+      "NC",
+      "NJ",
+      "NM",
+      "NY",
+      "OR",
+      "TX",
+      "VT"
+    ],
+    "county_grain": [
+      "MT",
+      "TN",
+      "VA"
+    ],
+    "login_required": false,
+    "schema": [
+      "State",
+      "ZIP Code|County",
+      "Registration Date",
+      "Vehicle Make",
+      "Vehicle Model",
+      "Vehicle Model Year",
+      "Drivetrain Type",
+      "Vehicle GVWR Class",
+      "Vehicle GVWR Category",
+      "Vehicle Count",
+      "DMV Snapshot ID",
+      "DMV Snapshot (Date)",
+      "Latest DMV Snapshot Flag"
+    ],
+    "historical_vintages": "yes, via the repeated DMV Snapshot series; earliest observed 2017-12-31 (NJ)",
+    "file_sizes_bytes": {
+      "NY": 1320829913,
+      "TX": 927191057,
+      "CO": 664460416,
+      "MN": 112777329,
+      "NJ": 86988084,
+      "NM": 68250337,
+      "VA": 48736748,
+      "CT": 36236372,
+      "TN": 28600788,
+      "ME": 27799658,
+      "OR": 26977381,
+      "NC": 22705092,
+      "VT": 16995725,
+      "MT": 3933265
+    }
+  },
+  "washington": {
+    "granularity": "census tract (_2020_census_tract)",
+    "rows": 294193,
+    "historical_vintages": "no; current snapshot with no registration date",
+    "license": "Open Data Commons Open Database License"
+  },
+  "illinois_seed": {
+    "granularity": "county",
+    "panel": "84 monthly observations 2017-11 to 2024-11",
+    "source": "delivered seed file county_ev_counts.csv"
+  },
+  "minnesota_seed": {
+    "granularity": "county",
+    "panel": "single snapshot",
+    "source": "delivered seed file County_EV_Registrations_Summary.csv"
+  },
+  "distinct_states_with_substate_data": [
+    "CO",
+    "CT",
+    "IL",
+    "ME",
+    "MN",
+    "MT",
+    "NC",
+    "NJ",
+    "NM",
+    "NY",
+    "OR",
+    "TN",
+    "TX",
+    "VA",
+    "VT",
+    "WA"
+  ]
+}
