@@ -1403,3 +1403,58 @@ evidence of a defective source. The authoritative replacement rule and the seven
 Phase 1 regression properties are recorded in `PLAN_CHANGE_0.md` §8 and `CLAUDE.md` §5.
 
 Full amendment log: `CLAUDE.md` §19.
+
+## Correction — 2026-08-19 (second)
+
+Recorded after the project owner's review of the Phase 1 plan, which found a defect in a
+Phase 0 published output. Four further specification amendments (A13–A16) followed. As with
+the first correction, the report text above is preserved unedited.
+
+**One Phase 0 output was wrong.** `SOURCES.yml` recorded, for `afdc_charging_units`,
+`stable_keys: true` with `join_keys: [ID]`. That claims row-level identity the source does not
+provide. Opened as impact-log entry **I-1**, severity **S2 Degrading**, and resolved the same
+day.
+
+Measurement over the full national export, 292,435 rows:
+
+| Measurement | Value |
+|---|---|
+| Columns resembling a charging-unit identifier | **none**; `ID` is the station |
+| Station `ID` values spanning those rows | 89,687 |
+| Distinct full-row values | 99,639 |
+| Rows in an identical-row group | 265,836 (**90.9%**) |
+| Redundant rows (n−1 per group) | 192,796 (**65.9%**) |
+| Largest identical group | 410 rows (station 225833) |
+| Stations where row count == reported L1+L2+DCFC | **89,665 / 89,687 (100.0%)** |
+
+Rows cannot be told apart by content; only row order separates them, and no refresh guarantees
+that. `stable_keys` is corrected to `false`, with `parent_key` and `row_identity: none`
+recorded separately.
+
+**No quantitative finding in this report is retracted.** The last row above is why: row count
+reconciles to reported EVSE totals for 100.0% of stations, so the export is genuinely one row
+per EVSE and the duplicates are real distinct units that are indistinguishable in every
+reported attribute — the same situation as domain rule G4 for coordinate duplicates. The
+rung-1 power coverage figures in §9.2 (82.76% all rows, 88.11% public + operational,
+port-weighted) aggregate counts across rows and never depend on row identity. Finding F-1 and
+its evidence artifact stand unchanged, and the reconciliation result independently corroborates
+them.
+
+**Three further amendments**, none of which invalidates anything above:
+
+- **A14 — determinism.** This report's §5 determinism check is described as producing
+  "identical checksums". That remains true *as run*: the Phase 0 check replays pinned fixtures
+  and hashes `SOURCES.observed.json`, which carries no `computed_at`. From Phase 1 onward,
+  derived tables do carry `computed_at`, so determinism is redefined as *same pinned snapshots
+  + same code + same configuration ⇒ same semantic output*, with volatile metadata normalised
+  out, and replay reproducibility is separated from live-refresh behaviour in the gate.
+- **A15 — raw/staging boundary.** Now binds source adapters as well as `stg_*.sql`. No Phase 0
+  code is affected; `probe.py` already preserves what it retrieves.
+- **A16 — FHWA traffic demoted to Optional/Future Work.** This report's §9.4 lists
+  `fhwa_traffic` among the probed sources; that measurement stands. What changed is its tier:
+  traffic appeared only in §10.2.3's reduced feature set, which applies solely when historical
+  state totals are unavailable, and this report established ten AFDC vintages covering all
+  three rolling origins. The fallback is not triggered, so no Core model consumes traffic.
+  `SOURCES.yml` moves it from `extension` to `optional` with `used_by: []`.
+
+Full amendment log: `CLAUDE.md` §19. Impact detail: `docs/reports/IMPACT_LOG.md` entry I-1.
