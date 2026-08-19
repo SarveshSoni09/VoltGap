@@ -231,8 +231,13 @@ sources:
         Present-day snapshot. The column exists but the endpoint accepts no
         snapshot/date parameter, so prior snapshots cannot be requested.
     schema:
+      # CORRECTED 2026-08-19, impact-log entry I-1. This entry previously recorded
+      # stable_keys: true, which implied row-level identity the source does not
+      # provide. `ID` is the STATION parent key, not charging-unit row identity.
+      parent_key: [ID]
+      row_identity: none
       join_keys: [ID]
-      stable_keys: true
+      stable_keys: false
       schema_version: c7ef314df7ff8fce
       expected_field_count: 86
     quality:
@@ -257,6 +262,26 @@ sources:
       - >-
         Rung-1 power coverage is uneven by connector: 99.9% for CCS and CHAdeMO but
         73.4% for J3400 and 81.4% for J1772 (port-weighted, national).
+      - >-
+        NO CHARGING-UNIT IDENTIFIER EXISTS. The export carries no unit id column; ID
+        is the station parent key, and 89,687 station IDs span 292,435 unit rows.
+        65.9% of rows (192,796) are byte-identical duplicates of another row and 90.9%
+        participate in an identical-row group; the largest group is 410 rows. Rows
+        cannot be distinguished by content, only by row order, which no refresh
+        guarantees. stable_keys is therefore false, and charging_unit_record_key is a
+        synthetic per-snapshot key carrying no longitudinal meaning. See CLAUDE.md
+        section 6.1.1 and docs/reports/IMPACT_LOG.md entry I-1.
+      - >-
+        The duplicates are NOT data errors. Row count reconciles to the station's
+        reported L1+L2+DCFC totals for 100.0% of stations (89,665 of 89,687), so the
+        export is one row per EVSE and identical rows are real distinct physical units
+        indistinguishable in every reported attribute - the same situation as domain
+        rule G4 for coordinate duplicates. Aggregate counts and capacity are therefore
+        trustworthy even though identity is not.
+      - >-
+        Connectors are exposed as per-type counts and power on a unit row, not as
+        identified connectors. Model them at (charging_unit_record_key, connector_type)
+        grain; never manufacture connector_id rows from counts.
 
   # ---- AFDC state EV registration vintages (10 years) ---------------------------
 
@@ -1318,7 +1343,7 @@ sources:
 
   - id: fhwa_traffic
     name: FHWA Highway Performance Monitoring System
-    tier: extension
+    tier: optional
     retrieval:
       method: scrape
       endpoint: "https://www.fhwa.dot.gov/policyinformation/hpms.cfm"
@@ -1344,13 +1369,22 @@ sources:
     license: "US Government work, public domain"
     update_cadence: "annual"
     fallback_source: none
-    used_by: [deployment_alignment]
+    used_by: []
     backtest_eligible: true
     known_limitations:
       - >-
         Landing page reachable, but no machine-retrievable dataset endpoint was
-        established. Traffic is named in CLAUDE.md section 10.2.3 as part of the
-        reduced backtest feature set, so this must be resolved before Phase 5.
+        established.
+      - >-
+        DEMOTED TO OPTIONAL / FUTURE WORK on 2026-08-19 (specification amendment A16).
+        Traffic appeared in exactly one place in the specification: CLAUDE.md section
+        10.2.3's reduced backtest feature set, which applies only if historical state
+        EV registration totals are unavailable. Phase 0 found ten annual AFDC vintages
+        (2016-2025) covering all three rolling origins, so that fallback is not
+        triggered and no Core model consumes traffic. The 'distance to road network'
+        candidate filter in section 7.8 is road geometry, not traffic volume, and does
+        not depend on this source. Do not invent a traffic feature to justify keeping
+        it. See CLAUDE.md section 7.13.
 
   # ---- Washington (tract-granularity registrations) ------------------------------
 

@@ -133,7 +133,7 @@ voltgap/
 │  │  ├─ hifld_transmission.py
 │  │  ├─ cejst_archive.py
 │  │  ├─ state_ev_registrations/  one module per Tier A state
-│  │  └─ fhwa_traffic.py
+│  │  └─ fhwa_traffic.py           Optional/Future Work tier, see §7.13
 │  ├─ discovery/
 │  │  └─ probe.py                 Phase 0 schema discovery, writes SOURCES.yml
 │  ├─ schemas/                    pandera schemas, one per canonical table
@@ -310,14 +310,37 @@ site (spatial cluster of co-located infrastructure)
 `site_id` is derived by spatial clustering of station coordinates (DBSCAN, eps ≈ 50 m),
 **not** by rounding coordinates. Rounding creates arbitrary grid-boundary splits.
 
-#### 6.1.1 Port identity must not be manufactured
+#### 6.1.1 Physical identity must not be manufactured — at any level
 
 The AFDC charging-units export supplies **per-connector counts and power**, not individually
-identified physical ports. Creating rows named `port_001`, `port_002` … and assigning
+identified physical objects. Creating rows named `port_001`, `port_002` … and assigning
 connectors to them would fabricate observed physical objects that the source never reported.
 
-**Phase 1 must run a port-identifiability analysis before the canonical schema is frozen**,
-measuring:
+**This applies to charging units and connectors, not only to ports.** Measurement over the
+full national export (292,435 rows, 2026-08-19) established:
+
+- the export carries **no charging-unit identifier column**; `ID` is the *station* parent key,
+  and 89,687 station IDs span 292,435 unit rows;
+- **65.9% of rows are byte-identical duplicates** of another row (265,836 rows, 90.9%,
+  participate in an identical group; the largest group is 410 rows), so rows cannot be told
+  apart by their content;
+- but row count reconciles to the station's reported L1+L2+DCFC totals for **100.0% of
+  stations** (89,665 of 89,687), so the export is genuinely one row per EVSE and the duplicate
+  rows are *real distinct physical units that are indistinguishable in every reported
+  attribute* — the same situation as domain rule G4 for coordinate duplicates.
+
+**Therefore `charging_unit_id` must not be defined as a stable physical identifier.** Until
+Phase 1's investigation proves otherwise, distinguish three separate things and never conflate
+them:
+
+| Concept | Status |
+|---|---|
+| `station_id` | The **parent key**. Genuine, stable, source-provided |
+| `charging_unit_record_key` | A **synthetic, per-snapshot source-row key**. Not a physical identifier. Carries no longitudinal meaning and must never be used to track a unit across refreshes |
+| physical unit identity | **Not available** unless Phase 1 recovers it, including via network metadata |
+
+**Phase 1 must run an identifiability analysis at all three levels — charging unit, port, and
+connector — before the canonical schema is frozen**, measuring:
 
 1. how often unit-level `port_count` is available;
 2. how often stable, network-provided port identifiers are available;
@@ -326,7 +349,11 @@ measuring:
    physical port exposing multiple connector types;
 5. what share of national and of public-operational infrastructure supports true individual
    port identity;
-6. what share supports only aggregate charging-unit capacity.
+6. what share supports only aggregate charging-unit capacity;
+7. whether **any stable charging-unit identity** is recoverable from the export or from
+   network metadata, and if so for what share of infrastructure;
+8. whether identical duplicate rows can be distinguished from one another by any means other
+   than row order.
 
 **Canonical model rule.** If physical port identity is not recoverable from the source, the
 honest hierarchy stops at `charging_unit`:
@@ -336,10 +363,22 @@ site → station → charging_unit
     with: port_count, connector-specific port counts, reported power, aggregate capacity
 ```
 
-Create rows in `ports` **only where identity is genuinely supported by the source.** Where a
-row-per-port expansion is needed for a specific mathematical operation, label it explicitly as
-a *computational representation*, never as observed physical-port identity, and keep it out of
-any published table that a reader would take as a physical inventory.
+**Connector grain.** Do not create individual physical `connector_id` rows from connector
+*counts*. AFDC exposes connector-type counts and power associated with a charging unit, not
+identified connectors. Unless actual connector identity exists, model connectors at the grain:
+
+```
+(charging_unit_record_key, connector_type) -> connector_count, power_kw, power_source, provenance
+```
+
+Create rows in `ports` and `connectors` **only where identity is genuinely supported by the
+source.** Where a row-per-port expansion is needed for a specific mathematical operation, label
+it explicitly as a *computational representation*, never as observed physical identity, and
+keep it out of any published table that a reader would take as a physical inventory.
+
+If no physical unit identity exists, the synthetic source-row key ships with its limitations
+documented in `docs/DATA_DICTIONARY.md`, and **no longitudinal physical-unit identity is
+claimed anywhere** — not in code, not in a schema comment, not in the UI.
 
 ### 6.2 Core tables
 
@@ -348,7 +387,8 @@ any published table that a reader would take as a physical inventory.
 | `sites` | one row per physical location | `site_id` |
 | `stations` | one row per AFDC record | `station_id` |
 | `ports` | one row per port, **only where source identity supports it** (§6.1.1) | `port_id` |
-| `charging_units` | one row per EVSE cabinet, carrying `port_count`, per-connector counts, reported power, aggregate capacity | `charging_unit_id` |
+| `charging_units` | one row per EVSE cabinet, carrying `port_count`, reported power, aggregate capacity | `charging_unit_record_key` (**synthetic, per-snapshot; not a physical identifier** — §6.1.1), parent `station_id` |
+| `charging_unit_connectors` | one row per (unit record, connector type) | `(charging_unit_record_key, connector_type)` with `connector_count`, `power_kw`, `power_source`, provenance |
 | `tracts` | one row per census tract | `geoid` |
 | `blocks_pop` | population-weighted centroids | `block_geoid` |
 | `hex6` | national H3 res 6 | `h3_index` |
@@ -712,6 +752,25 @@ per-mile comparison, environmental-benefit scenarios.
 **Do not invent an emissions feature in order to justify keeping eGRID in Core.** If a
 concrete Core consumer appears, promote it deliberately and record why.
 
+### 7.13 FHWA traffic — Optional / Future Work, no surviving Core consumer
+
+Traffic entered this specification in exactly one place: §10.2.3's reduced backtest feature
+set, which applies **only if** no historical state EV registration totals exist and the
+reconciliation constraint cannot be applied at a backtest cutoff.
+
+**That fallback is not triggered.** Phase 0 established that AFDC publishes ten annual state
+registration vintages, 2016 through 2025, covering all three rolling origins (2020, 2021,
+2022). The reconciliation constraint *can* be applied at every cutoff, so the reduced feature
+set that would have needed traffic is never constructed.
+
+No other Core model in §7 consumes traffic. The "within a configured distance of the road
+network" candidate filter in §7.8 is road-network *geometry*, not traffic volume, and does not
+depend on this source.
+
+FHWA traffic is therefore **Optional / Future Work**, on the same footing as eGRID (§7.12).
+The same discipline applies: **do not invent a traffic feature in order to justify keeping the
+source.** If a concrete Core consumer appears, promote it deliberately and record why.
+
 ---
 
 ## 8. Equity layer
@@ -739,6 +798,17 @@ marts/         mart_*.sql       the tables that become published artifacts
 ```
 
 Rules:
+- **Retrieval and staging preserve source rows.** This binds source adapters in
+  `pipeline/sources/` as well as `stg_*.sql`. An adapter may perform transformations that are
+  purely mechanical and lossless — decoding, decompression, character-set handling, streaming
+  a large file, reshaping a fixed layout into rows — but it must not drop, filter, or
+  editorialise rows. Business filtering belongs in the intermediate layer, where it is visible
+  and testable.
+  Worked consequences: the AFDC state-registration adapter **ingests the published
+  `United States` total row**, and G8's removal of it happens in intermediate; the HIFLD
+  transmission adapter **streams** the file to satisfy G12 but performs **no voltage
+  filtering**, which is an intermediate transformation, and tiling belongs to the export phase
+  entirely.
 - Staging models must not filter rows. Filtering is business logic and belongs in
   intermediate.
 - Every mart carries `computed_at` and `source_vintages`.
@@ -817,7 +887,16 @@ a reconstruction confidence note per origin and weight conclusions toward the mo
 #### 10.2.3 The reconciliation problem
 
 The demand model reconciles to state EV totals. If Phase 0 finds no historical state total
-vintages, the reconciliation constraint cannot be applied at the cutoff. In that case:
+vintages, the reconciliation constraint cannot be applied at the cutoff.
+
+> **NOT TRIGGERED (Phase 0, 2026-08-19).** AFDC publishes ten annual state registration
+> vintages, 2016 through 2025, covering all three rolling origins. The reconciliation
+> constraint can be applied at every cutoff, so the reduced feature set below is not
+> constructed and traffic is not needed for it (§7.13). The clause is retained because it
+> remains the correct response should those vintages become unobtainable, and because the
+> A-0.5 investigation (§15.5 Phase 1) could still change what those vintages *mean*.
+
+In that case:
 - Run the backtest on an unconstrained propensity surface.
 - Enumerate the reduced feature set explicitly (demographics, network state, geography,
   traffic).
@@ -991,11 +1070,39 @@ one.
 | Leakage | `assert_no_leakage` raises on a deliberately poisoned feature set |
 | Schema | Every canonical table validated against its pandera schema |
 | Integration | Full pipeline on a fixture subset (2 states) completes end to end |
-| Determinism | Same inputs plus same seed produce identical artifact checksums |
+| Determinism | See §14.1. Semantic determinism under pinned inputs, not naive byte equality |
 | Frontend | Component tests for the Studio solver, snapshot tests for tier rendering |
 
 A test that asserts a model is "correct" in the sense of optimal siting is a mis-specified
 test. Test mechanics, invariants, and reconciliation identities instead.
+
+### 14.1 What determinism means here
+
+Every derived table carries `computed_at` (§6.2), so **byte-identical checksums across
+independent runs are impossible** unless volatile metadata are controlled. A gate that
+demanded naive byte equality would either fail permanently or force `computed_at` to be
+dropped, and neither is acceptable.
+
+Determinism is therefore defined as:
+
+> **Same pinned source snapshots + same code + same configuration ⇒ same semantic data
+> output.**
+
+Two distinct properties are tested, and the gate must not confuse them:
+
+| Property | How it is tested | Expectation |
+|---|---|---|
+| **Replay reproducibility** | Run twice against pinned/replayed inputs, with either one injected fixed run timestamp or volatile metadata normalised out before hashing | **Byte-identical semantic hash. Required.** A failure is a real defect |
+| **Live-source refresh behaviour** | Run against live sources | **Not expected to be byte-identical.** Upstream data legitimately change. Verified by schema conformance, drift bounds and quality gates instead |
+
+Volatile metadata excluded from the semantic hash: `computed_at`, `last_successful_retrieval`,
+retrieval durations, and any other field whose value is a function of when the run happened
+rather than of what the data are. Everything else is in scope, including `source_vintages`,
+because a change there is a genuine semantic change.
+
+A live refresh producing different artifacts is **not** a determinism failure. Treating it as
+one would push the pipeline toward suppressing real upstream change, which is the opposite of
+what §13.2 requires.
 
 ---
 
@@ -1224,6 +1331,15 @@ corrections from evidence, not a design round. With them applied, the design is 
 | A10 | §15.5 Phase 1 | A-0.5 vintage-semantics question deferred to Phase 5 | Bounded provenance investigation moved to **Phase 1**, with a fixed budget; if unresolved, record `historical_vintage_semantics = unresolved` and require Phase 5 to state the limitation. Never equate a year label with verified information availability |
 | A11 | §7.8, §15.5 Phase 4 | Browser greedy "carries a (1 − 1/e) approximation bound; state this in the UI" | **Claim removed.** Non-uniform costs plus a budget constraint make this budgeted maximum coverage, a different problem class. Phase 4 must define the algorithm, verify any cited theorem's assumptions, and report **empirical** optimality gaps. No bound is displayed unless it provably applies |
 | A12 | §15 | "Core is 12.5 weeks. Core plus Extension is 16 to 17 weeks." | **Core 14.5 part-time weeks** (13.5 remaining after Phase 0); Extensions 4.25; Core + Extensions 18.75. Single official schedule |
+
+### Amendments of 2026-08-19 (second set) — arising from the Phase 1 plan review
+
+| ID | Section | Was | Now |
+|---|---|---|---|
+| A13 | §6.1.1, §6.2 | Port identity must be earned; `charging_unit_id` assumed to be a stable key | Extended to **charging-unit and connector identity**. Measurement found no unit identifier column, 65.9% byte-identical duplicate rows, and `ID` as the station parent key only. `charging_unit_record_key` is explicitly synthetic and per-snapshot; no longitudinal physical-unit identity may be claimed. Connectors are modelled at `(charging_unit_record_key, connector_type)` grain, never as manufactured `connector_id` rows. Phase 1's investigation covers all three levels and gains measurements 7 and 8. Recorded as impact-log entry **I-1** |
+| A14 | §14, §14.1 (new) | "Same inputs plus same seed produce identical artifact checksums" | Naive byte equality is impossible because every derived table carries `computed_at`. Determinism redefined as **same pinned snapshots + same code + same configuration ⇒ same semantic output**, tested with pinned/replayed inputs and a fixed injected timestamp or normalised-out volatile metadata. **Replay reproducibility and live-refresh behaviour are separated in the gate**; a live refresh producing different artifacts is not a determinism failure |
+| A15 | §9 | "Staging models must not filter rows" (bound only `stg_*.sql`) | The rule binds **source adapters too**. Retrieval and staging preserve source rows; only mechanical, lossless transformation is allowed. Worked consequences: the registration adapter ingests the `United States` total row and G8 removes it in intermediate; the HIFLD adapter streams for G12 but does no voltage filtering, and tiling moves to the export phase |
+| A16 | §3, §7.13 (new), §10.2.3 | `fhwa_traffic.py` a Core source module | **Optional / Future Work.** Traffic appeared only in §10.2.3's reduced feature set, which applies solely when historical state totals are unavailable — and Phase 0 found ten vintages covering all three origins, so the fallback is not triggered. §10.2.3 now carries a NOT TRIGGERED note so a later phase cannot resurrect traffic by accident. Do not invent a traffic feature to justify the source |
 
 **Scope control from this point.** Findings are classified before they are acted on. A
 **genuine correctness blocker** — a wrong source assumption, temporal leakage, invalid

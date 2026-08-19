@@ -4,8 +4,8 @@
 |---|---|
 | Phase | 1 — Ingestion + canonical |
 | Planned effort | 2.25 part-time weeks (of 13.5 Core weeks remaining) |
-| Status | **AWAITING APPROVAL — no Phase 1 code written** |
-| Prerequisite | `CLAUDE.md` amendments A0–A12 applied (§19); `PLAN_CHANGE_0.md` resolved |
+| Status | **CONDITIONALLY APPROVED 2026-08-19**; revised for owner corrections 1–4 (amendments A13–A16). No Phase 1 code written yet |
+| Prerequisite | `CLAUDE.md` amendments A0–A16 applied (§19); `PLAN_CHANGE_0.md` resolved; impact-log entry I-1 resolved |
 | Phase 0 gate | Re-run after amendments: **PASS**, no artifact invalidated |
 
 Phase 1's job is ingestion, canonical entities, schemas, transformation contracts,
@@ -23,20 +23,28 @@ model, no reconciliation, no siting, no uncertainty scoring.
 | `base.py` | `Source` ABC over the Phase 0 fetcher: caching, retry, vintage stamping, `--offline` replay. Reuses `pipeline/discovery/cache.py` rather than reimplementing it |
 | `afdc_stations.py` | 75-column station records, schema `f6860736f1304654` |
 | `afdc_charging_units.py` | 86-column unit records including the ten per-connector columns |
-| `afdc_state_registrations.py` | Ten annual HTML vintages 2016–2025; excludes the `United States` total row (G8) |
+| `afdc_state_registrations.py` | Ten annual HTML vintages 2016–2025. **Ingests the `United States` total row unchanged**; G8's removal is an intermediate transformation, not an adapter concern (A15) |
 | `atlas_registrations.py` | 14 states, one adapter parameterised by state; ZIP vs county grain from the contract, never inferred |
 | `wa_ev_population.py` | Socrata, the only natively tract-grain source |
 | `census_acs.py` | Keyless bulk summary file primary, API fallback |
 | `census_tiger.py` | Tract and 2020 block geometry |
 | `census_blocks.py` | Block population from P.L. 94-171 + block-group population-weighted centroids |
 | `nrel_home_charging.py` | XLSX parsed from raw XML (the workbook's non-standard namespace defeats openpyxl); loads the scenario surface, **not** a single slice |
-| `hifld_transmission.py` | Streamed, voltage-filtered, tiled. Never parsed whole (G12) |
+| `hifld_transmission.py` | **Streamed only** — streaming is mechanical and lossless, and satisfies G12. **No voltage filtering** (intermediate) and **no tiling** (export phase, Phase 6) (A15) |
 | `cejst_archive.py` | Internet Archive copy, vintage-labelled |
 | `seed_files.py` | The ten frozen fixtures, loaded by canonical id from `SEED_PROVENANCE` |
 
-Deferred, with reasons: `eia_prices.py` (Optional tier, §7.11), `egrid.py` (**not built** —
-demoted to Optional/Future Work by amendment A8), `hifld_substations.py` (**not built** — no
-national dataset exists, amendment A6), `fhwa_traffic.py` (Phase 5 need, no stable URL yet).
+Deferred, with reasons: `eia_prices.py` (Optional tier, §7.11); `egrid.py` (**not built** —
+Optional/Future Work, A8); `hifld_substations.py` (**not built** — no national dataset exists,
+A6); `fhwa_traffic.py` (**not built** — Optional/Future Work, A16: its only specification
+consumer was §10.2.3's reduced feature set, and that fallback is not triggered because Phase 0
+found ten state-total vintages covering all three rolling origins).
+
+**Adapter rule (A15), audited across all thirteen.** Retrieval and staging **preserve source
+rows**. An adapter may decode, decompress, handle character sets, stream a large file, or
+reshape a fixed layout into rows — mechanical, lossless work. It may **not** drop, filter, or
+editorialise rows. Every G-rule exclusion (G2 status filtering, G3 access filtering, G8 total
+rows, voltage thresholds) happens in the intermediate layer where it is visible and testable.
 
 ### 1.2 Transform — `pipeline/transform/`
 
@@ -86,9 +94,10 @@ now **conditional on measured identifiability**.
 |---|---|---|---|
 | `sites` | one physical location | `site_id` | DBSCAN on station coordinates, eps ≈ 50 m. **Never coordinate rounding** |
 | `stations` | one AFDC record | `station_id` | A row is one network's presence, never capacity (G1) |
-| `charging_units` | one EVSE cabinet | `charging_unit_id` | Carries `port_count`, per-connector counts, reported power, `power_source`, aggregate capacity |
+| `charging_units` | one EVSE record | `charging_unit_record_key` (**synthetic, per-snapshot**), parent `station_id` | Carries `port_count`, reported power, aggregate capacity. **Not a stable physical identifier** — the source has no unit id and 65.9% of rows are byte-identical duplicates (impact I-1). No longitudinal unit tracking is claimed |
+| `charging_unit_connectors` | one (unit record, connector type) | `(charging_unit_record_key, connector_type)` | `connector_count`, `power_kw`, `power_source`, provenance. **Replaces a per-connector-row table** |
 | `ports` | one physical port | `port_id` | **Created only where source identity supports it** (§6.1.1). May be empty or partial; that is an honest outcome, not a failure |
-| `connectors` | one connector | `connector_id` | J1772 / CCS / CHAdeMO / J3400 / J3271 |
+| `connectors` | one physical connector | `connector_id` | **Created only where genuine connector identity exists.** Never manufactured from counts |
 | `tracts` | census tract | `geoid` | |
 | `blocks_pop` | block population + internal point | `block_geoid` | TIGER `TABBLOCK20` joined to P.L. 94-171 |
 | `state_totals` | EV stock by state and vintage | `(state, vintage)` | Ten AFDC vintages |
@@ -100,9 +109,9 @@ Every derived table carries `computed_at` and `source_vintages`.
 
 ---
 
-## 3. Port-identifiability investigation (amendment A5)
+## 3. Identifiability investigation — unit, port and connector (amendments A5, A13)
 
-**Runs before the canonical schema is frozen.** Six measurements over the national
+**Runs before the canonical schema is frozen.** Eight measurements over the national
 charging-units export, reported both nationally and for the public + operational subset
 (`Status Code == 'E'`, `Access Code == 'public'`):
 
@@ -112,16 +121,35 @@ charging-units export, reported both nationally and for the public + operational
 4. frequency of `sum(connector-specific counts) > charging_unit.port_count` — evidence that
    one physical port exposes multiple connector types;
 5. share of national infrastructure supporting true individual port identity;
-6. share supporting only aggregate charging-unit capacity.
+6. share supporting only aggregate charging-unit capacity;
+7. **whether any stable charging-unit identity is recoverable** from the export or from network
+   metadata, and if so for what share of infrastructure;
+8. **whether identical duplicate rows can be distinguished** by any means other than row order.
 
-**Decision rule, fixed in advance so the result cannot be rationalised afterwards.** If (2) is
-unavailable and (3) is ambiguous for the majority of public operational capacity, the
-canonical hierarchy stops at `charging_unit` and `ports` is populated only for the identifiable
-minority. No `port_001`-style rows are manufactured anywhere. Any row-per-port expansion
-needed for arithmetic is labelled a *computational representation* and kept out of published
-tables.
+Measurements 7 and 8 exist because the Phase 1 plan review already established the baseline:
+no unit identifier column, 65.9% byte-identical duplicate rows, `ID` as the station parent key
+only (impact I-1). The investigation's job is to find out whether anything *else* — network
+metadata, a per-network API, an ordering guarantee — recovers what the CSV does not.
 
-Assumptions A-0.16 and A-0.17 are settled here.
+**Decision rules, fixed in advance so results cannot be rationalised afterwards.**
+
+- If (7) finds no stable unit identity, `charging_unit_record_key` remains **synthetic and
+  per-snapshot**, its limitations are documented in `docs/DATA_DICTIONARY.md`, and **no
+  longitudinal physical-unit identity is claimed anywhere** — not in code, not in a schema
+  comment, not in the UI.
+- If (2) is unavailable and (3) is ambiguous for the majority of public operational capacity,
+  the canonical hierarchy stops at `charging_units` and `ports` is populated only for the
+  identifiable minority.
+- Connectors are modelled at `(charging_unit_record_key, connector_type)` grain **unless**
+  genuine connector identity is found. No `connector_id` rows are manufactured from counts.
+- No `port_001`-style rows are manufactured anywhere. Any row-per-object expansion needed for
+  arithmetic is labelled a *computational representation* and kept out of published tables.
+
+**Note the positive finding this must not obscure:** row count reconciles to reported
+L1+L2+DCFC totals for 100.0% of stations (89,665 of 89,687). Aggregate counts and capacity are
+trustworthy even though identity is not, so the Phase 2 power ladder is unaffected.
+
+Assumptions A-0.16, A-0.17 and A-0.20 are settled here.
 
 ---
 
@@ -231,7 +259,7 @@ One test per rule, against the frozen seed fixtures whose expectations never dri
 | Regression | G1–G14 plus the Phase 0 suite (23 tests) re-run unchanged |
 | Schema | Every canonical table against its pandera schema |
 | Integration | Full pipeline on the MN + IL two-state fixture, end to end |
-| Determinism | Two runs from a clean clone produce identical artifact checksums |
+| Determinism | **Semantic** determinism (§14.1, A14): two runs against pinned/replayed inputs with a fixed injected timestamp produce identical semantic hashes. Volatile metadata — `computed_at`, `last_successful_retrieval`, retrieval durations — are normalised out before hashing. Live-refresh behaviour is tested separately and is **not** expected to be byte-identical |
 | Copy lint | Runs over the whole repository |
 
 ### 8.2 Gate criteria (all executable)
@@ -249,7 +277,12 @@ One test per rule, against the frozen seed fixtures whose expectations never dri
 11. A-0.5 investigation yields a classification **or** an explicitly recorded unresolved
     status with preserved evidence.
 12. Row counts within `SOURCES.yml` expected ranges.
-13. Determinism: identical checksums across two runs.
+13. **Replay reproducibility:** two runs against pinned inputs produce identical semantic
+    hashes, with volatile metadata normalised out (§14.1). Reported separately from
+    **live-refresh behaviour**, which is verified by schema conformance, drift bounds and
+    quality gates rather than by byte equality — upstream data legitimately change, and
+    treating that as a determinism failure would push the pipeline toward suppressing real
+    change.
 14. Coverage: 100% line and branch on `pipeline/spatial/`; ≥85% on `pipeline/sources/` and
     `pipeline/transform/`; ≥70% repository-wide. `pipeline/model/` and `pipeline/validation/`
     remain not applicable.
@@ -268,8 +301,8 @@ and will prove nothing about aggregation correctness or site collapsing.
 ## 9. Scope boundaries
 
 **Explicitly in scope:** ingestion, canonical entities, staging/intermediate/marts, pandera
-schemas, G1–G14, port-identifiability measurement, geographic provenance plumbing, the copy
-lint, the A-0.5 investigation, determinism.
+schemas, G1–G14, unit/port/connector identifiability measurement, geographic provenance
+plumbing, the copy lint, the A-0.5 investigation, semantic determinism.
 
 **Explicitly out of scope, deferred with its phase:** any model fitting (2, 3); H3 gridding
 and access (2); the power ladder itself (2); allocation *error measurement* and uncertainty
@@ -281,6 +314,36 @@ entity that cannot be identified — triggers a plan change.
 
 ### Estimated scope
 
-~2.25 part-time weeks. The two largest risks are the port-identifiability outcome, which could
-force a canonical-schema shape decision late in the phase, and crosswalk acquisition, whose
-licensing and vintage need checking before it is relied on.
+~2.25 part-time weeks, unchanged by corrections 1–4. Corrections 3 and 4 slightly *reduce*
+adapter work: `fhwa_traffic.py` is no longer built, and moving voltage filtering and tiling out
+of the HIFLD adapter shifts effort to intermediate SQL and Phase 6 respectively.
+
+Three risks, in order:
+
+1. **Identifiability outcome (highest).** If measurement 7 finds no stable unit identity — the
+   current expectation — the canonical schema commits to a synthetic per-snapshot key, and
+   every downstream table that might have wanted longitudinal unit tracking must live without
+   it. Better to discover this in week one of Phase 1 than in Phase 5.
+2. **Crosswalk acquisition.** Licensing and vintage need checking before the crosswalk is
+   relied on.
+3. **Copy-lint allowlisting.** Documents that quote prohibited phrases in order to forbid them
+   — this plan, `CLAUDE.md` §11.5, the amendment log, the impact log — must not self-trip.
+
+---
+
+## Revision — 2026-08-19
+
+Revised for the project owner's four conditional-approval corrections. Everything else in the
+submitted plan is unchanged: the corrected G9 suite, `evidence_grain` / `estimate_method`
+separation, ZIP/ZCTA/county/tract provenance, the Phase-3 allocation-error boundary, the D3
+copy lint, the bounded A-0.5 investigation, replay-based gates, schema enforcement, and the
+prohibition on invented identities all stand as written.
+
+| # | Correction | Where it landed |
+|---|---|---|
+| 1 | Extend identifiability to charging-unit and connector identity; `charging_unit_id` is not a stable physical key; connectors modelled at `(record_key, connector_type)` grain; reassess `stable_keys: true` | §2 tables, §3 (six measurements → eight), `CLAUDE.md` §6.1.1 and §6.2 (A13), `SOURCES.yml` corrected, **impact-log entry I-1** opened and resolved, second dated correction appended to the Phase 0 report |
+| 2 | Determinism means same pinned snapshots + code + config ⇒ same semantic output; separate replay reproducibility from live refresh | §8.1, §8.2 criterion 13, new `CLAUDE.md` §14.1 (A14) |
+| 3 | Retrieval/staging preserve source rows; audit every adapter | §1.2 adapter table and new adapter rule, `CLAUDE.md` §9 (A15) |
+| 4 | FHWA traffic demoted — no surviving Core consumer | §1.1 deferred list, new `CLAUDE.md` §7.13 and a NOT TRIGGERED note on §10.2.3 (A16), `SOURCES.yml` tier `optional` with `used_by: []` |
+
+Phase 0 gate re-run after all four: **PASS**.
