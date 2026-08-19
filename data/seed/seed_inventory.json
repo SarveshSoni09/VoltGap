@@ -1,0 +1,84 @@
+{
+  "seed_files": [
+    {
+      "canonical_id": "seed_mn_county_ev_registrations",
+      "provenance": "Minnesota county EV registrations, single point in time. Tier A candidate evidence for Minnesota at county granularity.",
+      "raw_filename": "County_EV_Registrations_Summary.csv",
+      "sha256": "a95f0c2eac9c3917f0c0b2b0fd7e8c2c6806eb0c13a5080d6a6f9c695b5f6831",
+      "size_bytes": 1711,
+      "version_controlled": true
+    },
+    {
+      "canonical_id": "seed_state_ev_registrations",
+      "provenance": "State-level EV registration counts (stock, not sales, per G8). Contains a Total row that must be excluded before aggregation. Vintage undated as delivered; Phase 0 attempts to establish it.",
+      "raw_filename": "EV_Registration_Counts_by_State.csv",
+      "sha256": "4c72eeace1defeddf7dddeaedf4f65ffff970b4c2ce8090184fd6408076bb7ad",
+      "size_bytes": 826,
+      "version_controlled": true
+    },
+    {
+      "canonical_id": "seed_hifld_transmission_lines",
+      "provenance": "HIFLD electric power transmission lines, MultiLineString geometry with VOLTAGE / VOLT_CLASS / OWNER / STATUS properties. Excluded from version control by size; must never be loaded as GeoJSON in a browser (G12).",
+      "raw_filename": "Electric__Power_Transmission_Lines.geojson",
+      "sha256": "f90a94fd3ae55372d5b87d0ea21df9335dae8098aaa9537240c5f69668cc3585",
+      "size_bytes": 144115564,
+      "version_controlled": false
+    },
+    {
+      "canonical_id": "seed_iea_global_ev_2024",
+      "provenance": "IEA Global EV Data 2024. category has three values (Historical, Projection-STEPS, Projection-APS) which are alternative scenarios and must never be summed (G5). Projection years are 2025/2030/2035 only (G6).",
+      "raw_filename": "IEA Global EV Data 2024.csv",
+      "sha256": "292b9ad2c38a1571546396b8fcf0a57f1918421725c7892e8d3eb32a406c4951",
+      "size_bytes": 874985,
+      "version_controlled": true
+    },
+    {
+      "canonical_id": "seed_il_stations",
+      "provenance": "Illinois charging stations, reduced column set relative to the AFDC schema.",
+      "raw_filename": "IL_StationsData.csv",
+      "sha256": "a55fe032c1fbd4259bbf54754358c65bba7de346caeb1f1bb51b78b7105f9e23",
+      "size_bytes": 267418,
+      "version_controlled": true
+    },
+    {
+      "canonical_id": "seed_mn_stations_simplified",
+      "provenance": "Minnesota charging stations, six columns. Overlaps the 10 Dec 2024 AFDC Minnesota extract.",
+      "raw_filename": "Simplified_EV_Charging_Stations.csv",
+      "sha256": "f832c654b5d11973ee2980bebb8c349627a23224233a689b61146c5c1da93922",
+      "size_bytes": 67011,
+      "version_controlled": true
+    },
+    {
+      "canonical_id": "seed_afdc_stations_mn_20241210",
+      "provenance": "AFDC Minnesota-scoped extract, 10 Dec 2024, same 75-column schema as the national file. Two-state integration fixture.",
+      "raw_filename": "alt_fuel_stations (Dec 10 2024).csv",
+      "sha256": "c635f94dd04851902c1914264fab3c9848e9b2543a05d9c8c2a287edb16debc6",
+      "size_bytes": 339993,
+      "version_controlled": true
+    },
+    {
+      "canonical_id": "seed_afdc_stations_national_20241211",
+      "provenance": "AFDC national alternative fuel stations snapshot, 11 Dec 2024, all rows Fuel Type Code = ELEC. Frozen regression fixture for domain rules G1-G4, G10, G11, G14.",
+      "raw_filename": "alt_fuel_stations (Dec 11 2024).csv",
+      "sha256": "f50f0b949e2a750ed8bb25b046e7c0c82aecccdece41398ca9ea2f159f2c0336",
+      "size_bytes": 27542687,
+      "version_controlled": true
+    },
+    {
+      "canonical_id": "seed_il_county_ev_monthly_panel",
+      "provenance": "Illinois monthly county panel, 2017-11 to 2024-11, wide format one column per county. Trailing columns Chicago / Unknown County / Total Count are not counties. Longitudinal basis for the Extension-tier forecast bakeoff.",
+      "raw_filename": "county_ev_counts.csv",
+      "sha256": "1e0bee198cea2cb745a7ca168aac2abd2cab617359ac63ec04977a0f4751d3e9",
+      "size_bytes": 27105,
+      "version_controlled": true
+    },
+    {
+      "canonical_id": "seed_ev_model_launch",
+      "provenance": "EV model specifications with launch year. Currency fields are strings containing $ and thousands separators.",
+      "raw_filename": "ev_launch_data.csv",
+      "sha256": "7dc86606760809c40ffc001706d79416d3838ae359c2afb1c45968fdb05e6f41",
+      "size_bytes": 6098,
+      "version_controlled": true
+    }
+  ]
+}

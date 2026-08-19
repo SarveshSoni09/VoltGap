@@ -1,0 +1,46 @@
+# Environment
+.env
+.venv/
+venv/
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+coverage.xml
+htmlcov/
+dist/
+build/
+*.egg-info/
+
+# Data: live API caches and derived warehouses are never tracked.
+# Deterministic replay fixtures live in tests/fixtures/replay/ and ARE tracked,
+# so the Phase 0 gate runs offline from a clean clone.
+data/cache/
+data/warehouse/
+data/interim/
+*.duckdb
+*.duckdb.wal
+
+# Large raw sources that exceed comfortable Git hosting limits.
+# 137 MiB / 144,115,564 bytes. Provenance and SHA-256 are recorded in
+# data/seed/SEED_INVENTORY.md and data/seed/seed_inventory.json so the file
+# remains verifiable even though its bytes are not versioned.
+data/seed/Electric__Power_Transmission_Lines.geojson
+
+# Build artifacts (published to R2, not to git)
+artifacts/
+*.pmtiles
+*.parquet
+
+# Frontend
+node_modules/
+web/.next/
+web/out/
+.vercel/
+
+# OS
+.DS_Store
