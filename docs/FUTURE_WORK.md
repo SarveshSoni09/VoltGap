@@ -14,3 +14,12 @@ and deliberately **not** acted on.
 | Mirror the CEJST archive copy locally and serve it from R2 | Removes a third-party single point of failure (assumption A-0.10) | Cheap and probably right, but it is Phase 6 hosting work. |
 | Per-source drift tolerances calibrated from observed behaviour over several refreshes | The provisional ±20% default is a guess for most sources | Needs several observations to calibrate against. Assumption A-0.13. |
 | Probe the AFDC `electric-networks` endpoint to enumerate network names authoritatively | Would help site clustering and the empirical power fallback in §7.1 rung 2 | Not needed for the Phase 0 contract, and the AFDC quota is scarce until a personal key exists. |
+
+## Added by the Phase 0 review (2026-08-19)
+
+| Idea | Why it is tempting | Why it waits |
+|---|---|---|
+| Give eGRID a consumer: avoided-emissions estimates, electricity carbon-intensity analysis, carbon-aware siting, emissions-per-mile comparison, environmental-benefit scenarios | eGRID is confirmed reachable and the data are good | None of these is required by the Core decision engine. eGRID is demoted to Optional/Future Work (`CLAUDE.md` §7.12). **Do not invent an emissions feature in order to justify keeping the source.** Promote it only if a concrete Core consumer appears |
+| Promote home charging access into the primary siting objective | It is one of the strongest available predictors of public charging need | Settled by owner decision A7 and explicitly not reopenable in Phase 3. The NREL dataset is a parametric scenario surface, so any slice of it is a modelling choice. Revisit only if new empirical data materially changes the source situation |
+| Regional substation datasets from individual utilities or state agencies | Would restore genuine grid proximity where a trustworthy source exists | `CLAUDE.md` §7.9 already permits this as an *optional* per-region feature with source provenance. It is not Core work and must never become a national constraint by accretion |
+| Semantic copy linting beyond phrase matching | Would catch paraphrased optimality and feasibility claims | Owner decision A9 accepts a rule-based guard for Phase 1; Phase 5 may extend it. Do not build an NLP layer for this |

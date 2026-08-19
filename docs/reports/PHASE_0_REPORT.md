@@ -1345,4 +1345,61 @@ latter is optional in practice.
 
 ## Corrections
 
-*(none)*
+## Correction — 2026-08-19
+
+Recorded after the project owner's review of this report. **No finding, measurement, or
+number in the report above is retracted.** Twelve specification amendments were authorised as
+a result of the evidence in it, and they change terminology and downstream requirements that
+this report referred to. The text above is preserved unedited; this section records what has
+since changed.
+
+**Gate status is unaffected.** The Phase 0 gate was re-run after all amendments were applied
+to `CLAUDE.md` and still passes: 148 tests, 100% line and branch coverage, contract valid,
+determinism identical, 9 smoke-forward tests passing. No Phase 0 artifact became invalid, so
+no impact-log entry was opened. `SOURCES.observed.json`, the evidence artifacts, the seed
+inventory, and the replay fixtures are unchanged.
+
+**Terminology superseded.** Where this report says **"Tier A"** — most visibly the §9.5
+heading "Unknown (d) — Tier A states" — read **"sub-state anchored"**. Amendment A3 removed
+the word "observed" from Tier A, because Phase 0 established that only Washington is natively
+tract-grain and the other 15 states require ZIP→tract or county→tract allocation. A tract
+value built that way is anchored to observed data but is not itself directly observed. The
+underlying finding — 16 states, 11 ZIP-grain, 4 county-grain, 1 tract-grain — is unchanged
+and correct.
+
+**Open questions from §12, now decided by the owner:**
+
+1. *NREL home charging slice* — **Decided: keep the conservative reading.** Home charging
+   stays exploratory, scenario-based, an optional user-selectable weight with sensitivity
+   analysis, and excluded from the primary siting objective. Explicitly not reopenable in
+   Phase 3. `CLAUDE.md` §7.2 now encodes the actual finding — *parametric scenario surface,
+   not a dated current observation* — so a later session cannot reinterpret it. (A7)
+2. *Substation gap* — **Decided: route (c), respecify.** National substation proximity is
+   removed as a mandatory Core candidate filter; Core siting must function without it.
+   Transmission stays optional labelled context and must never masquerade as an
+   interconnection constraint. Assumption A-0.9 is closed as resolved-by-respecification
+   rather than left open to Phase 4. (A6)
+3. *eGRID* — **Decided: demote to Optional / Future Work.** No Core consumer exists and none
+   is to be invented to justify the source. (A8)
+4. *D3 copy lint timing* — **Decided: bring it forward to Phase 1** and run it in CI from
+   then on. A rule-based terminology guard is sufficient; Phase 5 extends it. (A9)
+5. *Assumption A-0.5* — **Decided: bounded investigation in Phase 1**, not Phase 5. If it
+   cannot be resolved within its budget, record `historical_vintage_semantics = unresolved`
+   with preserved evidence and require Phase 5's backtest methodology to state the limitation.
+   A year label is never to be equated with verified information availability. (A10)
+
+**New requirements that post-date this report**, none of which contradict it: two orthogonal
+status fields `evidence_grain` and `estimate_method` (A2); explicit geographic reconciliation
+with measured allocation error, and USPS ZIP never silently treated as Census ZCTA (A4); a
+Phase 1 port-identifiability analysis before the canonical schema is frozen, with port
+identity never manufactured (A5); removal of the unsupported (1 − 1/e) claim for the browser
+greedy solver in favour of empirical optimality gaps (A11); and the official Core schedule
+rebaselined to 14.5 part-time weeks (A12).
+
+**G9 resolved.** `docs/reports/PLAN_CHANGE_0.md` was approved as Option A **with modified
+wording**: the owner rejected Option A's proposal to mark outlier states low-confidence
+automatically, on the grounds that a genuine adoption-rate difference is a diagnostic, not
+evidence of a defective source. The authoritative replacement rule and the seven testable
+Phase 1 regression properties are recorded in `PLAN_CHANGE_0.md` §8 and `CLAUDE.md` §5.
+
+Full amendment log: `CLAUDE.md` §19.

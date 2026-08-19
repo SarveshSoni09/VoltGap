@@ -75,3 +75,33 @@ Oregon reports 6,436, which falls below Kansas (11,271), Iowa (9,031), and Maine
 That ordering is implausible and indicates inconsistent reporting vintages across states.
 Phase 0 should attempt to establish the vintage of each state's figure. Flag low-confidence
 states in the data rather than silently using the numbers.
+
+---
+
+## Correction — 2026-08-19 (Phase 0)
+
+*Appended, not edited. The original text above is preserved as delivered.*
+
+The closing section "A note on the state registration file" is factually wrong about
+`EV_Registration_Counts_by_State.csv` and has been superseded.
+
+**It states:** "Oregon reports 6,436, which falls below Kansas (11,271), Iowa (9,031), and
+Maine (7,377). That ordering is implausible and indicates inconsistent reporting vintages
+across states."
+
+**The delivered file records:** Oregon **64,361**, Kansas 11,271, Iowa 9,031, Maine 7,377,
+Total 3,555,445 (which equals the sum of the 51 jurisdiction rows exactly). File SHA-256
+`4c72eeace1defeddf7dddeaedf4f65ffff970b4c2ce8090184fd6408076bb7ad`.
+
+Oregon is 64,361, not 6,436; the stated figure appears to be a truncation. At 64,361 the
+ordering is unremarkable.
+
+**The general claim also fails.** Phase 0 dated the file: rounding every value half-up to the
+nearest 100 reproduces the AFDC 2023 vintage for **51 of 51** jurisdictions, and 0 of 51 for
+either 2022 or 2024. The file is one internally consistent vintage, not a mixture.
+
+Domain rule G9 was rewritten as a result. See `docs/reports/PLAN_CHANGE_0.md` §8 and
+`CLAUDE.md` §19 A1.
+
+**One further discrepancy:** the table above states `ev_launch_data.csv` has 90 data rows; it
+parses to **91**.
