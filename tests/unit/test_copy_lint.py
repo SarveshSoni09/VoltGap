@@ -180,7 +180,7 @@ def test_allowlist_entries_are_repo_relative_posix_paths() -> None:
 
 def test_all_three_dash_forms_of_the_bound_are_caught() -> None:
     """CLAUDE.md writes the bound with U+2212; prose elsewhere uses hyphen or en dash."""
-    for dash in ("-", "−", "–"):
+    for dash in ("-", "\u2212", "\u2013"):  # hyphen, minus sign, en dash
         assert "MATH-BOUND-01" in rule_ids(f"carries a (1 {dash} 1/e) bound"), dash
         assert "MATH-BOUND-01" in rule_ids(f"greedy gives 1 {dash} 1/e of optimum"), dash
 
