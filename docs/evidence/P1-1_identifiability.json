@@ -1,0 +1,145 @@
+{
+  "charging_level_distribution": {
+    "1": 2736,
+    "2": 212509,
+    "dc_fast": 77490,
+    "legacy": 21
+  },
+  "conclusions": {
+    "AFDC_charging_unit_equals_one_port": true,
+    "m1_unit_level_port_count_available": 1.0,
+    "m2_stable_port_identifier": false,
+    "m3_connector_counts_map_unambiguously_to_ports": false,
+    "m4_units_connector_ports_exceed_unit_port_count": 16610,
+    "m5_share_supporting_individual_port_identity": 0.0,
+    "m6_share_supporting_only_aggregate_capacity": 1.0,
+    "m7_stable_unit_identity_recoverable_incl_network_metadata": false,
+    "m8_duplicate_rows_distinguishable_other_than_by_order": false,
+    "no_cabinet_grain_exists_in_the_source": true
+  },
+  "csv_representation": {
+    "findings": {
+      "decision_charging_unit_key_is_synthetic": true,
+      "decision_connector_grain": "(charging_unit_record_key, connector_type)",
+      "decision_longitudinal_unit_identity_claimable": false,
+      "decision_ports_table_populated": false,
+      "m1_unit_port_count_available": 0.999942,
+      "m2_stable_port_identifier_available": false,
+      "m3_connector_counts_map_unambiguously_to_ports": false,
+      "m4_rows_where_connector_sum_exceeds_one_port": 16563,
+      "m5_share_supporting_individual_port_identity": 0.0,
+      "m6_share_supporting_only_aggregate_capacity": 1.0,
+      "m7_stable_charging_unit_identity_recoverable": false,
+      "m8_duplicate_rows_distinguishable_other_than_by_order": false
+    },
+    "identifier_scan": {
+      "any_unit_or_port_identifier": false,
+      "columns": 86,
+      "id_like_columns": [
+        "ID",
+        "Federal Agency ID"
+      ],
+      "id_like_columns_that_are_not_unit_identity": [
+        "ID",
+        "Federal Agency ID"
+      ],
+      "identifier_columns_found": []
+    },
+    "scopes": {
+      "national": {
+        "connector_counts_sum": 299289,
+        "distinct_full_row_values": 99639,
+        "distinct_networks": 97,
+        "distinct_station_ids": 89687,
+        "largest_identical_group": 410,
+        "reconciliation_share": 0.999755,
+        "redundant_rows": 192796,
+        "redundant_rows_share": 0.659278,
+        "rows": 292435,
+        "rows_connector_sum_eq_one": 266113,
+        "rows_connector_sum_gt_one": 16563,
+        "rows_connector_sum_gt_one_share": 0.056638,
+        "rows_in_duplicate_group": 265836,
+        "rows_in_duplicate_group_share": 0.909043,
+        "rows_with_level_totals": 292418,
+        "rows_with_level_totals_share": 0.999942,
+        "rows_with_no_connector_counts": 9759,
+        "scope": "national",
+        "stations_row_count_reconciles_to_reported_evse": 89665,
+        "stations_total": 89687
+      },
+      "public_operational": {
+        "connector_counts_sum": 270620,
+        "distinct_full_row_values": 91276,
+        "distinct_networks": 95,
+        "distinct_station_ids": 81985,
+        "largest_identical_group": 410,
+        "reconciliation_share": 0.999902,
+        "redundant_rows": 164819,
+        "redundant_rows_share": 0.643585,
+        "rows": 256095,
+        "rows_connector_sum_eq_one": 240342,
+        "rows_connector_sum_gt_one": 15121,
+        "rows_connector_sum_gt_one_share": 0.059044,
+        "rows_in_duplicate_group": 232414,
+        "rows_in_duplicate_group_share": 0.90753,
+        "rows_with_level_totals": 256091,
+        "rows_with_level_totals_share": 0.999984,
+        "rows_with_no_connector_counts": 632,
+        "scope": "public_operational",
+        "stations_row_count_reconciles_to_reported_evse": 81977,
+        "stations_total": 81985
+      }
+    }
+  },
+  "generated": "2026-08-24",
+  "json_representation": {
+    "any_unit_identifier_in_network_metadata": false,
+    "connector_types_exposed": [
+      "CHADEMO",
+      "J1772",
+      "J1772COMBO",
+      "J3271",
+      "NEMA1450",
+      "NEMA515",
+      "NEMA520",
+      "TESLA"
+    ],
+    "connector_types_exposed_count": 8,
+    "distinct_unit_objects": 1752,
+    "largest_identical_unit_group": 69100,
+    "redundant_unit_object_share": 0.994015,
+    "redundant_unit_objects": 291004,
+    "stations": 89758,
+    "total_ports_from_unit_port_count": 292756,
+    "unit_identifier_keys_found": [],
+    "unit_level_port_count_share": 1.0,
+    "unit_object_keys": [
+      "charging_level",
+      "connectors",
+      "funding_sources",
+      "network",
+      "port_count"
+    ],
+    "units": 292756,
+    "units_where_connector_ports_exceed_unit_port_count": 16610,
+    "units_with_connectors_block": 292756,
+    "units_with_unit_level_port_count": 292756
+  },
+  "multi_connector_combinations": {
+    "CHADEMO+J1772COMBO": 7071,
+    "CHADEMO+J1772COMBO+TESLA": 36,
+    "CHADEMO+TESLA": 40,
+    "J1772+TESLA": 3283,
+    "J1772COMBO+TESLA": 5168
+  },
+  "multi_connector_units_total": 15598,
+  "question": "CLAUDE.md 6.1.1 (A5, A13): identifiability of charging units, ports and connectors",
+  "sources": {
+    "csv_export": "https://developer.nlr.gov/api/alt-fuel-stations/v1/ev-charging-units.csv?fuel_type=ELEC&country=US&limit=all",
+    "json_api": "https://developer.nlr.gov/api/alt-fuel-stations/v1.json?fuel_type=ELEC&country=US&limit=all"
+  },
+  "unit_port_count_distribution": {
+    "1": 292756
+  }
+}
