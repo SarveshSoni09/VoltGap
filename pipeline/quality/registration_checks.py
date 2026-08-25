@@ -39,6 +39,9 @@ PUBLISHED_TOTAL_LABELS: frozenset[str] = frozenset({"United States", "Total"})
 # Screening thresholds. These select rows for HUMAN REVIEW; they never by themselves
 # change a confidence label.
 PER_CAPITA_Z_THRESHOLD = 3.0
+# Below this, the rates are identical to floating-point precision and there is no
+# meaningful distribution to score against.
+DEVIATION_TOLERANCE = 1e-12
 YEAR_OVER_YEAR_GROWTH_THRESHOLD = 3.0  # a tripling year on year is worth a look
 
 
@@ -131,7 +134,11 @@ def screen_per_capita(counts: Mapping[str, int],
     mean = sum(values) / len(values)
     variance = sum((v - mean) ** 2 for v in values) / len(values)
     deviation = variance ** 0.5
-    if deviation == 0:
+    # Compared against a tolerance, not against exact zero. Identical rates give a
+    # deviation on the order of 1e-17 rather than 0.0, so an equality test would never
+    # fire and every jurisdiction would then be scored against a near-zero denominator,
+    # flagging the whole file as anomalous.
+    if deviation < DEVIATION_TOLERANCE:
         return []
     flags = [
         ReviewFlag(name, "per_capita_z",

@@ -209,14 +209,14 @@ def build(
     units_path: Path,
     atlas_states: tuple[str, ...] = (),
     computed_at: str | None = None,
-    load_registrations: bool = True,
 ) -> BuildResult:
     """Run the whole canonical build against an open warehouse."""
     result = BuildResult()
     load_afdc(warehouse, result, stations_path=stations_path, units_path=units_path)
     load_seeds(warehouse, result)
-    if load_registrations:
-        load_state_registrations(warehouse, result, fetcher)
+    # Not optional: stg_state_ev_registrations.sql reads raw_afdc_state_ev_registrations,
+    # so skipping this would fail the staging layer rather than produce a smaller build.
+    load_state_registrations(warehouse, result, fetcher)
     load_atlas(warehouse, result, fetcher, atlas_states)
 
     context = build_context(result.source_vintages, computed_at)

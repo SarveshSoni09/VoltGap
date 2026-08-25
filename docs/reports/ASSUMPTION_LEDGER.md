@@ -46,3 +46,28 @@ Status values: **OPEN** (not yet tested), **CONFIRMED**, **FALSIFIED**.
 Not applicable to Phase 0: this is the first phase and there are no prior assumptions.
 Assumptions A-0.1 to A-0.15 were opened by Phase 0 itself; A-0.9 was resolved by the Phase 0
 review, and A-0.5 moved forward to Phase 1. Phase 1's gate re-checks all open entries.
+
+---
+
+## Opened by Phase 1 (2026-08-24)
+
+| ID | Falsifiable statement | Depends on | Tested in | Status |
+|---|---|---|---|---|
+| A-1.1 | Land-area weighting is an acceptable interim basis for ZIP-to-tract allocation, and its error is small enough that Phase 3 can measure and correct it rather than having to discard Phase 1 output. | Land area assumes uniform population within a ZCTA, which §7.6 says is badly wrong in large rural areas. 76.3% of ZCTAs span more than one tract, so this affects most of the country. | Phase 3 (Washington round-trip) | OPEN |
+| A-1.2 | The JSON API's eight-connector taxonomy maps cleanly onto the five connector standards named in §1.1 (J1772, CCS, CHAdeMO, J3400/NACS, J3271). | The API uses `J1772COMBO` for CCS and `TESLA` for J3400/NACS, and adds three NEMA Level-1 types the §1.1 vocabulary does not mention. | Phase 2 (power ladder) | OPEN |
+| A-1.3 | A rule-based copy lint with whole-file and glob allowlisting catches the claims that matter. | Phase reports are allowlisted so they can quote a prohibition in order to record it; a genuine optimality claim inside a report would not be caught. Accepted because UI strings, docstrings and artifact fields are not allowlisted. | Phase 6 | OPEN |
+| A-1.4 | Row order within a station is stable enough within a single snapshot that `charging_unit_record_key` is usable as a within-run join key. | It is explicitly not stable across runs. If the API or DuckDB reorders within a run, unit-to-connector joins would silently mismatch. | Phase 2 | OPEN |
+
+## Re-checked at the Phase 1 gate
+
+| ID | Assumption | Status | Evidence |
+|---|---|---|---|
+| A-0.5 | AFDC annual pages are contemporaneous snapshots | **PARTIALLY RESOLVED** | Stability established 2022-08-18 to 2026-08-24 (52/52 identical for both the 2020 and 2021 vintages); contemporaneity NOT established, no capture predates 2022-08-18. Recorded as `historical_vintage_semantics = stable_not_revised_within_observable_window`, `contemporaneity = unresolved`. Finding F-11 |
+| A-0.9 | A national substation dataset exists somewhere unsearched | Remains RESOLVED by respecification (A6) | No substation module was built |
+| A-0.16 | Physical port identity is recoverable for a usable share of public operational infrastructure | **FALSIFIED** | m2, m5 and m7 all negative over 292,756 units. `ports` is not populated |
+| A-0.17 | `sum(connector counts)` equals `charging_unit.port_count` often enough to attribute connectors to ports | **FALSIFIED** | 16,610 units exceed their own `port_count`, led by CHADEMO+J1772COMBO (7,071) |
+| A-0.20 | Some stable charging-unit identity is recoverable from network metadata | **FALSIFIED** | JSON unit objects carry exactly five keys — `charging_level`, `connectors`, `funding_sources`, `network`, `port_count` — none an identifier |
+| A-0.21 | Excluding volatile metadata from the semantic hash still detects every genuine change | HOLDS so far | `test_source_vintages_is_in_scope_for_the_hash`, `test_a_genuine_data_change_does_move_the_hash` |
+| A-0.19 | A rule-based terminology lint is sufficient | HOLDS so far, superseded by A-1.3 which states the specific weakening | 79 files clean, 15 rules |
+| A-0.6 | Block-level population weighting is constructible from TIGER + P.L. 94-171 | UNTESTED this phase | Phase 2 |
+| A-0.7, A-0.12, A-0.18 | ZIP-to-tract usability and the usable sub-state-anchored state count | UNTESTED this phase; the machinery now exists, the error measurement does not | Phase 3 |

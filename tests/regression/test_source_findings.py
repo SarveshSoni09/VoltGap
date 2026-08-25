@@ -45,9 +45,17 @@ def test_every_probe_spec_has_a_contract_entry_and_the_reverse() -> None:
     assert {s.source_id for s in all_specs()} == set(SOURCES)
 
 
-def test_there_are_57_sources_and_10_findings() -> None:
+def test_the_phase_0_sources_and_findings_are_all_still_present() -> None:
+    """Later phases may ADD findings; none of Phase 0's may disappear.
+
+    Phase 1 added F-11 (the A-0.5 vintage-provenance investigation), so this asserts
+    the Phase 0 set is intact rather than pinning a total that every later phase would
+    have to edit.
+    """
     assert len(SOURCES) == 57
-    assert len(FINDINGS) == 10
+    phase_0 = {f"F-{n}" for n in range(1, 11)}
+    assert phase_0 <= set(FINDINGS), f"missing {sorted(phase_0 - set(FINDINGS))}"
+    assert len(FINDINGS) >= 10
 
 
 # --- criterion: every Core model has a data path or a documented fallback ----------

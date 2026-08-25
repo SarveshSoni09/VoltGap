@@ -25,6 +25,7 @@ from pathlib import Path
 from typing import Any
 
 import duckdb
+import pandas as pd
 
 from pipeline.config.settings import PATHS
 from pipeline.sources.base import StagedTable
@@ -91,16 +92,29 @@ class Warehouse:
 
         Typing happens in the staging SQL layer, where a type error is visible and
         testable, rather than being swallowed during retrieval.
+
+        Loading goes through Arrow rather than row-by-row parameter binding. The Atlas
+        Minnesota export alone is 903,083 rows; binding those individually dominated
+        the whole test suite's runtime.
         """
         name = f"raw_{table.source_id}"
         columns = ", ".join(f'"{c}" VARCHAR' for c in table.columns)
         self.connection.execute(f'CREATE OR REPLACE TABLE "{name}" ({columns})')
-        if table.rows:
-            placeholders = ", ".join("?" for _ in table.columns)
-            self.connection.executemany(
-                f'INSERT INTO "{name}" VALUES ({placeholders})',
-                [[row.get(c, "") for c in table.columns] for row in table.rows],
+        if not table.rows:
+            return
+        frame = pd.DataFrame(
+            {c: [row.get(c, "") for row in table.rows] for c in table.columns},
+            dtype="object",
+        )
+        self.connection.register("_staged_frame", frame)
+        try:
+            projection = ", ".join(f'CAST("{c}" AS VARCHAR) AS "{c}"'
+                                   for c in table.columns)
+            self.connection.execute(
+                f'INSERT INTO "{name}" SELECT {projection} FROM _staged_frame'
             )
+        finally:
+            self.connection.unregister("_staged_frame")
 
     def load_records(self, name: str, columns: Sequence[str],
                      rows: Iterable[Sequence[object]]) -> None:

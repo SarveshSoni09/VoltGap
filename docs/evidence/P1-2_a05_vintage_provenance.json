@@ -1,0 +1,48 @@
+{
+  "archive_coverage": {
+    "captures_before_2022": 0,
+    "displayed_vintage_in_earliest_capture": "2021",
+    "earliest_capture": "2022-08-18",
+    "note": "A full back-series to 2016 was ALREADY published in the earliest capture, so the archive cannot show whether any given year page existed during that year.",
+    "year_selector_in_earliest_capture": [
+      "2016",
+      "2017",
+      "2018",
+      "2019",
+      "2020",
+      "2021"
+    ]
+  },
+  "assumption": "A-0.5",
+  "budget": "one working session, as fixed by amendment A10",
+  "comparisons": {
+    "vintage_2020_capture_2023_09_12": {
+      "changed": 0,
+      "compared": 52,
+      "differences": [],
+      "identical": 52
+    },
+    "vintage_2021_capture_2022_08_18": {
+      "changed": 0,
+      "compared": 52,
+      "differences": [],
+      "identical": 52
+    }
+  },
+  "investigated": "2026-08-24",
+  "method": [
+    "Enumerate every Internet Archive capture of afdc.energy.gov/vehicle-registration.",
+    "Compare the values in the earliest and other captures against the live page today.",
+    "An unchanged value proves stability; it does not prove contemporaneity."
+  ],
+  "question": "Are AFDC's year= registration pages contemporaneous annual snapshots, or retrospective reconstructions from later VIN data? Bears on D1: a page labelled 2020 is not proof the numbers were available in 2020.",
+  "resolution": {
+    "consequence_for_phase_5": "VALIDATION.md must state that the 2020 and 2021 rolling origins rest on a technical vintage LABEL whose information-availability semantics are unverified, while the 2022 origin is supported by an archived capture predating it. The D1 runtime check feature_vintage <= prediction_cutoff remains mandatory and is unaffected; what is unverified is the meaning of the label, not the mechanics of the guard.",
+    "contemporaneity": "unresolved",
+    "established": "Values for the 2020 and 2021 vintages are byte-identical between their archived captures and the live page today. The series is not retrospectively revised within the observable window.",
+    "historical_vintage_semantics": "stable_not_revised_within_observable_window",
+    "not_established": "Whether the 2020 and 2021 figures were PUBLISHED during or shortly after those years. No capture exists before 2022-08-18, so for the 2020 and 2021 rolling origins contemporaneity cannot be demonstrated from the archive. The 2022 origin falls inside the observable window.",
+    "observable_window": "2022-08-18 to 2026-08-24",
+    "publisher_statement": "AFDC states only that counts 'reflect the total number of light-duty registered vehicles through the selected year' and are derived by NLR from Experian data. It makes no claim about when a given year's figures were produced."
+  }
+}

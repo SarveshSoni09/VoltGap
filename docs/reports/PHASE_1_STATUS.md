@@ -1,10 +1,11 @@
-# Phase 1 status — paused mid-implementation
+# Phase 1 status — SUPERSEDED, phase complete
 
-**Phase 1 is NOT complete and its gate has NOT been run.** This file records exactly
-where the work stopped so it can be resumed without re-deriving anything.
+> **This file is superseded.** It recorded a mid-implementation pause. Phase 1 is now
+> complete and its gate has run; see `docs/reports/PHASE_1_REPORT.md`. The content
+> below is preserved as the record of where work stopped and what was outstanding, so
+> the resume path stays auditable. Every item listed as remaining was completed.
 
-Last verified state: `241 passed, 7 failed` across the whole suite.
-`ruff`, `mypy --strict` and the copy lint are clean.
+Historical state at the pause: `241 passed, 7 failed`.
 
 ## Done and committed
 

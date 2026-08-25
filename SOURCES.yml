@@ -45,6 +45,10 @@ meta:
       historical_vintages_available: true
       vintage_field: "year query parameter"
       vintage_semantics: "registered light-duty stock through the selected year"
+      historical_vintage_semantics: stable_not_revised_within_observable_window
+      contemporaneity: unresolved
+      observable_window: "2022-08-18 to 2026-08-24"
+      provenance_evidence: docs/evidence/P1-2_a05_vintage_provenance.json
     schema:
       join_keys: [State]
       stable_keys: true
@@ -294,6 +298,12 @@ sources:
       historical_vintages_available: true
       vintage_field: "year query parameter"
       vintage_semantics: "registered light-duty EV stock through 2016"
+      # A-0.5, investigated 2026-08-24 (amendment A10). Partially resolved: stability
+      # established, contemporaneity not. See finding F-11.
+      historical_vintage_semantics: stable_not_revised_within_observable_window
+      contemporaneity: unresolved
+      observable_window: "2022-08-18 to 2026-08-24"
+      provenance_evidence: docs/evidence/P1-2_a05_vintage_provenance.json
 
   - id: afdc_state_ev_registrations_2017
     name: AFDC state EV registration counts, 2017 vintage
@@ -304,6 +314,12 @@ sources:
       historical_vintages_available: true
       vintage_field: "year query parameter"
       vintage_semantics: "registered light-duty EV stock through 2017"
+      # A-0.5, investigated 2026-08-24 (amendment A10). Partially resolved: stability
+      # established, contemporaneity not. See finding F-11.
+      historical_vintage_semantics: stable_not_revised_within_observable_window
+      contemporaneity: unresolved
+      observable_window: "2022-08-18 to 2026-08-24"
+      provenance_evidence: docs/evidence/P1-2_a05_vintage_provenance.json
 
   - id: afdc_state_ev_registrations_2018
     name: AFDC state EV registration counts, 2018 vintage
@@ -314,6 +330,12 @@ sources:
       historical_vintages_available: true
       vintage_field: "year query parameter"
       vintage_semantics: "registered light-duty EV stock through 2018"
+      # A-0.5, investigated 2026-08-24 (amendment A10). Partially resolved: stability
+      # established, contemporaneity not. See finding F-11.
+      historical_vintage_semantics: stable_not_revised_within_observable_window
+      contemporaneity: unresolved
+      observable_window: "2022-08-18 to 2026-08-24"
+      provenance_evidence: docs/evidence/P1-2_a05_vintage_provenance.json
 
   - id: afdc_state_ev_registrations_2019
     name: AFDC state EV registration counts, 2019 vintage
@@ -324,6 +346,12 @@ sources:
       historical_vintages_available: true
       vintage_field: "year query parameter"
       vintage_semantics: "registered light-duty EV stock through 2019"
+      # A-0.5, investigated 2026-08-24 (amendment A10). Partially resolved: stability
+      # established, contemporaneity not. See finding F-11.
+      historical_vintage_semantics: stable_not_revised_within_observable_window
+      contemporaneity: unresolved
+      observable_window: "2022-08-18 to 2026-08-24"
+      provenance_evidence: docs/evidence/P1-2_a05_vintage_provenance.json
 
   - id: afdc_state_ev_registrations_2020
     name: AFDC state EV registration counts, 2020 vintage
@@ -334,6 +362,12 @@ sources:
       historical_vintages_available: true
       vintage_field: "year query parameter"
       vintage_semantics: "registered light-duty EV stock through 2020"
+      # A-0.5, investigated 2026-08-24 (amendment A10). Partially resolved: stability
+      # established, contemporaneity not. See finding F-11.
+      historical_vintage_semantics: stable_not_revised_within_observable_window
+      contemporaneity: unresolved
+      observable_window: "2022-08-18 to 2026-08-24"
+      provenance_evidence: docs/evidence/P1-2_a05_vintage_provenance.json
 
   - id: afdc_state_ev_registrations_2021
     name: AFDC state EV registration counts, 2021 vintage
@@ -344,6 +378,12 @@ sources:
       historical_vintages_available: true
       vintage_field: "year query parameter"
       vintage_semantics: "registered light-duty EV stock through 2021"
+      # A-0.5, investigated 2026-08-24 (amendment A10). Partially resolved: stability
+      # established, contemporaneity not. See finding F-11.
+      historical_vintage_semantics: stable_not_revised_within_observable_window
+      contemporaneity: unresolved
+      observable_window: "2022-08-18 to 2026-08-24"
+      provenance_evidence: docs/evidence/P1-2_a05_vintage_provenance.json
 
   - id: afdc_state_ev_registrations_2022
     name: AFDC state EV registration counts, 2022 vintage
@@ -354,6 +394,12 @@ sources:
       historical_vintages_available: true
       vintage_field: "year query parameter"
       vintage_semantics: "registered light-duty EV stock through 2022"
+      # A-0.5, investigated 2026-08-24 (amendment A10). Partially resolved: stability
+      # established, contemporaneity not. See finding F-11.
+      historical_vintage_semantics: stable_not_revised_within_observable_window
+      contemporaneity: unresolved
+      observable_window: "2022-08-18 to 2026-08-24"
+      provenance_evidence: docs/evidence/P1-2_a05_vintage_provenance.json
 
   - id: afdc_state_ev_registrations_2023
     name: AFDC state EV registration counts, 2023 vintage
@@ -364,6 +410,12 @@ sources:
       historical_vintages_available: true
       vintage_field: "year query parameter"
       vintage_semantics: "registered light-duty EV stock through 2023"
+      # A-0.5, investigated 2026-08-24 (amendment A10). Partially resolved: stability
+      # established, contemporaneity not. See finding F-11.
+      historical_vintage_semantics: stable_not_revised_within_observable_window
+      contemporaneity: unresolved
+      observable_window: "2022-08-18 to 2026-08-24"
+      provenance_evidence: docs/evidence/P1-2_a05_vintage_provenance.json
 
   - id: afdc_state_ev_registrations_2024
     name: AFDC state EV registration counts, 2024 vintage
@@ -374,6 +426,12 @@ sources:
       historical_vintages_available: true
       vintage_field: "year query parameter"
       vintage_semantics: "registered light-duty EV stock through 2024"
+      # A-0.5, investigated 2026-08-24 (amendment A10). Partially resolved: stability
+      # established, contemporaneity not. See finding F-11.
+      historical_vintage_semantics: stable_not_revised_within_observable_window
+      contemporaneity: unresolved
+      observable_window: "2022-08-18 to 2026-08-24"
+      provenance_evidence: docs/evidence/P1-2_a05_vintage_provenance.json
 
   - id: afdc_state_ev_registrations_2025
     name: AFDC state EV registration counts, 2025 vintage
@@ -384,6 +442,12 @@ sources:
       historical_vintages_available: true
       vintage_field: "year query parameter"
       vintage_semantics: "registered light-duty EV stock through 2025"
+      # A-0.5, investigated 2026-08-24 (amendment A10). Partially resolved: stability
+      # established, contemporaneity not. See finding F-11.
+      historical_vintage_semantics: stable_not_revised_within_observable_window
+      contemporaneity: unresolved
+      observable_window: "2022-08-18 to 2026-08-24"
+      provenance_evidence: docs/evidence/P1-2_a05_vintage_provenance.json
 
   # ---- Atlas EV Hub state DMV registrations (14 states) -------------------------
 
@@ -2030,3 +2094,33 @@ findings:
       HTTP 429; x-ratelimit-limit: 10; x-ratelimit-remaining: 0; retry-after: 78590
     evidence_artifact: "docs/evidence/F-10_demo_key_rate_limit.txt"
     evidence_sha256: "cd260d09483e8510085faf32b53084b72f92bb5a325f15e6633d0b1b91cc859b"
+
+  - id: F-11
+    question: >-
+      A-0.5: are AFDC's year= registration pages contemporaneous annual snapshots, or
+      retrospective reconstructions from later VIN data? A page labelled 2020 is not by
+      itself proof that its numbers were information available at a 2020 cutoff (D1).
+    resolved_value: >-
+      PARTIALLY RESOLVED. Stability is established; contemporaneity is not. The 2021
+      vintage is byte-identical between its earliest archived capture (2022-08-18) and
+      the live page today, 52 of 52 jurisdictions, and the 2020 vintage is likewise
+      identical between its 2023-09-12 capture and today, 52 of 52. The series is
+      therefore NOT retrospectively revised within the observable window 2022-08-18 to
+      2026-08-24. However the Internet Archive holds no capture of this page before
+      2022-08-18, and that earliest capture ALREADY offered a full back-series to 2016,
+      so the archive cannot show whether any given year page existed during that year.
+      For the 2020 and 2021 rolling origins contemporaneity cannot be demonstrated; the
+      2022 origin falls inside the observable window. Recorded as
+      historical_vintage_semantics = stable_not_revised_within_observable_window with
+      contemporaneity = unresolved. Phase 5 must state this limitation explicitly in
+      docs/VALIDATION.md. The D1 runtime guard feature_vintage <= prediction_cutoff is
+      unaffected: what is unverified is the MEANING of the vintage label, not the
+      mechanics of the check.
+    evidence_url: "http://web.archive.org/web/20220818053239/https://afdc.energy.gov/vehicle-registration"
+    retrieved_at: "2026-08-24T00:00:00Z"
+    evidence_quote: >-
+      Earliest archived capture 2022-08-18 offers year values 2016 through 2021 and
+      displays the 2021 vintage with Oregon at 30,300 and California at 563,100; the
+      live page today reports the same figures for 2021.
+    evidence_artifact: "docs/evidence/P1-2_a05_vintage_provenance.json"
+    evidence_sha256: "5cba5a1275baf76fed03ece8658d6380315c9ce8c47afbf7219ae10fc6c5a587"
