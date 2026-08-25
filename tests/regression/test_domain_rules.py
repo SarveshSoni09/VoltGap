@@ -27,6 +27,8 @@ from pipeline.quality.registration_checks import (
     screen_per_capita,
     screen_year_over_year,
 )
+from pipeline.transform.runner import Warehouse
+from tests.conftest import scalar
 
 Loader = Callable[[str], pd.DataFrame]
 NATIONAL = "seed_afdc_stations_national_20241211"
@@ -53,7 +55,7 @@ def test_g1_station_rows_are_not_capacity(seed_frame: Loader) -> None:
     )
 
 
-def test_g1_mart_capacity_comes_from_units_not_station_rows(fixture_warehouse) -> None:  # type: ignore[no-untyped-def]
+def test_g1_mart_capacity_comes_from_units_not_station_rows(fixture_warehouse: Warehouse) -> None:
     sites = fixture_warehouse.fetch_df("mart_sites")
     assert (sites["charging_unit_count"] >= sites["station_count"]).all()
     assert sites["charging_unit_count"].sum() > sites["station_count"].sum()
@@ -69,7 +71,7 @@ def test_g2_status_code_has_three_values_with_known_counts(seed_frame: Loader) -
     assert counts["P"] == 429
 
 
-def test_g2_only_status_e_is_operational_supply(fixture_warehouse) -> None:  # type: ignore[no-untyped-def]
+def test_g2_only_status_e_is_operational_supply(fixture_warehouse: Warehouse) -> None:
     stations = fixture_warehouse.fetch_df("mart_stations")
     assert (stations.loc[stations["is_operational"], "status_code"] == "E").all()
     assert not stations.loc[stations["status_code"] != "E", "is_operational"].any()
@@ -83,7 +85,7 @@ def test_g3_private_stations_exist_and_are_not_public_supply(seed_frame: Loader)
     assert counts["public"] == 74_956
 
 
-def test_g3_public_operational_requires_both_flags(fixture_warehouse) -> None:  # type: ignore[no-untyped-def]
+def test_g3_public_operational_requires_both_flags(fixture_warehouse: Warehouse) -> None:
     stations = fixture_warehouse.fetch_df("mart_stations")
     both = stations["is_operational"] & stations["is_public"]
     assert (stations["is_public_operational"] == both).all()
@@ -98,7 +100,7 @@ def test_g4_exact_coordinate_duplicates_exist_in_the_snapshot(seed_frame: Loader
 
 
 def test_g4_coordinate_duplicates_are_aggregated_into_one_site_not_deleted(
-    fixture_warehouse,  # type: ignore[no-untyped-def]
+    fixture_warehouse: Warehouse,
 ) -> None:
     """They are co-located multi-network infrastructure, not duplicate records."""
     stations = fixture_warehouse.fetch_df("mart_stations")
@@ -149,14 +151,47 @@ def test_g5_iea_category_has_three_values_and_summing_scenarios_double_counts(
 
 
 def test_g6_iea_usa_projection_years_are_only_2025_2030_2035(seed_frame: Loader) -> None:
+    """Forward projection years are 2025/2030/2035 with gaps. Never interpolate.
+
+    Both projection categories also restate the 2020-2023 historical baseline years
+    inside each scenario, so 'projection years' means years beyond the last historical
+    year (2023), not every year appearing under a Projection- category.
+    """
     frame = seed_frame("seed_iea_global_ev_2024")
-    usa = frame[(frame["region"] == "USA") & (frame["category"] != "Historical")]
-    assert set(usa["year"].unique()) == {"2025", "2030", "2035"}
+    usa = frame[frame["region"] == "USA"]
+    last_historical = max(int(y) for y in usa[usa["category"] == "Historical"]["year"])
+    assert last_historical == 2023
+
+    projections = usa[usa["category"] != "Historical"]
+    forward = {int(y) for y in projections["year"] if int(y) > last_historical}
+    assert forward == {2025, 2030, 2035}
+    # The gaps are the reason the rule exists: 2026-2029 and 2031-2034 are absent.
+    assert not forward & set(range(2026, 2030))
+    assert not forward & set(range(2031, 2035))
+    # Every projected parameter shares the same year grid.
+    for parameter in projections["parameter"].unique():
+        subset = projections[projections["parameter"] == parameter]
+        assert {int(y) for y in subset["year"] if int(y) > last_historical} == forward
 
 
-def test_g7_iea_mode_has_four_values(seed_frame: Loader) -> None:
-    modes = set(seed_frame("seed_iea_global_ev_2024")["mode"].unique())
-    assert modes == {"Cars", "Buses", "Trucks", "Vans"}
+def test_g7_iea_mode_has_four_vehicle_values(seed_frame: Loader) -> None:
+    """Four VEHICLE modes; stacking all four is valid only for total fleet.
+
+    The file carries a fifth `mode` value, 'EV', which is not a vehicle class at all:
+    it appears only on 'EV charging points' rows, where the powertrain column holds
+    'Publicly available fast' / 'slow'. Stacking it with the vehicle modes would be
+    meaningless, so the rule's four values are asserted per vehicle parameter.
+    """
+    frame = seed_frame("seed_iea_global_ev_2024")
+    vehicle = frame[frame["parameter"].isin(["EV sales", "EV stock"])]
+    assert set(vehicle["mode"].unique()) == {"Cars", "Buses", "Trucks", "Vans"}
+
+    charging = frame[frame["parameter"] == "EV charging points"]
+    assert set(charging["mode"].unique()) == {"EV"}
+    assert set(charging["powertrain"].unique()) == {
+        "Publicly available fast", "Publicly available slow"
+    }
+    assert set(frame["mode"].unique()) == {"Cars", "Buses", "Trucks", "Vans", "EV"}
 
 
 # --- G8 -----------------------------------------------------------------------------
@@ -173,12 +208,13 @@ def test_g8_seed_file_contains_a_total_row_that_equals_the_jurisdiction_sum(
     assert int(to_int(states["Registration Count"]).sum()) == total == 3_555_445
 
 
-def test_g8_total_rows_never_reach_the_mart(fixture_warehouse) -> None:  # type: ignore[no-untyped-def]
+def test_g8_total_rows_never_reach_the_mart(fixture_warehouse: Warehouse) -> None:
     """The adapter ingests the total row (A15); intermediate removes it."""
-    raw = fixture_warehouse.connection.execute(
+    raw = scalar(
+        fixture_warehouse,
         "SELECT count(*) FROM raw_afdc_state_ev_registrations "
-        "WHERE \"State\" = 'United States'"
-    ).fetchone()[0]
+        "WHERE \"State\" = 'United States'",
+    )
     assert raw == 10, "the adapter must preserve one total row per vintage"
 
     mart = fixture_warehouse.fetch_df("mart_state_totals")
@@ -186,7 +222,7 @@ def test_g8_total_rows_never_reach_the_mart(fixture_warehouse) -> None:  # type:
     assert len(mart) == 510, "51 jurisdictions x 10 vintages"
 
 
-def test_g8_counts_are_labelled_stock_never_sales(fixture_warehouse) -> None:  # type: ignore[no-untyped-def]
+def test_g8_counts_are_labelled_stock_never_sales(fixture_warehouse: Warehouse) -> None:
     mart = fixture_warehouse.fetch_df("mart_state_totals")
     assert (mart["measure_type"] == "stock").all()
 
@@ -211,7 +247,7 @@ def test_g9_property_1_vintage_is_resolved(seed_frame: Loader) -> None:
 
 
 def test_g9_property_1_the_delivered_file_resolves_to_the_2023_afdc_vintage(
-    seed_frame: Loader, fixture_warehouse,  # type: ignore[no-untyped-def]
+    seed_frame: Loader, fixture_warehouse: Warehouse,
 ) -> None:
     """Phase 0's dating, re-derived: 51/51 jurisdictions match after half-up rounding."""
     counts, _ = seed_counts(seed_frame)
@@ -262,14 +298,14 @@ def test_g9_property_4_published_total_reconciles(seed_frame: Loader) -> None:
 
 def test_g9_property_5_anomaly_screening_executes(seed_frame: Loader) -> None:
     counts, total = seed_counts(seed_frame)
+    # A uniform population makes raw counts the per-capita rate, so California's
+    # 1,256,646 becomes an extreme outlier and the screen must fire.
     population = dict.fromkeys(counts, 1_000_000)
-    population["California"] = 39_000_000
     result = check_registrations(counts, vintage="2023", published_total=total,
                                  population=population)
-    assert isinstance(result.review_flags, tuple)
-    # The screen ran; whether it flagged anything is data-dependent.
-    assert screen_per_capita({"a": 10, "b": 11, "c": 12, "d": 5_000},
-                             dict.fromkeys("abcd", 100))
+    assert result.review_flags, "the per-capita screen must produce diagnostics here"
+    assert {f.screen for f in result.review_flags} == {"per_capita_z"}
+    assert "California" in {f.jurisdiction for f in result.review_flags}
 
 
 def test_g9_property_5_year_over_year_screening_executes() -> None:
@@ -279,9 +315,11 @@ def test_g9_property_5_year_over_year_screening_executes() -> None:
 
 
 def test_g9_property_6_anomalies_surface_as_diagnostic_review_flags() -> None:
-    flags = screen_per_capita({"a": 10, "b": 11, "c": 12, "d": 5_000},
-                              dict.fromkeys("abcd", 100))
+    counts = {f"S{i}": 10 for i in range(20)}
+    counts["Outlier"] = 100_000
+    flags = screen_per_capita(counts, dict.fromkeys(counts, 100))
     assert flags, "an extreme outlier must be flagged"
+    assert [f.jurisdiction for f in flags] == ["Outlier"]
     for flag in flags:
         assert flag.to_dict()["is_diagnostic_only"] is True
 
@@ -342,7 +380,7 @@ def test_g10_open_dates_span_1995_to_the_snapshot_and_some_are_absent(
 # --- G11 ----------------------------------------------------------------------------
 
 def test_g11_a_snapshot_plus_open_date_cannot_reconstruct_a_historical_network(
-    seed_frame: Loader, fixture_warehouse,  # type: ignore[no-untyped-def]
+    seed_frame: Loader, fixture_warehouse: Warehouse,
 ) -> None:
     """Reconstruction is survivorship-biased: closures and removals are invisible."""
     frame = seed_frame(NATIONAL)
@@ -375,14 +413,19 @@ def test_g12_the_transmission_geojson_is_never_parsed_as_one_object() -> None:
     assert path.stat().st_size > 100_000_000
 
 
-def test_g12_no_code_path_calls_json_load_on_the_transmission_file() -> None:
-    source = (PATHS.root / "pipeline").rglob("*.py")
-    for module in source:
-        text = module.read_text(encoding="utf-8")
-        assert "Electric__Power_Transmission_Lines" not in text or (
-            "measure_geojson_properties" in text or "seed_inventory" in text
-            or "SEED_PROVENANCE" in text
-        ), f"{module} references the GeoJSON without the streaming reader"
+def test_g12_no_code_path_parses_the_transmission_file_whole() -> None:
+    """Naming the file is fine; parsing it as one object anywhere is not."""
+    forbidden = ("json.load", "json.loads", "read_text", "read_bytes",
+                 "geopandas", "gpd.read_file", "pyogrio.read")
+    for module in (PATHS.root / "pipeline").rglob("*.py"):
+        for number, line in enumerate(
+            module.read_text(encoding="utf-8").splitlines(), start=1
+        ):
+            if "Electric__Power_Transmission_Lines" not in line:
+                continue
+            assert not any(call in line for call in forbidden), (
+                f"{module.name}:{number} parses the 137 MiB GeoJSON whole: {line.strip()}"
+            )
 
 
 # --- G13 ----------------------------------------------------------------------------
@@ -422,12 +465,39 @@ def test_g14_connector_types_is_a_space_delimited_string_not_a_normalised_field(
 
 
 def test_g14_the_pipeline_splits_rather_than_substring_matches(
-    fixture_warehouse,  # type: ignore[no-untyped-def]
+    fixture_warehouse: Warehouse,
 ) -> None:
-    stations = fixture_warehouse.fetch_df("mart_stations")
-    assert stations["ev_connector_types"].apply(
-        lambda v: isinstance(v, (list, tuple)) or v is None
-    ).all(), "connector types must arrive as a list, not a raw string"
+    """The staged value must be a LIST of connector codes, not a raw string.
+
+    Two encodings of the same field reach this layer and both must be decoded, never
+    guessed at: the bulk CSV concatenates codes space-delimited (the G14 case), while
+    the JSON API returns a proper array which the adapter re-serialises to JSON text.
+    Substring-matching either one would silently mis-classify connectors.
+    """
+    rows = fixture_warehouse.connection.execute(
+        "SELECT ev_connector_types_raw, ev_connector_types "
+        "FROM int_stations WHERE len(ev_connector_types) > 1 LIMIT 5"
+    ).fetchall()
+    assert rows, "the fixture must contain at least one multi-connector station"
+    for raw, split in rows:
+        assert isinstance(split, list), f"expected a list, got {type(split).__name__}"
+        assert len(split) > 1
+        text = str(raw)
+        expected = (json.loads(text) if text.startswith("[") else text.split())
+        assert split == expected, "decoding must reproduce the source tokens exactly"
+
+    # A genuine DuckDB LIST, not a string that merely looks like one.
+    column_type = str(scalar(
+        fixture_warehouse, "SELECT typeof(ev_connector_types) FROM int_stations LIMIT 1"
+    ))
+    assert column_type.startswith("VARCHAR["), column_type
+
+    # The space-delimited form is exercised too, via the frozen CSV fixture.
+    assert not scalar(
+        fixture_warehouse,
+        "SELECT count(*) FROM int_stations "
+        "WHERE len(ev_connector_types) = 1 AND ev_connector_types[1] LIKE '% %'",
+    ), "a space-delimited value survived undecoded"
 
 
 # --- suite completeness ----------------------------------------------------------------

@@ -29,7 +29,7 @@ from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, field
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 # The 50 states plus the District of Columbia: the geography AFDC claims to cover.
@@ -42,14 +42,14 @@ PER_CAPITA_Z_THRESHOLD = 3.0
 YEAR_OVER_YEAR_GROWTH_THRESHOLD = 3.0  # a tripling year on year is worth a look
 
 
-class Confidence(str, Enum):
+class Confidence(StrEnum):
     """Confidence in a jurisdiction's registration count."""
 
     OK = "ok"
     LOW = "low_confidence"
 
 
-class DefectKind(str, Enum):
+class DefectKind(StrEnum):
     """Corroborating evidence classes that CAN justify a low-confidence label."""
 
     VINTAGE = "vintage"
