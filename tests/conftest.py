@@ -2,13 +2,14 @@
 
 from __future__ import annotations
 
-from collections.abc import Callable
+from collections.abc import Callable, Iterator
 from pathlib import Path
 
 import httpx
 import pytest
 
 from pipeline.config.settings import PATHS
+from pipeline.transform.runner import Warehouse
 
 REPO_ROOT = PATHS.root
 
@@ -31,7 +32,7 @@ def make_client_factory(
 
 
 @pytest.fixture(scope="session")
-def fixture_warehouse():  # type: ignore[no-untyped-def]
+def fixture_warehouse() -> Iterator[Warehouse]:
     """The two-state (MN + IL) canonical build, constructed once per test session.
 
     Built entirely from cached responses with an injected fixed timestamp, so it is
@@ -39,7 +40,6 @@ def fixture_warehouse():  # type: ignore[no-untyped-def]
     """
     from pipeline.build import build
     from pipeline.discovery.cache import ReplayFetcher
-    from pipeline.transform.runner import Warehouse
 
     raw = PATHS.root / "data" / "cache" / "raw"
     warehouse = Warehouse()
@@ -62,9 +62,9 @@ def seed_frame():  # type: ignore[no-untyped-def]
 
     from pipeline.sources.catalog import SEED_SOURCES, seed_sources
 
-    cache: dict[str, "pd.DataFrame"] = {}
+    cache: dict[str, pd.DataFrame] = {}
 
-    def load(source_id: str) -> "pd.DataFrame":
+    def load(source_id: str) -> pd.DataFrame:
         if source_id not in cache:
             assert source_id in SEED_SOURCES, f"unknown seed source {source_id}"
             table = seed_sources()[source_id].load()
@@ -72,3 +72,10 @@ def seed_frame():  # type: ignore[no-untyped-def]
         return cache[source_id]
 
     return load
+
+
+def scalar(warehouse: Warehouse, sql: str) -> object:
+    """First column of the first row. Fails loudly if the query returned nothing."""
+    row = warehouse.connection.execute(sql).fetchone()
+    assert row is not None, f"query returned no rows: {sql}"
+    return row[0]

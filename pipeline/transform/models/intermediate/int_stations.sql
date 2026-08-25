@@ -24,9 +24,14 @@ SELECT
     coalesce(evse_count_dcfc, 0) AS evse_count_dcfc,
     ev_connector_types_raw,
     -- G14: EV Connector Types is a space-delimited concatenated string in the bulk
-    -- CSV, not a normalised field. Split it rather than matching substrings.
+    -- CSV, not a normalised field, so it must be SPLIT rather than substring-matched.
+    -- The JSON API returns the same field as a proper array, which the adapter
+    -- re-serialises to JSON text. Both encodings reach this layer, so both are
+    -- decoded here and neither is guessed at: a leading '[' identifies the JSON form.
     CASE
-        WHEN ev_connector_types_raw IS NULL OR ev_connector_types_raw = '' THEN []
+        WHEN ev_connector_types_raw IS NULL OR trim(ev_connector_types_raw) = '' THEN []
+        WHEN starts_with(trim(ev_connector_types_raw), '[')
+            THEN CAST(from_json(ev_connector_types_raw, '["VARCHAR"]') AS VARCHAR[])
         ELSE str_split(trim(ev_connector_types_raw), ' ')
     END                          AS ev_connector_types,
     (status_code = 'E')          AS is_operational,
