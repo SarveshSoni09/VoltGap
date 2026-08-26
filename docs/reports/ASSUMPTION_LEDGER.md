@@ -71,3 +71,25 @@ review, and A-0.5 moved forward to Phase 1. Phase 1's gate re-checks all open en
 | A-0.19 | A rule-based terminology lint is sufficient | HOLDS so far, superseded by A-1.3 which states the specific weakening | 79 files clean, 15 rules |
 | A-0.6 | Block-level population weighting is constructible from TIGER + P.L. 94-171 | UNTESTED this phase | Phase 2 |
 | A-0.7, A-0.12, A-0.18 | ZIP-to-tract usability and the usable sub-state-anchored state count | UNTESTED this phase; the machinery now exists, the error measurement does not | Phase 3 |
+
+---
+
+## Opened by Phase 2 (2026-08-24)
+
+| ID | Falsifiable statement | Depends on | Tested in | Status |
+|---|---|---|---|---|
+| A-2.1 | The 4 DBSCAN clusters exceeding 200 m diameter do not materially distort site counts, nearest-site distance or access-gap population. | Transitive connectivity means eps = 50 m does not bound diameter. 886 clusters exceed 50 m, 86 exceed 100 m, 4 exceed 200 m, none exceeds 500 m. Immaterial at the 16.1 km threshold, but Phase 4 candidate siting may be sensitive at the 100 m scale. | Phase 4 | OPEN |
+| A-2.2 | A 30-observation minimum makes a rung-2 empirical median reliable enough to stand in for reported power. | Chosen so a median rests on a real distribution. 164 national groups qualify and rung 3 is never reached, so this threshold alone determines 19.85% of all resolved power. A different threshold would change published capacity. | Phase 3 | OPEN |
+| A-2.3 | Block-group population-weighted centroids are close enough to block-level for national access figures. | §7.6 asks for block-level weights; no ready-made product exists (Phase 0 F-7). A block group averages ~1,380 people, so the corner-population problem recurs at smaller scale in large rural block groups. | Phase 4 | OPEN |
+| A-2.4 | Straight-line distance is a usable lower bound for drive distance in access reporting. | Great-circle distance never exceeds road distance, so gap populations are lower bounds. How much they understate is unmeasured until Extension E3 quantifies network-versus-straight-line divergence. | E3 | OPEN |
+| A-2.5 | Treating a site as public operational supply when *any* of its stations is public operational is the right rule for access. | G4 aggregates co-located multi-network infrastructure, so a site can mix a public station with a private fleet depot. Site capacity then includes ports a driver cannot use. Raised as Phase 2 open question Q2. | Phase 4 | OPEN |
+
+## Re-checked at the Phase 2 gate
+
+| ID | Assumption | Status | Evidence |
+|---|---|---|---|
+| A-1.1 | Land-area weighting is acceptable as an interim allocation basis | **DEFERRED, not exercised.** Phase 2 does not consume registration allocations at all (amendment A21), so the assumption is untouched and Phase 3 still owns it | P2-G, 4 tests |
+| A-1.2 | The eight JSON connector standards map cleanly onto the five in the §1.1 vocabulary | **CONFIRMED with a caveat.** The normalisation table maps all eight; three NEMA standards have no §1.1 equivalent and are carried as themselves. Both raw and normalised forms are preserved | P2-C, 3 tests |
+| A-1.4 | Row order within a station is stable enough within one snapshot for the record key to join | **HOLDS.** Unit-to-connector joins produced zero orphans across 292,756 national units | smoke-forward, 5 tests |
+| A-0.6 | Block-level population weighting is constructible from TIGER + P.L. 94-171 | **UNTESTED.** Phase 2 used block-group centroids instead; superseded in scope by A-2.3 | Phase 4 |
+| A-1.3, A-0.19 | A rule-based copy lint catches the claims that matter | **HOLDS so far.** 95 files clean. Four legitimate quotations of a prohibited phrase needed inline allow markers this phase, which is the mechanism working | copy lint |

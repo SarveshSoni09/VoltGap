@@ -52,7 +52,7 @@ def test_the_phase_0_sources_and_findings_are_all_still_present() -> None:
     the Phase 0 set is intact rather than pinning a total that every later phase would
     have to edit.
     """
-    assert len(SOURCES) == 57
+    assert len(SOURCES) >= 57
     phase_0 = {f"F-{n}" for n in range(1, 11)}
     assert phase_0 <= set(FINDINGS), f"missing {sorted(phase_0 - set(FINDINGS))}"
     assert len(FINDINGS) >= 10

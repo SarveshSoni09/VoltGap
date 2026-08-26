@@ -1,0 +1,707 @@
+{
+  "phase": 2,
+  "generated": "2026-08-24",
+  "scope": "national, public + operational and all supply as noted",
+  "supply": {
+    "charging_units_with_connectors": 292666,
+    "connector_observations": 308300,
+    "power_ladder": {
+      "rung_1_reported": 247088,
+      "rung_2_empirical_fallback": 61212,
+      "rung_3_type_default": 0,
+      "unresolved": 0,
+      "rung_1_share": 0.801453,
+      "rung_2_share": 0.198547,
+      "usable_rung_2_groups": 164,
+      "note": "Rung 3 is never reached nationally: every connector without reported power falls into a peer group with at least the configured 30-observation minimum. The documented type defaults are therefore precautionary, not load-bearing, in this snapshot."
+    },
+    "capacity": {
+      "multi_connector_single_port_units": 15598,
+      "generic_service_capacity_kw": 19679635.6,
+      "naive_connector_sum_kw": 21783877.9,
+      "overstatement_kw": 2104242.3,
+      "overstatement_share": 0.106925,
+      "note": "Summing connector-level power as though every connector were an independent simultaneously usable port would overstate national public charging capacity by 2.1 GW. Those connectors are alternative compatibility interfaces on one service position (CLAUDE.md 7.1.1)."
+    }
+  },
+  "access": {
+    "DCFC": {
+      "metric_name": "DCFC access gap",
+      "supply_class": "DCFC",
+      "threshold_km": 16.1,
+      "population_total": 331449281,
+      "population_in_gap": 32113986,
+      "share_in_gap": 0.09689,
+      "points_total": 239780,
+      "points_in_gap": 28861,
+      "sites_considered": 13143,
+      "median_distance_km": 3.296,
+      "sensitivity_curve": [
+        {
+          "threshold_km": 1.0,
+          "population_in_gap": 297113644
+        },
+        {
+          "threshold_km": 2.0,
+          "population_in_gap": 232251200
+        },
+        {
+          "threshold_km": 3.0,
+          "population_in_gap": 175938826
+        },
+        {
+          "threshold_km": 4.0,
+          "population_in_gap": 136217684
+        },
+        {
+          "threshold_km": 5.0,
+          "population_in_gap": 109151056
+        },
+        {
+          "threshold_km": 6.0,
+          "population_in_gap": 90880153
+        },
+        {
+          "threshold_km": 7.0,
+          "population_in_gap": 78299815
+        },
+        {
+          "threshold_km": 8.0,
+          "population_in_gap": 69063516
+        },
+        {
+          "threshold_km": 9.0,
+          "population_in_gap": 61604043
+        },
+        {
+          "threshold_km": 10.0,
+          "population_in_gap": 55580704
+        },
+        {
+          "threshold_km": 11.0,
+          "population_in_gap": 50381653
+        },
+        {
+          "threshold_km": 12.0,
+          "population_in_gap": 45893638
+        },
+        {
+          "threshold_km": 13.0,
+          "population_in_gap": 41973056
+        },
+        {
+          "threshold_km": 14.0,
+          "population_in_gap": 38511256
+        },
+        {
+          "threshold_km": 15.0,
+          "population_in_gap": 35281937
+        },
+        {
+          "threshold_km": 16.0,
+          "population_in_gap": 32390826
+        },
+        {
+          "threshold_km": 17.0,
+          "population_in_gap": 29823860
+        },
+        {
+          "threshold_km": 18.0,
+          "population_in_gap": 27508404
+        },
+        {
+          "threshold_km": 19.0,
+          "population_in_gap": 25354153
+        },
+        {
+          "threshold_km": 20.0,
+          "population_in_gap": 23228765
+        },
+        {
+          "threshold_km": 21.0,
+          "population_in_gap": 21329382
+        },
+        {
+          "threshold_km": 22.0,
+          "population_in_gap": 19701933
+        },
+        {
+          "threshold_km": 23.0,
+          "population_in_gap": 18234245
+        },
+        {
+          "threshold_km": 24.0,
+          "population_in_gap": 16880891
+        },
+        {
+          "threshold_km": 25.0,
+          "population_in_gap": 15593022
+        },
+        {
+          "threshold_km": 26.0,
+          "population_in_gap": 14484243
+        },
+        {
+          "threshold_km": 27.0,
+          "population_in_gap": 13465656
+        },
+        {
+          "threshold_km": 28.0,
+          "population_in_gap": 12504775
+        },
+        {
+          "threshold_km": 29.0,
+          "population_in_gap": 11639866
+        },
+        {
+          "threshold_km": 30.0,
+          "population_in_gap": 10816590
+        },
+        {
+          "threshold_km": 31.0,
+          "population_in_gap": 10019923
+        },
+        {
+          "threshold_km": 32.0,
+          "population_in_gap": 9297008
+        },
+        {
+          "threshold_km": 33.0,
+          "population_in_gap": 8662271
+        },
+        {
+          "threshold_km": 34.0,
+          "population_in_gap": 8049525
+        },
+        {
+          "threshold_km": 35.0,
+          "population_in_gap": 7456503
+        },
+        {
+          "threshold_km": 36.0,
+          "population_in_gap": 6917790
+        },
+        {
+          "threshold_km": 37.0,
+          "population_in_gap": 6459259
+        },
+        {
+          "threshold_km": 38.0,
+          "population_in_gap": 6045443
+        },
+        {
+          "threshold_km": 39.0,
+          "population_in_gap": 5628220
+        },
+        {
+          "threshold_km": 40.0,
+          "population_in_gap": 5284097
+        },
+        {
+          "threshold_km": 41.0,
+          "population_in_gap": 4964110
+        },
+        {
+          "threshold_km": 42.0,
+          "population_in_gap": 4662627
+        },
+        {
+          "threshold_km": 43.0,
+          "population_in_gap": 4428686
+        },
+        {
+          "threshold_km": 44.0,
+          "population_in_gap": 4211926
+        },
+        {
+          "threshold_km": 45.0,
+          "population_in_gap": 3959765
+        },
+        {
+          "threshold_km": 46.0,
+          "population_in_gap": 3753828
+        },
+        {
+          "threshold_km": 47.0,
+          "population_in_gap": 3546977
+        },
+        {
+          "threshold_km": 48.0,
+          "population_in_gap": 3365504
+        },
+        {
+          "threshold_km": 49.0,
+          "population_in_gap": 3193810
+        },
+        {
+          "threshold_km": 50.0,
+          "population_in_gap": 3002007
+        },
+        {
+          "threshold_km": 51.0,
+          "population_in_gap": 2845907
+        },
+        {
+          "threshold_km": 52.0,
+          "population_in_gap": 2677086
+        },
+        {
+          "threshold_km": 53.0,
+          "population_in_gap": 2531841
+        },
+        {
+          "threshold_km": 54.0,
+          "population_in_gap": 2412636
+        },
+        {
+          "threshold_km": 55.0,
+          "population_in_gap": 2301490
+        },
+        {
+          "threshold_km": 56.0,
+          "population_in_gap": 2171059
+        },
+        {
+          "threshold_km": 57.0,
+          "population_in_gap": 2078306
+        },
+        {
+          "threshold_km": 58.0,
+          "population_in_gap": 1986405
+        },
+        {
+          "threshold_km": 59.0,
+          "population_in_gap": 1916863
+        },
+        {
+          "threshold_km": 60.0,
+          "population_in_gap": 1838516
+        },
+        {
+          "threshold_km": 61.0,
+          "population_in_gap": 1792261
+        },
+        {
+          "threshold_km": 62.0,
+          "population_in_gap": 1723617
+        },
+        {
+          "threshold_km": 63.0,
+          "population_in_gap": 1641837
+        },
+        {
+          "threshold_km": 64.0,
+          "population_in_gap": 1564484
+        },
+        {
+          "threshold_km": 65.0,
+          "population_in_gap": 1500626
+        },
+        {
+          "threshold_km": 66.0,
+          "population_in_gap": 1440376
+        },
+        {
+          "threshold_km": 67.0,
+          "population_in_gap": 1368568
+        },
+        {
+          "threshold_km": 68.0,
+          "population_in_gap": 1306198
+        },
+        {
+          "threshold_km": 69.0,
+          "population_in_gap": 1244772
+        },
+        {
+          "threshold_km": 70.0,
+          "population_in_gap": 1186717
+        },
+        {
+          "threshold_km": 71.0,
+          "population_in_gap": 1129593
+        },
+        {
+          "threshold_km": 72.0,
+          "population_in_gap": 1083797
+        },
+        {
+          "threshold_km": 73.0,
+          "population_in_gap": 1030017
+        },
+        {
+          "threshold_km": 74.0,
+          "population_in_gap": 979001
+        },
+        {
+          "threshold_km": 75.0,
+          "population_in_gap": 937372
+        },
+        {
+          "threshold_km": 76.0,
+          "population_in_gap": 891950
+        },
+        {
+          "threshold_km": 77.0,
+          "population_in_gap": 844572
+        },
+        {
+          "threshold_km": 78.0,
+          "population_in_gap": 817645
+        },
+        {
+          "threshold_km": 79.0,
+          "population_in_gap": 775565
+        },
+        {
+          "threshold_km": 80.0,
+          "population_in_gap": 740910
+        }
+      ],
+      "distance_basis": "straight_line_haversine",
+      "interpretation": "Straight-line distance understates real travel distance, so this population is a LOWER BOUND on the population genuinely beyond the threshold by road."
+    },
+    "L2": {
+      "metric_name": "L2 access gap",
+      "supply_class": "L2",
+      "threshold_km": 8.05,
+      "population_total": 331449281,
+      "population_in_gap": 53462245,
+      "share_in_gap": 0.161298,
+      "points_total": 239780,
+      "points_in_gap": 44392,
+      "sites_considered": 42928,
+      "median_distance_km": 2.1063,
+      "sensitivity_curve": [
+        {
+          "threshold_km": 1.0,
+          "population_in_gap": 252112426
+        },
+        {
+          "threshold_km": 2.0,
+          "population_in_gap": 171643318
+        },
+        {
+          "threshold_km": 3.0,
+          "population_in_gap": 124129610
+        },
+        {
+          "threshold_km": 4.0,
+          "population_in_gap": 97407600
+        },
+        {
+          "threshold_km": 5.0,
+          "population_in_gap": 80446605
+        },
+        {
+          "threshold_km": 6.0,
+          "population_in_gap": 68992243
+        },
+        {
+          "threshold_km": 7.0,
+          "population_in_gap": 60419900
+        },
+        {
+          "threshold_km": 8.0,
+          "population_in_gap": 53778959
+        },
+        {
+          "threshold_km": 9.0,
+          "population_in_gap": 48348947
+        },
+        {
+          "threshold_km": 10.0,
+          "population_in_gap": 43584232
+        },
+        {
+          "threshold_km": 11.0,
+          "population_in_gap": 39561567
+        },
+        {
+          "threshold_km": 12.0,
+          "population_in_gap": 36073567
+        },
+        {
+          "threshold_km": 13.0,
+          "population_in_gap": 32956058
+        },
+        {
+          "threshold_km": 14.0,
+          "population_in_gap": 30046070
+        },
+        {
+          "threshold_km": 15.0,
+          "population_in_gap": 27512488
+        },
+        {
+          "threshold_km": 16.0,
+          "population_in_gap": 25271966
+        },
+        {
+          "threshold_km": 17.0,
+          "population_in_gap": 23169418
+        },
+        {
+          "threshold_km": 18.0,
+          "population_in_gap": 21289594
+        },
+        {
+          "threshold_km": 19.0,
+          "population_in_gap": 19617553
+        },
+        {
+          "threshold_km": 20.0,
+          "population_in_gap": 18192603
+        },
+        {
+          "threshold_km": 21.0,
+          "population_in_gap": 16813291
+        },
+        {
+          "threshold_km": 22.0,
+          "population_in_gap": 15533979
+        },
+        {
+          "threshold_km": 23.0,
+          "population_in_gap": 14385320
+        },
+        {
+          "threshold_km": 24.0,
+          "population_in_gap": 13270052
+        },
+        {
+          "threshold_km": 25.0,
+          "population_in_gap": 12266870
+        },
+        {
+          "threshold_km": 26.0,
+          "population_in_gap": 11343361
+        },
+        {
+          "threshold_km": 27.0,
+          "population_in_gap": 10481489
+        },
+        {
+          "threshold_km": 28.0,
+          "population_in_gap": 9696250
+        },
+        {
+          "threshold_km": 29.0,
+          "population_in_gap": 8951735
+        },
+        {
+          "threshold_km": 30.0,
+          "population_in_gap": 8291151
+        },
+        {
+          "threshold_km": 31.0,
+          "population_in_gap": 7735517
+        },
+        {
+          "threshold_km": 32.0,
+          "population_in_gap": 7218209
+        },
+        {
+          "threshold_km": 33.0,
+          "population_in_gap": 6706579
+        },
+        {
+          "threshold_km": 34.0,
+          "population_in_gap": 6293338
+        },
+        {
+          "threshold_km": 35.0,
+          "population_in_gap": 5886086
+        },
+        {
+          "threshold_km": 36.0,
+          "population_in_gap": 5457667
+        },
+        {
+          "threshold_km": 37.0,
+          "population_in_gap": 5087287
+        },
+        {
+          "threshold_km": 38.0,
+          "population_in_gap": 4714746
+        },
+        {
+          "threshold_km": 39.0,
+          "population_in_gap": 4386167
+        },
+        {
+          "threshold_km": 40.0,
+          "population_in_gap": 4086272
+        },
+        {
+          "threshold_km": 41.0,
+          "population_in_gap": 3813775
+        },
+        {
+          "threshold_km": 42.0,
+          "population_in_gap": 3564525
+        },
+        {
+          "threshold_km": 43.0,
+          "population_in_gap": 3356488
+        },
+        {
+          "threshold_km": 44.0,
+          "population_in_gap": 3154644
+        },
+        {
+          "threshold_km": 45.0,
+          "population_in_gap": 2949301
+        },
+        {
+          "threshold_km": 46.0,
+          "population_in_gap": 2796989
+        },
+        {
+          "threshold_km": 47.0,
+          "population_in_gap": 2643340
+        },
+        {
+          "threshold_km": 48.0,
+          "population_in_gap": 2489243
+        },
+        {
+          "threshold_km": 49.0,
+          "population_in_gap": 2350664
+        },
+        {
+          "threshold_km": 50.0,
+          "population_in_gap": 2217724
+        },
+        {
+          "threshold_km": 51.0,
+          "population_in_gap": 2125118
+        },
+        {
+          "threshold_km": 52.0,
+          "population_in_gap": 2006978
+        },
+        {
+          "threshold_km": 53.0,
+          "population_in_gap": 1897890
+        },
+        {
+          "threshold_km": 54.0,
+          "population_in_gap": 1791040
+        },
+        {
+          "threshold_km": 55.0,
+          "population_in_gap": 1690886
+        },
+        {
+          "threshold_km": 56.0,
+          "population_in_gap": 1597182
+        },
+        {
+          "threshold_km": 57.0,
+          "population_in_gap": 1514125
+        },
+        {
+          "threshold_km": 58.0,
+          "population_in_gap": 1447738
+        },
+        {
+          "threshold_km": 59.0,
+          "population_in_gap": 1376406
+        },
+        {
+          "threshold_km": 60.0,
+          "population_in_gap": 1303000
+        },
+        {
+          "threshold_km": 61.0,
+          "population_in_gap": 1235590
+        },
+        {
+          "threshold_km": 62.0,
+          "population_in_gap": 1189420
+        },
+        {
+          "threshold_km": 63.0,
+          "population_in_gap": 1133088
+        },
+        {
+          "threshold_km": 64.0,
+          "population_in_gap": 1076546
+        },
+        {
+          "threshold_km": 65.0,
+          "population_in_gap": 1027502
+        },
+        {
+          "threshold_km": 66.0,
+          "population_in_gap": 986550
+        },
+        {
+          "threshold_km": 67.0,
+          "population_in_gap": 945056
+        },
+        {
+          "threshold_km": 68.0,
+          "population_in_gap": 893324
+        },
+        {
+          "threshold_km": 69.0,
+          "population_in_gap": 854369
+        },
+        {
+          "threshold_km": 70.0,
+          "population_in_gap": 820098
+        },
+        {
+          "threshold_km": 71.0,
+          "population_in_gap": 787229
+        },
+        {
+          "threshold_km": 72.0,
+          "population_in_gap": 751239
+        },
+        {
+          "threshold_km": 73.0,
+          "population_in_gap": 718928
+        },
+        {
+          "threshold_km": 74.0,
+          "population_in_gap": 685538
+        },
+        {
+          "threshold_km": 75.0,
+          "population_in_gap": 650391
+        },
+        {
+          "threshold_km": 76.0,
+          "population_in_gap": 621065
+        },
+        {
+          "threshold_km": 77.0,
+          "population_in_gap": 594637
+        },
+        {
+          "threshold_km": 78.0,
+          "population_in_gap": 567943
+        },
+        {
+          "threshold_km": 79.0,
+          "population_in_gap": 545490
+        },
+        {
+          "threshold_km": 80.0,
+          "population_in_gap": 525283
+        }
+      ],
+      "distance_basis": "straight_line_haversine",
+      "interpretation": "Straight-line distance understates real travel distance, so this population is a LOWER BOUND on the population genuinely beyond the threshold by road."
+    }
+  },
+  "population": {
+    "points": 239780,
+    "point_grain": "census block group, population-weighted centroid",
+    "total_population": 331449281,
+    "note": "Block group is the finest ready-made population-weighted centroid the Census Bureau publishes; Phase 0 finding F-7 established that no block-level product exists. Tract geometric centroids are NOT used (CLAUDE.md 7.5)."
+  }
+}

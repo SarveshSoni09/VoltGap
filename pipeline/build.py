@@ -162,6 +162,23 @@ def load_seeds(warehouse: Warehouse, result: BuildResult,
         result.staged_row_counts[source_id] = len(table.rows)
 
 
+def load_population(warehouse: Warehouse, result: BuildResult, fetcher: Fetcher,
+                    state_fips: str = "27") -> None:
+    """Population-weighted block group centroids: Phase 2's access geography.
+
+    Block group is the finest ready-made population-weighted centroid the Census
+    Bureau publishes; Phase 0 finding F-7 established that no block-level product
+    exists.
+    """
+    from pipeline.sources.catalog import census_sources
+
+    source = census_sources(state_fips)["census_cenpop_blockgroup"]
+    table = source.load(fetcher)
+    warehouse.load_staged(table)
+    result.source_vintages["census_cenpop_blockgroup"] = table.vintage.vintage or "2020"
+    result.staged_row_counts["census_cenpop_blockgroup"] = len(table.rows)
+
+
 def resolve_sites(warehouse: Warehouse) -> int:
     """Cluster station coordinates into sites and register the assignment table."""
     rows = warehouse.connection.execute(
@@ -218,6 +235,7 @@ def build(
     # so skipping this would fail the staging layer rather than produce a smaller build.
     load_state_registrations(warehouse, result, fetcher)
     load_atlas(warehouse, result, fetcher, atlas_states)
+    load_population(warehouse, result, fetcher)
 
     context = build_context(result.source_vintages, computed_at)
     # Staging must exist before sites can be clustered from it, so the run is split.

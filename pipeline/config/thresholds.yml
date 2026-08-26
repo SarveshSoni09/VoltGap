@@ -1,0 +1,42 @@
+# Configurable analytic thresholds (CLAUDE.md 2, 7.5).
+#
+# Every threshold that changes a published number lives here, is exposed in the UI, and
+# ships with a sensitivity analysis showing how the affected population moves across
+# the range. None of these may be hard-coded in Python.
+
+access:
+  # Straight-line distance from a population point to the nearest qualifying site.
+  # Core ships network-free distance; drive-time isochrones are Extension tier and are
+  # explicitly NOT a Core claim (CLAUDE.md 7.5).
+  distance_metric: straight_line_haversine
+
+  # The primary DCFC access-gap threshold. Named for what it measures: this is a DCFC
+  # ACCESS GAP, never a "charging desert", because it says nothing about Level 2.  # copy-lint: allow
+  dcfc_gap_km: 16.1
+  dcfc_gap_km_justification: >-
+    10 miles. A round trip within a typical urban errand radius, and the granularity at
+    which the AFDC coordinate precision is meaningful. Chosen as a reporting anchor,
+    not as a claim about what distance is acceptable - which is why the sensitivity
+    curve below is mandatory rather than optional.
+
+  # Separate and independently reported. Level 2 access is a different question.
+  l2_gap_km: 8.05
+  l2_gap_km_justification: "5 miles. Level 2 is a dwell-time technology; the useful radius is smaller."
+
+  # The full range the sensitivity curve is computed across. The curve is a required
+  # output, not a diagnostic: a single threshold without it would present a choice as
+  # a finding.
+  sensitivity_km:
+    start: 1.0
+    stop: 80.5
+    step: 1.0
+
+supply:
+  # Applied to public operational supply (domain rules G2 and G3).
+  operational_status_codes: ["E"]
+  public_access_codes: ["public"]
+  # Charging levels that count as DC fast for access purposes. Read from the source
+  # charging_level field, never inferred from a connector name (CLAUDE.md 7.1.2).
+  dcfc_levels: ["dc_fast"]
+  l2_levels: ["2"]
+  l1_levels: ["1"]

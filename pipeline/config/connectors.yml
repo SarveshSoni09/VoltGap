@@ -1,0 +1,90 @@
+# Connector taxonomy normalisation (CLAUDE.md 7.1.3, amendment A20).
+#
+# An explicit table, not scattered conditionals. Both the raw upstream value and the
+# normalised value are preserved on every row, because Tesla / NACS / J3400
+# terminology has changed over time and destroying the raw value would destroy the
+# ability to interpret older extracts.
+#
+# CHARGING LEVEL IS NOT DERIVED HERE. Connector standard and charging level are
+# separate concepts (7.1.2). Level comes from the charging-unit record's own
+# `charging_level` field. `typical_levels` below is DESCRIPTIVE ONLY - it records
+# where a standard is usually found, for documentation and for sanity-checking the
+# source, and must never be used to classify a unit.
+
+connectors:
+  J1772:
+    normalized: J1772
+    display: "SAE J1772"
+    standard_family: ac
+    typical_levels: ["1", "2"]
+    note: "AC conductive coupler. Appears at both Level 1 and Level 2."
+  J1772COMBO:
+    normalized: CCS
+    display: "CCS (SAE J1772 Combo)"
+    standard_family: dc
+    typical_levels: ["dc_fast"]
+    note: "The source writes J1772COMBO where the CSV export writes CCS."
+  CHADEMO:
+    normalized: CHAdeMO
+    display: "CHAdeMO"
+    standard_family: dc
+    typical_levels: ["dc_fast"]
+    note: "Casing differs between representations; normalised to the trademark form."
+  TESLA:
+    normalized: J3400/NACS
+    display: "J3400 / NACS (Tesla)"
+    standard_family: mixed
+    typical_levels: ["2", "dc_fast"]
+    note: >-
+      Terminology has evolved: the connector was proprietary Tesla, then NACS, then
+      standardised as SAE J3400. The source still emits TESLA. The raw value is
+      preserved because a historical extract cannot be reinterpreted without it, and
+      because TESLA appears on both AC destination chargers and DC Superchargers -
+      which is exactly why level must come from the record, not the connector name.
+  J3271:
+    normalized: J3271
+    display: "SAE J3271 (megawatt charging)"
+    standard_family: dc
+    typical_levels: ["dc_fast"]
+    note: "Rare; 10 ports nationally in the 2026-08 snapshot."
+  NEMA515:
+    normalized: NEMA 5-15
+    display: "NEMA 5-15"
+    standard_family: ac
+    typical_levels: ["1"]
+    note: >-
+      A household outlet standard. Usually but NOT UNIVERSALLY Level 1; the unit's own
+      charging_level field is authoritative (amendment A20).
+  NEMA520:
+    normalized: NEMA 5-20
+    display: "NEMA 5-20"
+    standard_family: ac
+    typical_levels: ["1"]
+    note: "See NEMA515. Connector standard, not a level designation."
+  NEMA1450:
+    normalized: NEMA 14-50
+    display: "NEMA 14-50"
+    standard_family: ac
+    typical_levels: ["1", "2"]
+    note: >-
+      A 240 V outlet, commonly used for Level 2 despite the NEMA family often being
+      associated with Level 1. Concrete evidence that connector name does not
+      determine level.
+
+# Charging levels as the SOURCE reports them. This is the authoritative classifier.
+charging_levels:
+  "1":
+    normalized: level_1
+    display: "Level 1"
+  "2":
+    normalized: level_2
+    display: "Level 2"
+  dc_fast:
+    normalized: dc_fast
+    display: "DC fast"
+  legacy:
+    normalized: legacy
+    display: "Legacy / unclassified"
+    note: >-
+      21 units nationally. Retained rather than folded into another level, because
+      folding would assert a classification the source does not make.

@@ -1,0 +1,73 @@
+{
+  "investigation": "CLAUDE.md 15.5.2 (amendment A24) - DBSCAN site-resolution diagnostic",
+  "generated": "2026-08-24",
+  "question": "Phase 2 access metrics depend on site_id. DBSCAN connectivity is transitive, so eps = 50 m does not bound cluster diameter: A-B 40 m and B-C 40 m puts A and C, 80 m apart, in one cluster. Are the clusters sound enough to publish national access results against?",
+  "parameters": {
+    "algorithm": "DBSCAN",
+    "metric": "haversine",
+    "eps_m": 50.0,
+    "min_samples": 1
+  },
+  "measurements": {
+    "clusters": 59232,
+    "stations": 89758,
+    "singleton_clusters": 46261,
+    "singleton_share": 0.781014,
+    "clusters_with_at_least": {
+      "2": 12971,
+      "5": 1818,
+      "10": 481
+    },
+    "max_station_count": 131,
+    "multi_station_clusters": 12971,
+    "diameter_m": {
+      "min": 0.0,
+      "median": 11.84,
+      "max": 288.35
+    },
+    "clusters_exceeding_diameter": {
+      "50": 886,
+      "100": 86,
+      "200": 4,
+      "500": 0
+    },
+    "suspicious_cluster_count": 4,
+    "suspicious_share_of_multi": 0.000308
+  },
+  "suspicious_clusters": [
+    {
+      "site_id": "site_0013152",
+      "station_count": 117,
+      "diameter_m": 288.35,
+      "network_count": 1,
+      "distinct_names": 117
+    },
+    {
+      "site_id": "site_0031938",
+      "station_count": 38,
+      "diameter_m": 232.47,
+      "network_count": 1,
+      "distinct_names": 33
+    },
+    {
+      "site_id": "site_0021695",
+      "station_count": 47,
+      "diameter_m": 223.87,
+      "network_count": 1,
+      "distinct_names": 47
+    },
+    {
+      "site_id": "site_0021943",
+      "station_count": 23,
+      "diameter_m": 204.28,
+      "network_count": 1,
+      "distinct_names": 23
+    }
+  ],
+  "resolution": {
+    "verdict": "rare and immaterial; documented, no plan change required",
+    "reasoning": "Transitive chaining is real and measurable but does not distort the outputs Phase 2 publishes. Of 12,971 multi-station clusters the median diameter is 11.84 m, well inside eps. 886 (6.8%) exceed 50 m, 86 (0.66%) exceed 100 m, and only 4 (0.031%) exceed 200 m. None exceeds 500 m. The four largest are all single-network with near-unique station names - for example 117 stations, 117 distinct names, one network - which is the signature of a large parking structure or campus deployment where treating the stations as one site is arguably correct rather than erroneous.",
+    "effect_on_phase_2_outputs": "Site counts, nearest-site distance and access-gap population are unaffected at any material scale: 4 clusters out of 59,232 could shift a nearest-site distance by at most a few hundred metres, well inside the 16.1 km DCFC threshold and its 1 km sensitivity step.",
+    "carried_forward": "Recorded as assumption A-2.1. If a future refresh raises the suspicious share materially, or if Phase 4 candidate siting becomes sensitive to site geometry at the 100 m scale, this must be revisited."
+  }
+}

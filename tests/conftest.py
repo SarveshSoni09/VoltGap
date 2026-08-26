@@ -56,6 +56,18 @@ def fixture_warehouse() -> Iterator[Warehouse]:
 
 
 @pytest.fixture(scope="session")
+def phase2_warehouse(fixture_warehouse: Warehouse) -> Warehouse:
+    """The Phase 1 fixture warehouse with the Phase 2 supply and access marts added."""
+    from pipeline.model.build_supply_access import build_supply_access, register_marts
+
+    if "mart_site_supply" not in fixture_warehouse.table_names():
+        result = build_supply_access(fixture_warehouse)
+        register_marts(fixture_warehouse, result,
+                       "2026-01-01T00:00:00+00:00", "{}")
+    return fixture_warehouse
+
+
+@pytest.fixture(scope="session")
 def seed_frame():  # type: ignore[no-untyped-def]
     """Loader for a frozen seed fixture, as a pandas DataFrame of strings."""
     import pandas as pd

@@ -1050,3 +1050,58 @@ clusters, and `mart_stations` with G2/G3 flags and split connector lists.
 ## Corrections
 
 *(none)*
+
+## Correction — 2026-08-24
+
+Recorded after the project owner's review of this report, which accepted Phase 1 as
+**PASS** and required two statements in it to be corrected. Phase 1 is not rewound and
+no measurement is retracted. The text above is preserved unedited.
+
+**1. "100.0% of stations" overstated a rounded figure.** Section 9.1 and the commit
+message report reconciliation as `89,665 / 89,687 (100.0%)`. That ratio is **99.975%**;
+the one-decimal display rounded it up. The 22 exceptions are real.
+
+Phase 2's preflight investigation (CLAUDE.md 15.5.1, amendment A24) classified all 22,
+with **zero unresolved**:
+
+| Classification | Count | Explanation |
+|---|---:|---|
+| `no_unit_records` | 12 | All have `Status Code = P` (planned). Nothing is built yet, so there are no unit records and no station-level EVSE totals. Domain rule G2 already excludes them from operational supply |
+| `legacy_charging_level` | 8 | Contain units whose `charging_level` is `legacy`, which the L1/L2/DCFC aggregate does not count, so unit rows exceed the reported total by exactly the legacy count |
+| `missing_station_aggregate` | 2 | Hold *only* legacy units, so report no aggregate at all |
+
+12 + 10 = 22. Under the documented scope **"stations with at least one charging-unit
+record and no legacy-level unit"**, reconciliation is **89,736 / 89,736 = exactly
+100.0000%**. The unscoped figure must be written as 99.975%, never as 100%.
+
+Evidence: `docs/evidence/P2-1_station_reconciliation.json`. Enforced by
+`tests/regression/test_phase2_gates.py::test_p2e_the_unscoped_rate_is_never_described_as_one_hundred_percent`.
+
+**2. `port_count = 1` was described as a guaranteed invariant.** Section 7.1's contract
+table states "`port_count = 1` throughout" as a guaranteed invariant of
+`mart_charging_units`. It is a **current-source observation, not permanent ontology**
+(amendment A19). Charging unit and port remain conceptually distinct source entities;
+the one-to-one relationship happens to hold in the 2026-08 snapshot.
+
+The canonical schema now requires `port_count >= 1`. Pinning `== 1` would reject a
+legitimate future AFDC record reporting multiple ports as though it were corrupt data.
+The `== 1` observation is monitored by `check_port_count_drift`, which reports a value
+above 1 as **source drift requiring review** and never raises. Gate check P2-D covers
+both directions.
+
+**Consequential change to a Phase 1 output.** The AFDC charging-unit source contract was
+amended (A23): the **JSON representation is now primary** and the CSV is a documented
+fallback, because only the JSON carries a unit-level `port_count` and all eight connector
+standards. This answers open question Q1 in section 12. `SOURCES.yml` records both
+representations with their own endpoints, schema hashes and limitations, and both are
+probed. As an independent cross-check, both return **2,957 rows for Minnesota**. The
+schema hash for the primary representation is `68cadbe608518980` (35 staged columns); the
+fallback remains `c7ef314df7ff8fce` (86 columns).
+
+The other three open questions were answered as follows: **Q2** keep the table name
+`charging_units` and correct the semantics instead; **Q3** Phase 2 must *not* consume
+land-area-weighted registration allocations; **Q4** amend G6 and G7 in `CLAUDE.md`, not
+only in `DATA_GOTCHAS.md`. All are applied and logged as amendments A17–A24 in
+`CLAUDE.md` §19.
+
+Phase 0 and Phase 1 gates were re-run after these amendments and both pass.

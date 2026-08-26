@@ -104,12 +104,23 @@ def _afdc() -> list[ProbeSpec]:
         ),
         ProbeSpec(
             source_id="afdc_charging_units",
+            kind="nested_json_units",
+            url=f"{AFDC_BASE}.json",
+            params={"fuel_type": "ELEC", "state": "MN", "limit": "all"},
+            needs_api_key="nrel",
+            note="One row per charging unit, from the PRIMARY JSON representation "
+                 "(amendment A23). Minnesota-scoped bounded sample. The CSV export is "
+                 "the documented fallback and exposes five connector standards against "
+                 "eight here, with station-level rather than unit-level EVSE counts.",
+        ),
+        ProbeSpec(
+            source_id="afdc_charging_units_csv_fallback",
             kind="remote_csv",
             url=f"{AFDC_BASE}/ev-charging-units.csv",
             params={"fuel_type": "ELEC", "state": "MN", "limit": "all"},
             needs_api_key="nrel",
-            note="One row per charging unit. Minnesota-scoped bounded sample; the "
-                 "national per-connector power coverage is measured separately.",
+            note="The documented CSV fallback representation, probed so its schema "
+                 "and limitations stay verified rather than assumed.",
         ),
     ]
 

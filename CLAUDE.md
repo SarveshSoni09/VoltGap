@@ -281,8 +281,8 @@ in `tests/regression/`. Write them into `docs/DATA_GOTCHAS.md` as domain rules.
 | G3 | `Access Code` includes `private` (4,662 of 79,618 in the Dec 2024 snapshot). Private stations are not public supply. |
 | G4 | Exact coordinate duplicates exist (1,756 pairs in the Dec 2024 snapshot). These are usually **co-located multi-network infrastructure, not duplicate records**. Aggregate them into one site for coverage. Sum their ports for capacity. Do not delete them. |
 | G5 | The IEA global dataset contains three `category` values for the USA: `Historical`, `Projection-STEPS`, `Projection-APS`. STEPS and APS are **alternative scenarios**. Summing them double counts. Any query touching IEA projections must filter `category` explicitly. |
-| G6 | IEA projection years for the USA are only 2025, 2030, 2035. Do not interpolate silently. |
-| G7 | IEA `mode` has four values (Cars, Buses, Trucks, Vans). Stacking all four is valid only when the intent is total fleet. |
+| G6 | **IEA forward projection years.** For USA EV projection data, the forward projection *target* years beyond the last historical year (2023) are 2025, 2030 and 2035. Projection-category records **may also restate historical/baseline years** (2020–2023), so the set of years appearing under a `Projection-*` category is not the set of forward targets. Any query claiming to use future projection targets must distinguish the restated baseline rows explicitly. Do not silently interpolate the missing forward years (2026–2029, 2031–2034). *(Amended 2026-08-24 — see §19 A17.)* |
+| G7 | **IEA mode semantics depend on the measure.** For USA `EV sales` and `EV stock`, the vehicle modes are Cars, Buses, Trucks and Vans. Charging-point observations use `mode = EV` with charging-specific `powertrain` categories (`Publicly available fast` / `slow`) and **must not be interpreted as a fifth vehicle mode**. Stacking the four vehicle modes is valid only for vehicle sales/stock when the intended quantity is total fleet. *(Amended 2026-08-24 — see §19 A18.)* |
 | G8 | AFDC state registration counts are **stock, not sales**. Never label them "EV sales". The file contains a `Total` row that must be excluded before any aggregation. |
 | G9 | **State registration vintage and plausibility validation.** Each ingested state-registration dataset must resolve to a documented vintage, jurisdiction coverage must be complete for the claimed geography, counts must be non-negative, and jurisdiction totals must reconcile to the published total where one exists. The delivered seed file resolves consistently to the 2023 AFDC vintage across all 51 jurisdictions. Per-capita and year-over-year anomaly screening must be run as a diagnostic quality check, but an anomalous state is **flagged for review rather than automatically marked low-confidence**. A low-confidence designation requires corroborating evidence of a vintage, coverage, definition, or source-quality problem. *(Amended 2026-08-19 — see §19 A1. The original G9 asserted Oregon reports 6,436 and that vintages differ across states; the delivered file records Oregon at 64,361 and is one consistent 2023 vintage.)* |
 | G10 | `Open Date` ranges 1995 to present but AFDC documents that some dates are approximate and, for automated network feeds, may reflect first appearance in the Station Locator rather than actual opening. |
@@ -328,6 +328,22 @@ full national export (292,435 rows, 2026-08-19) established:
   stations** (89,665 of 89,687), so the export is genuinely one row per EVSE and the duplicate
   rows are *real distinct physical units that are indistinguishable in every reported
   attribute* — the same situation as domain rule G4 for coordinate duplicates.
+
+#### Charging unit and port remain conceptually distinct
+
+Phase 1 measured `port_count = 1` for **all 292,756** charging-unit records in the national
+snapshot. That is a **current-source property, not a permanent ontology rule**. Charging unit
+and port remain conceptually distinct source entities; the observed one-to-one relationship
+happens to hold in this snapshot and may not hold in a future one.
+
+Two consequences bind on every phase:
+
+- **The canonical schema must require `port_count >= 1`, never `port_count == 1`.** A future
+  AFDC record reporting multiple ports is legitimate data, not corruption, and must not be
+  rejected by a schema rule.
+- **`port_count == 1` is a regression observation**, asserted against the verified snapshot.
+  If a refresh changes it, that is **source drift requiring review**, not a validation
+  failure.
 
 **Therefore `charging_unit_id` must not be defined as a stable physical identifier.** Until
 Phase 1's investigation proves otherwise, distinguish three separate things and never conflate
@@ -431,11 +447,63 @@ coverage is below 40 percent, record that prominently in `docs/LIMITATIONS.md`.
 **Filters applied to public operational supply:** `Status Code == 'E'` (G2) and
 `Access Code == 'public'` (G3).
 
-**Aggregation:** for spatial coverage, collapse to `site_id` (G4). For capacity, sum ports
-across all stations at the site.
+#### 7.1.1 Connector-alternative capacity must never be double counted
+
+Phase 1 established that **16,610 charging-unit records expose more than one connector
+standard on a single service port**, led by CHAdeMO + CCS (7,071), CCS + NACS (5,168) and
+J1772 + NACS (3,283). Those connector rows are **alternative compatibility interfaces for the
+same simultaneous service position**, not independent ports.
+
+Two different quantities must therefore be modelled separately and must never silently
+substitute for one another:
+
+| Quantity | Answers | Derived from |
+|---|---|---|
+| **Generic service capacity** | How many vehicles can this unit or site serve *simultaneously*, and at what non-overlapping power? | The **service port count**, never the sum of connector counts |
+| **Connector-compatible capacity** | What capability is available to a vehicle using standard X? | Per-connector values, which **may overlap physically** |
+
+A one-port unit offering CCS at 200 kW and CHAdeMO at 100 kW contributes **200 kW**, not
+300 kW, of generic simultaneous capacity. Adding CCS-compatible kW to CHAdeMO-compatible kW
+does not give total physical site capacity.
+
+**Resolution precedence for a unit's generic service capacity:**
+
+1. an explicit, trustworthy unit-level maximum output where the source exposes one;
+2. otherwise, for a `port_count == 1` unit, the **maximum** resolved compatible connector
+   output;
+3. **never** the sum of mutually alternative connector outputs.
+
+If a future refresh contains `port_count > 1`, the one-port maximum rule **does not
+generalise automatically**; that case must be handled explicitly from source semantics.
+
+#### 7.1.2 Charging level comes from the source, never from the connector name
+
+Connector standard and charging level are **separate concepts**. Phase 2 must classify Level 1,
+Level 2, DC fast and legacy from the charging-unit record's own `charging_level` field. Do not
+infer level from a connector name. In particular, NEMA 5-15, NEMA 5-20 and NEMA 14-50 are
+**connector standards, not inherently or universally Level 1 designations**. This is an
+executable rule, not a convention.
+
+#### 7.1.3 Connector taxonomy normalisation
+
+The source emits eight raw connector values. They are normalised through an explicit
+configuration table, never scattered conditionals, and **both the raw and normalised values
+are preserved** because Tesla / NACS / J3400 terminology has changed over time:
+
+```
+J1772       -> J1772          J3271     -> J3271
+J1772COMBO  -> CCS            NEMA515   -> NEMA 5-15
+CHADEMO     -> CHAdeMO        NEMA520   -> NEMA 5-20
+TESLA       -> J3400/NACS     NEMA1450  -> NEMA 14-50
+```
+
+**Aggregation:** for spatial coverage, collapse to `site_id` (G4). For capacity, sum the
+**non-overlapping generic service capacity** across all stations at the site (§7.1.1).
 
 Outputs per hex: `port_count_l1`, `port_count_l2`, `port_count_dcfc`, `capacity_kw`,
-`site_count`, `power_confidence_share` (share of capacity from rung 1).
+`site_count`, `power_confidence_share` (share of capacity from rung 1). `capacity_kw` is
+generic service capacity; connector-compatible capacity ships as separate, clearly named
+fields.
 
 ### 7.2 Home charging access — `pipeline/model/home_charging.py`
 
@@ -625,6 +693,22 @@ generated from it.** Phase 3 determines how many of the sub-state-data states ar
 usable for tract-level demand model validation once these transformations are evaluated. If
 the count of genuinely usable states falls to **three or fewer**, that triggers a formal plan
 change (§15.6), not a quiet continuation of leave-one-state-out.
+
+### 7.5.2 Phase boundary on allocated registration values
+
+Phase 1 built the geographic allocation machinery (§7.5.1) and it is retained in full: source
+geography declaration, the USPS ZIP → ZCTA approximation, ZCTA → tract weighted allocation,
+provenance fields, unallocatable handling and conservation checks. **Phase 3 owns validating
+it**, via the Washington round-trip error measurement.
+
+**Phase 2 must not consume ZIP→tract or county→tract EV-registration allocations as an
+analytical input.** Supply and access do not need tract-level registration estimates, so
+feeding them the known-weak land-area weighting would import an unmeasured error for no
+benefit. Phase 2's registration-free inputs are enumerated in §15.5.
+
+Until Phase 3 has measured the allocation error, no allocated value may be used as tract-level
+demand evidence, and no ZIP- or county-derived tract value may ever be called directly
+observed.
 
 ### 7.6 Tract to hex allocation — `pipeline/spatial/allocation.py`
 
@@ -1220,7 +1304,15 @@ uncertainty calibration inline. Completeness beats brevity here.
 |---|---|---|---|
 | **0. Source contract** | 1.0 | `SOURCES.yml`, `probe.py`, `docs/SOURCE_VERIFICATION.md` | Every source has all contract fields populated. Every Core model has a data path or documented fallback. AFDC connector power missingness measured numerically. NREL home charging vintage determined as current or 2030 scenario. Historical registration vintage availability resolved yes/no. Tier A states enumerated with granularity and temporal coverage each. `probe.py` is idempotent. |
 | **1. Ingestion + canonical** | 2.25 | All sources ingested, staging and intermediate models, pandera schemas, G1–G14 regression tests, port-identifiability analysis, D3 copy lint, A-0.5 provenance investigation | One command rebuilds every canonical table from a clean clone. All G1–G14 regression tests pass, including corrected G9 (§5) verifying vintage resolution, jurisdiction coverage, non-negativity, total reconciliation, anomaly screening execution, review-flag surfacing, and that a low-confidence label cannot be assigned on statistical unusualness alone. Every canonical table validates against its schema. Entity hierarchy resolves with no orphans, and **no `ports` row exists whose identity the source does not support** (§6.1.1). Port-identifiability analysis completed with all six measurements reported numerically. Every registration observation carries `evidence_grain` and `estimate_method` (§7.4.1), and **no ZIP-derived or county-derived tract value is labelled `directly_observed`**. Source geography declared explicitly per source; no USPS ZIP Code silently treated as a ZCTA (§7.5.1). D3 terminology copy lint exists and passes. A-0.5 investigation yields either an evidence-backed classification or an explicitly recorded `historical_vintage_semantics = unresolved` with preserved evidence. Row counts within the `SOURCES.yml` expected ranges. Determinism check: two runs produce identical checksums. |
-| **2. Supply + access** | 1.75 | Supply with power ladder, block-weighted access, threshold sensitivity | Power ladder rung distribution reported with actual percentages. National population in DCFC access gap computed and reproducible. Sensitivity curve produced across the full threshold range. Population-weighted allocation verified against a hand-computed rural tract fixture. G1–G4 enforced in the supply path by test. |
+| **2. Supply + access** | 1.75 | Supply with power ladder, non-overlapping capacity aggregation, block-weighted access, threshold sensitivity, two preflight investigations | Power ladder rung distribution reported with actual percentages. National population in DCFC access gap computed and reproducible. Sensitivity curve produced across the full threshold range. Population-weighted allocation verified against a hand-computed rural tract fixture. G1–G4 enforced in the supply path by test. **Plus P2-A to P2-H below.** |
+| | | | **P2-A** A one-port multi-connector fixture must not sum mutually alternative connector powers into generic simultaneous capacity (§7.1.1). |
+| | | | **P2-B** Charging level is taken from the source `charging_level` field; no connector-name-only inference of L1/L2/DCFC (§7.1.2). |
+| | | | **P2-C** Every normalised connector value retains its upstream raw value (§7.1.3). |
+| | | | **P2-D** `port_count == 1` is monitored as a current-source observation, not hard-coded as ontology. A future valid value > 1 triggers source-drift review, not a schema failure (§6.1.1). |
+| | | | **P2-E** The 22 station reconciliation exceptions are enumerated and each given a documented classification or an explicit `unresolved` status (§15.5.1). |
+| | | | **P2-F** Site-clustering diagnostic complete: cluster-size and diameter distributions produced, pathological clusters investigated (§15.5.2). |
+| | | | **P2-G** Land-area registration allocations are absent from the Phase 2 analytical dependency graph (§7.5.2). |
+| | | | **P2-H** Generic service capacity and connector-compatible capacity are separate fields; neither may silently substitute for the other (§7.1.1). |
 | **3. Demand + uncertainty** | 2.25 | Propensity model, reconciliation, continuous uncertainty, tiers | Leave-one-state-out run across every Tier A state with WAPE, MAE, R² per held-out state. D2 enforced: a test asserts no supply-derived feature is present in the primary feature set. Reconciliation identity holds exactly (tract sums equal constraints to within floating point tolerance). Uncertainty calibration curve produced. Ablation with supply features run and reported separately. |
 | **4. Siting + frontier** | 1.75 | ε-constraint frontier, greedy Web Worker solver | Frontier computed per state with solve status and optimality gap recorded per point. Reverse-objective check run. The browser algorithm is defined exactly, its problem class stated, and either a formal approximation guarantee is cited with its theorem and its assumptions verified to hold, **or no bound is claimed anywhere** (§7.8). **Empirical optimality gaps against offline CBC reported** on controlled fixtures and on representative real state problems. Greedy solves a state in ≤ 2 s. Candidate filtering verified against constraint definitions, **with no mandatory national substation-proximity filter** (§7.9). |
 | **5. Validation** | 1.75 | Vintage guard, three rolling origins, cross-objective robustness, `docs/VALIDATION.md` | `assert_no_leakage` raises on a deliberately poisoned feature set (negative test). All three origins run with gain curves and lift against random and population baselines. Excluded backtest features enumerated. Robustness reported against four baselines on six objectives. Every claim uses the D3 vocabulary (checked by the copy lint **created in Phase 1** and extended here). Backtest methodology states the A-0.5 vintage-semantics finding explicitly, including the limitation if it remained unresolved. |
@@ -1230,6 +1322,50 @@ uncertainty calibration inline. Completeness beats brevity here.
 | **E2. Forecast** | 1.75 | Model bakeoff on the Illinois panel | WAPE, MAE, MAPE for every candidate against naive, drift, and damped-trend baselines. |
 | **E3. Isochrones** | 1.25 | Drive-time access, top metros | Network versus straight-line divergence quantified and reported. |
 | **O1–O3. Optional** | — | Economics, DuckDB SQL panel, PDF briefs | Only after Core and Extension gates all pass. |
+
+### 15.5.1 Phase 2 preflight — the 22 station reconciliation exceptions
+
+Phase 1 measured charging-unit row count against each station's reported `L1 + L2 + DCFC`
+total and found agreement for **89,665 of 89,687 stations, which is 99.975%, not 100%**. The
+one-decimal display rounded it up; the 22 exceptions are real and must be examined before
+Phase 2 relies on the equivalence.
+
+This is **not** a Phase 1 failure. It is a bounded Phase 2 preflight. For each of the 22,
+report: station id, status and access codes, unit-row count, station L1/L2/DCFC counts, the
+`charging_level` values on the JSON unit records, connector types, network, and whether the
+discrepancy is explained by `legacy` charging-level records, null or malformed station-level
+totals, JSON/CSV retrieval timing, or another identifiable source semantic.
+
+Classify every exception — legacy charging level, upstream count mismatch, timing/snapshot
+mismatch, missing station aggregate, source-semantic difference, or unresolved. **Do not
+silently discard any.** If the discrepancies are benign and explainable, encode the rule as a
+test. If they show that station-level EVSE totals and unit counts measure slightly different
+concepts, document that and choose which source is authoritative for each Phase 2 metric.
+
+**Never write "100% reconciliation" unless it is literally true after a documented scope
+definition is applied.**
+
+### 15.5.2 Phase 2 preflight — site-resolution diagnostic
+
+Phase 1 replaced coordinate rounding with DBSCAN at eps ≈ 50 m, which is correct, but its own
+smoke-forward statement said only that clustering is *consistent*, not that clusters correspond
+to true physical sites. Phase 2 access metrics depend on `site_id`, so the clusters must be
+diagnosed before national access results are published.
+
+**DBSCAN connectivity is transitive.** If A–B is 40 m and B–C is 40 m, all three join one
+component even though A–C is 80 m. So `eps = 50 m` does **not** imply every pair inside a
+cluster is within 50 m, and large-diameter clusters need review.
+
+Report at minimum: cluster count; station-count distribution per cluster; share of singleton
+clusters; clusters with ≥2, ≥5 and ≥10 stations; maximum pairwise distance (diameter) within
+each multi-station cluster; the diameter distribution; clusters exceeding 50 m, 100 m and
+200 m; network diversity inside suspicious clusters; and address or station-name agreement
+where those fields exist.
+
+**This is a diagnostic, not a redesign.** The goal is to ensure pathological DBSCAN chains do
+not materially distort site counts, nearest-site distance, access-gap calculations or
+aggregate site capacity. If suspicious clusters are rare and immaterial, document them. If
+material, use the formal plan-change protocol.
 
 ### 15.6 Gate ceremony
 
@@ -1340,6 +1476,23 @@ corrections from evidence, not a design round. With them applied, the design is 
 | A14 | §14, §14.1 (new) | "Same inputs plus same seed produce identical artifact checksums" | Naive byte equality is impossible because every derived table carries `computed_at`. Determinism redefined as **same pinned snapshots + same code + same configuration ⇒ same semantic output**, tested with pinned/replayed inputs and a fixed injected timestamp or normalised-out volatile metadata. **Replay reproducibility and live-refresh behaviour are separated in the gate**; a live refresh producing different artifacts is not a determinism failure |
 | A15 | §9 | "Staging models must not filter rows" (bound only `stg_*.sql`) | The rule binds **source adapters too**. Retrieval and staging preserve source rows; only mechanical, lossless transformation is allowed. Worked consequences: the registration adapter ingests the `United States` total row and G8 removes it in intermediate; the HIFLD adapter streams for G12 but does no voltage filtering, and tiling moves to the export phase |
 | A16 | §3, §7.13 (new), §10.2.3 | `fhwa_traffic.py` a Core source module | **Optional / Future Work.** Traffic appeared only in §10.2.3's reduced feature set, which applies solely when historical state totals are unavailable — and Phase 0 found ten vintages covering all three origins, so the fallback is not triggered. §10.2.3 now carries a NOT TRIGGERED note so a later phase cannot resurrect traffic by accident. Do not invent a traffic feature to justify the source |
+
+### Amendments of 2026-08-24 — arising from the Phase 1 gate review
+
+Authorised by the project owner on review of `docs/reports/PHASE_1_REPORT.md`. Phase 1 remains
+**PASS**; none of these invalidates it. Several exist precisely *because* Phase 1 did its job
+and discovered the source's real structure.
+
+| ID | Section | Was | Now |
+|---|---|---|---|
+| A17 | §5 G6 | "IEA projection years for the USA are only 2025, 2030, 2035" | Distinguishes the forward projection *target* years (2025/2030/2035) from the 2020–2023 historical baseline years that both `Projection-*` categories also restate. A test asserting every `Projection-*` row falls in {2025,2030,2035} would be wrong |
+| A18 | §5 G7 | "IEA `mode` has four values (Cars, Buses, Trucks, Vans)" | Mode semantics depend on the measure. Four vehicle modes for `EV sales` / `EV stock`; charging-point rows use `mode = EV` with charging-specific powertrains and are **not** a fifth vehicle mode |
+| A19 | §6.1.1 | Phase 1 reported `port_count = 1` as a guaranteed invariant | It is a **current-source observation, not permanent ontology**. Charging unit and port stay conceptually distinct. Schema requires `port_count >= 1`; `== 1` is a regression observation, and a future value > 1 is source drift requiring review, not corrupt data |
+| A20 | §7.1.1–7.1.3 (new) | Capacity aggregation unspecified beyond "sum ports" | **Non-overlapping generic service capacity** and **connector-compatible capacity** are separate quantities that may never substitute for one another. 16,610 units expose multiple connector standards on one service port; summing their power double counts. Charging level comes from the source `charging_level` field, never from a connector name — NEMA types are connector standards, not universally Level 1. Connector taxonomy is normalised through an explicit table preserving raw and normalised values |
+| A21 | §7.5.2 (new) | Phase boundary on allocated registration values unstated | **Phase 2 must not consume ZIP→tract or county→tract EV-registration allocations.** Supply and access do not need them, so importing the unmeasured land-area weighting error would buy nothing. Phase 1's allocation machinery is retained in full for Phase 3, which owns validating it |
+| A22 | §15.5 Phase 2 | Five acceptance criteria | Adds **P2-A to P2-H** as executable checks |
+| A23 | §4.1 / `SOURCES.yml` | `afdc_charging_units` contracted the CSV endpoint | **JSON is the primary Core representation**; CSV is a documented fallback. They are not two serialisations of one schema — their observable structures differ materially. The contract records both representations with their endpoints, schema hashes, taxonomy differences and the degradation incurred by falling back |
+| A24 | §15.5.1, §15.5.2 (new) | — | Two bounded Phase 2 preflight investigations: classify the **22 station reconciliation exceptions** (89,665/89,687 is 99.975%, not 100%), and produce a **site-resolution diagnostic** for the DBSCAN clusters, since eps = 50 m does not bound cluster diameter under transitive connectivity |
 
 **Scope control from this point.** Findings are classified before they are acted on. A
 **genuine correctness blocker** — a wrong source assumption, temporal leakage, invalid

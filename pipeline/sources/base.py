@@ -128,10 +128,15 @@ class Source(ABC):
 
 def decode_delimited(payload: bytes, delimiter: str = ",",
                      encoding: str = "utf-8") -> tuple[tuple[str, ...], list[dict[str, str]]]:
-    """Parse delimited text. Header preserved verbatim; every data row kept."""
-    reader = csv.DictReader(
-        io.StringIO(payload.decode(encoding, errors="replace")), delimiter=delimiter
-    )
+    """Parse delimited text. Header preserved verbatim; every data row kept.
+
+    A leading byte-order mark is stripped. Several Census bulk files carry one, which
+    would otherwise turn the first column name into ``\ufeffSTATEFP`` and break every
+    downstream reference to it. BOM handling is character-set decoding - mechanical and
+    lossless - so it belongs in the adapter under amendment A15, unlike row filtering.
+    """
+    text = payload.decode(encoding, errors="replace").lstrip("\ufeff")
+    reader = csv.DictReader(io.StringIO(text), delimiter=delimiter)
     columns = tuple(reader.fieldnames or ())
     rows = [{name: (row.get(name) or "") for name in columns} for row in reader]
     return columns, rows
@@ -199,7 +204,10 @@ class DelimitedSource(Source):
 
     def load(self, fetcher: Fetcher | None = None) -> StagedTable:
         if self.path is not None:
-            with self.path.open("r", encoding=self.encoding, errors="replace",
+            # utf-8-sig transparently strips a byte-order mark if one is present.
+            local_encoding = ("utf-8-sig" if self.encoding.lower().replace("_", "-")
+                              == "utf-8" else self.encoding)
+            with self.path.open("r", encoding=local_encoding, errors="replace",
                                 newline="") as handle:
                 reader = csv.DictReader(handle, delimiter=self.delimiter)
                 columns = tuple(reader.fieldnames or ())

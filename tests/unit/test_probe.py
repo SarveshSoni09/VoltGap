@@ -22,7 +22,7 @@ from pipeline.discovery.probe import (
     rate_limit_headers,
     run,
 )
-from pipeline.discovery.registry import ProbeSpec
+from pipeline.discovery.registry import ProbeSpec, all_specs
 from tests.conftest import make_client_factory
 
 
@@ -360,7 +360,7 @@ def test_main_probes_every_spec_when_only_is_not_given(
     code = main(["--offline", "--cache-root", str(replay_root), "--out", str(out)])
     assert code == 0
     payload = json.loads(out.read_text())
-    assert len(payload["observations"]) == 57
+    assert len(payload["observations"]) == len(all_specs())
 
 
 def test_main_prints_every_source_that_is_not_confirmed(
@@ -371,3 +371,29 @@ def test_main_prints_every_source_that_is_not_confirmed(
     captured = capsys.readouterr().out
     assert "unavailable" in captured
     assert "census_cenpop_block" in captured
+
+
+def test_nested_json_units_measurement_reshapes_stations_into_unit_rows() -> None:
+    """The AFDC primary representation nests units inside stations (amendment A23)."""
+    payload = json.dumps({"fuel_stations": [{
+        "id": 7, "state": "MN",
+        "ev_charging_units": [
+            {"network": "N", "port_count": 1, "charging_level": "dc_fast",
+             "connectors": {"J1772COMBO": {"power_kw": 150.0, "port_count": 1}}},
+            {"network": "N", "port_count": 1, "charging_level": "2",
+             "connectors": {"J1772": {"power_kw": 7.2, "port_count": 1}}},
+        ],
+    }]}).encode()
+    result = _measure_remote(
+        ProbeSpec("afdc_charging_units", "nested_json_units"), response(content=payload)
+    )
+    assert result is not None
+    assert result.row_count == 2, "one row per charging unit, not per station"
+    assert "connector_J1772COMBO_power_kw" in result.fields
+    assert "unit_port_count" in result.fields
+
+
+def test_nested_json_units_measurement_returns_none_on_an_unparseable_payload() -> None:
+    assert _measure_remote(
+        ProbeSpec("s", "nested_json_units"), response(content=b"<html>not json</html>")
+    ) is None

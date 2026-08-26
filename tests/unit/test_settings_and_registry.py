@@ -41,9 +41,9 @@ def test_every_spec_has_a_unique_id_and_a_known_kind() -> None:
     specs = all_specs()
     ids = [s.source_id for s in specs]
     assert len(ids) == len(set(ids))
-    assert set(s.kind for s in specs) <= {
+    assert {s.kind for s in specs} <= {
         "rest_json", "remote_csv", "remote_html_table", "availability",
-        "local_csv", "local_geojson",
+        "local_csv", "local_geojson", "nested_json_units",
     }
 
 

@@ -55,6 +55,22 @@ def stage(source_id: str) -> pd.DataFrame:
     the intermediate layer applies business logic.
     """
     spec = SPECS[source_id]
+    if spec.kind == "nested_json_units":
+        from pipeline.sources.base import NestedUnitsSource
+
+        response = ReplayFetcher(PATHS.replay_fixtures).get(
+            source_id, spec.url, request_params(spec), spec.headers
+        )
+
+        class _Static:
+            def get(self, *args: object, **kwargs: object) -> object:
+                return response
+
+        staged = NestedUnitsSource(source_id, spec.url).load(_Static())  # type: ignore[arg-type]
+        frame = pd.DataFrame(staged.rows, dtype="string")
+        frame["source_id"] = source_id
+        frame["source_vintage"] = str(SOURCES[source_id]["coverage"]["temporal"])
+        return frame
     if spec.kind == "local_csv":
         assert spec.local_path is not None
         with spec.local_path.open("r", encoding="utf-8", errors="replace", newline="") as fh:
@@ -99,9 +115,15 @@ def test_declared_join_keys_exist_in_the_staged_data() -> None:
 def test_a_remote_source_stages_from_the_replay_cache_without_network() -> None:
     """The gate must never depend on the live network."""
     frame = stage("afdc_charging_units")
-    assert len(frame) == 2951
-    assert "EV CCS Power Output (kW)" in frame.columns
-    assert "Snapshot Date" in frame.columns
+    assert len(frame) == 2957
+    assert "connector_J1772COMBO_power_kw" in frame.columns
+    assert "unit_charging_level" in frame.columns
+
+
+def test_both_afdc_representations_return_the_same_row_count_for_one_state() -> None:
+    """An independent cross-check that they carry the same data (amendment A23)."""
+    assert len(stage("afdc_charging_units")) == len(
+        stage("afdc_charging_units_csv_fallback")) == 2957
 
 
 def test_the_two_afdc_extracts_share_one_schema_so_they_can_be_unioned() -> None:
@@ -115,13 +137,31 @@ def test_the_two_afdc_extracts_share_one_schema_so_they_can_be_unioned() -> None
 
 
 def test_the_power_ladder_input_columns_survive_staging() -> None:
-    """Phase 2's power-resolution ladder needs rung-1 columns to arrive intact."""
+    """Phase 2's power-resolution ladder needs rung-1 columns to arrive intact.
+
+    Updated for amendment A23: the primary representation is now the JSON endpoint,
+    which exposes eight connector standards against the CSV's five and carries a
+    unit-level port_count. The CSV shape is asserted separately below, because it
+    remains the documented fallback.
+    """
     frame = stage("afdc_charging_units")
+    for connector in ("J1772", "J1772COMBO", "CHADEMO", "TESLA", "J3271",
+                      "NEMA515", "NEMA520", "NEMA1450"):
+        assert f"connector_{connector}_port_count" in frame.columns
+        assert f"connector_{connector}_power_kw" in frame.columns
+    assert "unit_port_count" in frame.columns, "unit-level port count is why JSON is primary"
+    reported = pd.to_numeric(frame["connector_J1772COMBO_power_kw"], errors="coerce")
+    assert reported.notna().sum() > 0, "at least some rung-1 power must be present"
+
+
+def test_the_csv_fallback_representation_still_stages() -> None:
+    """The fallback must stay verified rather than assumed (amendment A23)."""
+    frame = stage("afdc_charging_units_csv_fallback")
     for connector in ("J1772", "CCS", "CHAdeMO", "J3400", "J3271"):
         assert f"EV {connector} Connector Count" in frame.columns
         assert f"EV {connector} Power Output (kW)" in frame.columns
-    reported = pd.to_numeric(frame["EV CCS Power Output (kW)"], errors="coerce")
-    assert reported.notna().sum() > 0, "at least some rung-1 power must be present"
+    # The documented limitation: the CSV exposes no NEMA columns at all.
+    assert not [c for c in frame.columns if "NEMA" in c.upper()]
 
 
 def test_a_source_spec_can_be_reconstructed_from_the_contract_alone() -> None:
@@ -133,7 +173,9 @@ def test_a_source_spec_can_be_reconstructed_from_the_contract_alone() -> None:
         endpoint = str(entry["retrieval"]["endpoint"])
         if "{" in endpoint:  # templated endpoint; the spec fills the placeholders
             continue
-        assert spec.url == endpoint, source_id
+        # Some contracts record the endpoint with its Core query string attached, so
+        # the comparison is against the URL part.
+        assert spec.url == endpoint.split("?")[0], source_id
 
 
 # --- contract-wide checks the two-state exercise generalises to --------------------
