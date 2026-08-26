@@ -539,6 +539,21 @@
     },
     {
       "expected_row_count": [
+        560,
+        840
+      ],
+      "note": "within tolerance",
+      "observed_row_count": 697,
+      "schema_hash_changed": null,
+      "source_id": "census_zcta_tract_landarea",
+      "tolerance_band": [
+        448,
+        1008
+      ],
+      "within_expected_row_count": true
+    },
+    {
+      "expected_row_count": [
         1,
         100000
       ],
@@ -554,15 +569,12 @@
         1,
         1000000
       ],
-      "note": "within tolerance",
-      "observed_row_count": 1,
+      "note": "not evaluated: no row count observed",
+      "observed_row_count": null,
       "schema_hash_changed": null,
       "source_id": "eia_prices_api",
-      "tolerance_band": [
-        0,
-        1200000
-      ],
-      "within_expected_row_count": true
+      "tolerance_band": null,
+      "within_expected_row_count": null
     },
     {
       "expected_row_count": [
@@ -645,6 +657,21 @@
       "tolerance_band": [
         1,
         1
+      ],
+      "within_expected_row_count": true
+    },
+    {
+      "expected_row_count": [
+        1,
+        60
+      ],
+      "note": "within tolerance",
+      "observed_row_count": 9,
+      "schema_hash_changed": null,
+      "source_id": "hud_usps_zip_tract",
+      "tolerance_band": [
+        0,
+        72
       ],
       "within_expected_row_count": true
     },
@@ -2683,18 +2710,18 @@
       "vintage": null
     },
     {
-      "content_bytes": 8531,
-      "content_sha256": "c2f4687e09b80676de7f68dec92ebea395209616dbc6f895520e547c5f68c0f5",
-      "elapsed_ms": 393.6,
-      "http_status": 200,
+      "content_bytes": null,
+      "content_sha256": null,
+      "elapsed_ms": null,
+      "http_status": null,
       "measurement": null,
-      "note": "credential required; set CENSUS_API_KEY. No credential is fabricated or persisted by this pipeline.. API path. Now returns a 'Missing Key' HTML page without a key; the keyless bulk summary file is the primary retrieval path instead.",
+      "note": "CacheMissError: census_acs_api: no recorded response for https://api.census.gov/data/2023/acs/acs5 in tests/fixtures/replay",
       "rate_limit_headers": {},
-      "retrieved_at": "2026-08-19T02:09:07+00:00",
+      "retrieved_at": "",
       "source_id": "census_acs_api",
-      "status": "gated",
+      "status": "unavailable",
       "url": "https://api.census.gov/data/2023/acs/acs5",
-      "vintage": "Mon, 27 Jul 2026 12:40:41 GMT"
+      "vintage": null
     },
     {
       "content_bytes": 65536,
@@ -2865,6 +2892,64 @@
       "vintage": "Thu, 23 Nov 2023 02:25:23 GMT"
     },
     {
+      "content_bytes": 65536,
+      "content_sha256": "a1e56055c42bbb1d3e101721e3c03ff9f465d3853260c62d8c1ed3c00adab89b",
+      "elapsed_ms": 191.9,
+      "http_status": 206,
+      "measurement": {
+        "field_count": 17,
+        "fields": [
+          "\ufeffOID_ZCTA5_20",
+          "GEOID_ZCTA5_20",
+          "NAMELSAD_ZCTA5_20",
+          "AREALAND_ZCTA5_20",
+          "AREAWATER_ZCTA5_20",
+          "MTFCC_ZCTA5_20",
+          "CLASSFP_ZCTA5_20",
+          "FUNCSTAT_ZCTA5_20",
+          "OID_TRACT_20",
+          "GEOID_TRACT_20",
+          "NAMELSAD_TRACT_20",
+          "AREALAND_TRACT_20",
+          "AREAWATER_TRACT_20",
+          "MTFCC_TRACT_20",
+          "FUNCSTAT_TRACT_20",
+          "AREALAND_PART",
+          "AREAWATER_PART"
+        ],
+        "missingness": {
+          "AREALAND_PART": 0.0,
+          "AREALAND_TRACT_20": 0.0,
+          "AREALAND_ZCTA5_20": 1.0,
+          "AREAWATER_PART": 0.0,
+          "AREAWATER_TRACT_20": 0.0,
+          "AREAWATER_ZCTA5_20": 1.0,
+          "CLASSFP_ZCTA5_20": 1.0,
+          "FUNCSTAT_TRACT_20": 0.0,
+          "FUNCSTAT_ZCTA5_20": 1.0,
+          "GEOID_TRACT_20": 0.0,
+          "GEOID_ZCTA5_20": 1.0,
+          "MTFCC_TRACT_20": 0.0,
+          "MTFCC_ZCTA5_20": 1.0,
+          "NAMELSAD_TRACT_20": 0.0,
+          "NAMELSAD_ZCTA5_20": 1.0,
+          "OID_TRACT_20": 0.0,
+          "\ufeffOID_ZCTA5_20": 1.0
+        },
+        "notes": [],
+        "row_count": 697,
+        "schema_hash": "60435ec101270443",
+        "truncated": false
+      },
+      "note": "697 records measured in the bounded sample [bounded sample: transfer capped]. Land-area ZCTA-to-tract crosswalk, the documented degraded fallback for ZIP-to-tract allocation.",
+      "rate_limit_headers": {},
+      "retrieved_at": "2026-08-26T18:22:19+00:00",
+      "source_id": "census_zcta_tract_landarea",
+      "status": "confirmed",
+      "url": "https://www2.census.gov/geo/docs/maps-data/data/rel2020/zcta520/tab20_zcta520_tract20_natl.txt",
+      "vintage": "Thu, 09 Dec 2021 16:30:22 GMT"
+    },
+    {
       "content_bytes": 1024,
       "content_sha256": "b499da84da0e3865e622bca7d84e6db5e1e5ead27652ecca02faf48c783c52c8",
       "elapsed_ms": 198.2,
@@ -2879,28 +2964,16 @@
       "vintage": "Mon, 16 Jun 2025 15:33:55 GMT"
     },
     {
-      "content_bytes": 163,
-      "content_sha256": "b71fb384d31b5e7ccc66d279785c9e6cd51fa51f07820a3363c849034b9608bd",
-      "elapsed_ms": 569.3,
-      "http_status": 403,
-      "measurement": {
-        "field_count": 1,
-        "fields": [
-          "error"
-        ],
-        "missingness": {
-          "error": 0.0
-        },
-        "notes": [],
-        "row_count": 1,
-        "schema_hash": "956cf800b881b7a8",
-        "truncated": false
-      },
-      "note": "credential required; set EIA_API_KEY. No credential is fabricated or persisted by this pipeline.. Requires a free key; there is no demo credential.",
+      "content_bytes": null,
+      "content_sha256": null,
+      "elapsed_ms": null,
+      "http_status": null,
+      "measurement": null,
+      "note": "CacheMissError: eia_prices_api: no recorded response for https://api.eia.gov/v2/electricity/retail-sales/data/ in tests/fixtures/replay",
       "rate_limit_headers": {},
-      "retrieved_at": "2026-08-19T02:09:10+00:00",
+      "retrieved_at": "",
       "source_id": "eia_prices_api",
-      "status": "gated",
+      "status": "unavailable",
       "url": "https://api.eia.gov/v2/electricity/retail-sales/data/",
       "vintage": null
     },
@@ -3389,6 +3462,49 @@
       "status": "confirmed",
       "url": "https://services1.arcgis.com/Hp6G80Pky0om7QvQ/arcgis/rest/services/Electric_Power_Transmission_Lines/FeatureServer/0",
       "vintage": "Tue, 05 Sep 2023 16:15:47 GMT"
+    },
+    {
+      "content_bytes": 1857,
+      "content_sha256": "c09befb2d27a9cc69ca706e4513aa331b9ccb6ee21d1e198d840cd0caaed6795",
+      "elapsed_ms": 608.7,
+      "http_status": 200,
+      "measurement": {
+        "field_count": 8,
+        "fields": [
+          "bus_ratio",
+          "city",
+          "geoid",
+          "oth_ratio",
+          "res_ratio",
+          "state",
+          "tot_ratio",
+          "zip"
+        ],
+        "missingness": {
+          "bus_ratio": 0.0,
+          "city": 0.0,
+          "geoid": 0.0,
+          "oth_ratio": 0.0,
+          "res_ratio": 0.0,
+          "state": 0.0,
+          "tot_ratio": 0.0,
+          "zip": 0.0
+        },
+        "notes": [],
+        "row_count": 9,
+        "schema_hash": "1ea52da0f39cda53",
+        "truncated": false
+      },
+      "note": "9 records measured in the bounded sample. HUD USER USPS ZIP-to-tract crosswalk. Bearer authentication; the token is redacted before any cache write. res_ratio is the residential-address weight preferred for allocating registrations.",
+      "rate_limit_headers": {
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "58"
+      },
+      "retrieved_at": "2026-08-26T18:22:19+00:00",
+      "source_id": "hud_usps_zip_tract",
+      "status": "confirmed",
+      "url": "https://www.huduser.gov/hudapi/public/usps",
+      "vintage": null
     },
     {
       "content_bytes": 1024,

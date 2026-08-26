@@ -145,15 +145,25 @@ def build_unit_capacities(
 def build_site_capacities(
     warehouse: Warehouse, units: Sequence[UnitCapacity]
 ) -> list[SiteCapacity]:
-    """Aggregate unit capacity to sites. Summing across UNITS is correct (G4)."""
+    """Aggregate unit capacity to sites, tracking public + operational units separately.
+
+    A site can mix public and private infrastructure (domain rule G4 aggregates
+    co-located multi-network stations), so private capacity must never be added to
+    public capacity and level qualification must be evaluated on public units only.
+    """
     rows = warehouse.connection.execute(
-        "SELECT charging_unit_record_key, site_id FROM mart_charging_units"
+        "SELECT charging_unit_record_key, site_id, is_public_operational "
+        "FROM mart_charging_units"
     ).fetchall()
     site_of = {str(r[0]): str(r[1] or "") for r in rows}
+    public_of = {str(r[0]): bool(r[2]) for r in rows}
     grouped: dict[str, list[UnitCapacity]] = {}
+    flags: dict[str, list[bool]] = {}
     for unit in units:
-        grouped.setdefault(site_of.get(unit.charging_unit_record_key, ""), []).append(unit)
-    return [aggregate_site_capacity(site, members)
+        site = site_of.get(unit.charging_unit_record_key, "")
+        grouped.setdefault(site, []).append(unit)
+        flags.setdefault(site, []).append(public_of.get(unit.charging_unit_record_key, False))
+    return [aggregate_site_capacity(site, members, flags[site])
             for site, members in sorted(grouped.items()) if site]
 
 
@@ -200,13 +210,20 @@ def site_supply_rows(
         out.append({
             "site_id": capacity.site_id, "latitude": row[1], "longitude": row[2],
             "state": row[3],
-            # A site is public+operational supply if at least one of its stations is.
-            "status_code": "E" if int(row[4] or 0) > 0 else "T",
-            "access_code": "public" if int(row[4] or 0) > 0 else "private",
-            "ports_by_level": dict(capacity.ports_by_level),
-            "generic_service_capacity_kw": capacity.generic_service_capacity_kw,
-            "connector_compatible_kw": dict(capacity.connector_compatible_kw),
-            "simultaneous_service_ports": capacity.simultaneous_service_ports,
+            # Derived from UNITS that are simultaneously public and operational, not
+            # from "the site has some public station". Those are different claims.
+            "status_code": "E" if capacity.has_public_operational_service else "T",
+            "access_code": ("public" if capacity.has_public_operational_service
+                            else "private"),
+            # Access qualification uses the PUBLIC level breakdown only: a private DC
+            # charger at a site with a public Level 2 does not make it a public DCFC
+            # site.
+            "ports_by_level": dict(capacity.public_ports_by_level),
+            "all_ports_by_level": dict(capacity.ports_by_level),
+            "generic_service_capacity_kw": capacity.public_generic_service_capacity_kw,
+            "all_generic_service_capacity_kw": capacity.generic_service_capacity_kw,
+            "connector_compatible_kw": dict(capacity.public_connector_compatible_kw),
+            "simultaneous_service_ports": capacity.public_simultaneous_service_ports,
         })
     return out
 
@@ -292,6 +309,9 @@ def register_marts(warehouse: Warehouse, result: SupplyAccessResult,
          "generic_service_capacity_kw", "connector_compatible_kw_json",
          "ports_l1", "ports_l2", "ports_dcfc", "ports_legacy",
          "units_unresolved_capacity", "power_confidence_share",
+         "public_unit_count", "public_simultaneous_service_ports",
+         "public_generic_service_capacity_kw", "public_ports_l1", "public_ports_l2",
+         "public_ports_dcfc", "has_public_operational_service",
          "computed_at", "source_vintages"),
         [
             (s.site_id, str(s.unit_count), str(s.simultaneous_service_ports),
@@ -302,6 +322,12 @@ def register_marts(warehouse: Warehouse, result: SupplyAccessResult,
              str(s.ports_by_level.get("dc_fast", 0)),
              str(s.ports_by_level.get("legacy", 0)),
              str(s.units_unresolved_capacity), repr(s.rung_1_capacity_share),
+             str(s.public_unit_count), str(s.public_simultaneous_service_ports),
+             repr(s.public_generic_service_capacity_kw),
+             str(s.public_ports_by_level.get("1", 0)),
+             str(s.public_ports_by_level.get("2", 0)),
+             str(s.public_ports_by_level.get("dc_fast", 0)),
+             str(s.has_public_operational_service).lower(),
              computed_at, source_vintages)
             for s in result.site_capacities
         ],
@@ -317,6 +343,16 @@ def register_marts(warehouse: Warehouse, result: SupplyAccessResult,
         "CAST(ports_legacy AS INTEGER) AS ports_legacy, "
         "CAST(units_unresolved_capacity AS INTEGER) AS units_unresolved_capacity, "
         "CAST(power_confidence_share AS DOUBLE) AS power_confidence_share, "
+        "CAST(public_unit_count AS INTEGER) AS public_unit_count, "
+        "CAST(public_simultaneous_service_ports AS INTEGER) "
+        "  AS public_simultaneous_service_ports, "
+        "CAST(public_generic_service_capacity_kw AS DOUBLE) "
+        "  AS public_generic_service_capacity_kw, "
+        "CAST(public_ports_l1 AS INTEGER) AS public_ports_l1, "
+        "CAST(public_ports_l2 AS INTEGER) AS public_ports_l2, "
+        "CAST(public_ports_dcfc AS INTEGER) AS public_ports_dcfc, "
+        "CAST(has_public_operational_service AS BOOLEAN) "
+        "  AS has_public_operational_service, "
         "computed_at, source_vintages FROM mart_site_supply"
     )
 

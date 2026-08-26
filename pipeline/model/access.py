@@ -14,9 +14,13 @@ CLAUDE.md 7.5. Four rules govern this module and each is enforced in code:
    is a reporting decision, not a finding, and presenting it alone would disguise one
    as the other.
 
-Distances are straight-line (§7.5), so a reported gap is a **lower bound**: real travel
-distance is never shorter than great-circle distance, so the population genuinely
-beyond a drive threshold is at least as large as reported here.
+Distances are straight-line (§7.5). Straight-line distance is a lower bound on network
+distance **for each representative population point**. It does not follow that the
+aggregate gap population is a lower bound on the true population lacking road-network
+access: each block group is represented by a single population-weighted point, so
+people within one block group are neither individually located nor individually
+measured. The aggregate figure is an **approximation**, and a stratified block-level
+benchmark is required before publication.
 """
 
 from __future__ import annotations
@@ -122,10 +126,13 @@ class AccessResult:
             ],
             "distance_basis": "straight_line_haversine",
             "interpretation": (
-                "Straight-line distance understates real travel distance, so this "
-                "population is a LOWER BOUND on the population genuinely beyond the "
-                "threshold by road."
+                "Straight-line distance is a lower bound on network distance FOR EACH "
+                "representative population point. Because each block group is "
+                "represented by one population-weighted point, this aggregate is an "
+                "APPROXIMATION and is not guaranteed to be a lower bound on the true "
+                "population lacking road-network access."
             ),
+            "population_point_grain": "census block group, population-weighted centroid",
         }
 
 

@@ -5,7 +5,8 @@ PY := .venv/bin/python
 REPLAY := tests/fixtures/replay
 
 .PHONY: help setup test coverage lint copy-lint probe probe-live gate gate-0 gate-1 \
-	gate-2 build build-fixture determinism determinism-1 clean
+	gate-2 build build-fixture determinism determinism-1 clean \
+	live-smoke live-integration integration-assurance
 
 help:
 	@echo "setup       create the venv and install dependencies"
@@ -17,7 +18,13 @@ help:
 	@echo "copy-lint   D3 / UI terminology guard (CLAUDE.md 11.5)"
 	@echo "build       rebuild every canonical table (national)"
 	@echo "build-fixture  rebuild the MN + IL two-state fixture"
-	@echo "gate        full phase gate: make gate PHASE=n"
+	@echo "gate        full phase gate: make gate PHASE=n (never touches the network)"
+	@echo ""
+	@echo "  LIVE commands below DO require network access and credentials."
+	@echo "  They are deliberately excluded from every deterministic gate."
+	@echo "live-smoke          fast bounded checks of the production integrations"
+	@echo "live-integration    full external-system validation"
+	@echo "integration-assurance  the complete Live Integration Assurance Checkpoint"
 
 setup:
 	uv venv --python 3.12
@@ -149,6 +156,47 @@ gate-1:
 	@echo "--- 8. one-command rebuild ---"
 	@$(MAKE) --no-print-directory build-fixture
 	@echo "=== Phase 1 gate: PASS ==="
+
+# --- Live integration ---------------------------------------------------------------
+# These require network access and credentials from .env. They are NEVER part of
+# `make gate`: the deterministic phase gates must stay network-independent, which is
+# enforced by `addopts = -m "not live"` in pyproject.toml.
+
+# Fast, bounded: authentication and reachability for each Core integration.
+live-smoke:
+	@echo "=== live smoke (bounded production checks) ==="
+	$(PY) -m pytest -m live -q \
+		tests/live/test_live_afdc.py::test_a_valid_key_is_accepted \
+		tests/live/test_live_afdc.py::test_a_missing_key_is_refused_with_a_named_error \
+		tests/live/test_live_census.py::test_the_authenticated_request_succeeds \
+		tests/live/test_live_census.py::test_the_keyless_request_is_refused_and_how \
+		tests/live/test_live_hud.py::test_the_token_authenticates \
+		tests/live/test_live_hud.py::test_a_missing_token_is_refused \
+		tests/live/test_live_eia.py::test_the_key_authenticates \
+		tests/live/test_live_eia.py::test_a_missing_key_is_refused
+
+# Comprehensive: schemas, pagination, fallbacks, reconciliation, equivalence, secrets.
+live-integration:
+	@echo "=== live integration (full external validation) ==="
+	$(PY) -m pytest -m live -v tests/live
+
+# The complete checkpoint: deterministic suite first, then every live check, then the
+# secret-leakage audit. Requires network access by design.
+integration-assurance:
+	@echo "=== Live Integration Assurance Checkpoint ==="
+	@echo "--- 1. deterministic suite must pass first ---"
+	@$(PY) -m pytest -q
+	@echo "--- 2. lint ---"
+	@$(MAKE) --no-print-directory lint
+	@echo "--- 3. failure-mode adapter behaviour (mocked) ---"
+	@$(PY) -m pytest -q tests/unit/test_failure_modes.py
+	@echo "--- 4. live integration, all sources ---"
+	@$(PY) -m pytest -m live -q tests/live
+	@echo "--- 5. secret-leakage audit ---"
+	@$(PY) -m pytest -m live -q \
+		tests/live/test_live_equivalence_and_secrets.py -k secret_or_env \
+		|| $(PY) -m pytest -m live -q tests/live/test_live_equivalence_and_secrets.py
+	@echo "=== Integration assurance: PASS ==="
 
 # Phase 2 gate. Runs, in order:
 #   1. lint            ruff + mypy strict

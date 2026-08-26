@@ -77,7 +77,8 @@ class ProbeSpec:
     delimiter: str = ","
     local_path: Path | None = None
     max_bytes: int | None = None
-    needs_api_key: str = ""  # name of the ApiKeys attribute this spec requires
+    needs_api_key: str = ""  # ApiKeys attribute sent as an api_key query parameter
+    needs_bearer: str = ""   # ApiKeys attribute sent as an Authorization Bearer header
     vintage_pointer: tuple[str, ...] = ()  # key path into a JSON body holding the vintage
     note: str = ""
 
@@ -323,6 +324,34 @@ def _energy_and_grid() -> list[ProbeSpec]:
     ]
 
 
+def _crosswalks() -> list[ProbeSpec]:
+    """Geographic crosswalks used to move registration counts between geographies."""
+    return [
+        ProbeSpec(
+            source_id="hud_usps_zip_tract",
+            kind="rest_json",
+            url="https://www.huduser.gov/hudapi/public/usps",
+            params={"type": "1", "query": "98101"},
+            record_path=("data", "results"),
+            needs_bearer="hud",
+            note="HUD USER USPS ZIP-to-tract crosswalk. Bearer authentication; the "
+                 "token is redacted before any cache write. res_ratio is the "
+                 "residential-address weight preferred for allocating registrations.",
+        ),
+        ProbeSpec(
+            source_id="census_zcta_tract_landarea",
+            kind="remote_csv",
+            url="https://www2.census.gov/geo/docs/maps-data/data/rel2020/zcta520/"
+                "tab20_zcta520_tract20_natl.txt",
+            headers=dict(RANGE_64K),
+            max_bytes=SAMPLE_BYTES,
+            delimiter="|",
+            note="Land-area ZCTA-to-tract crosswalk, the documented degraded fallback "
+                 "for ZIP-to-tract allocation.",
+        ),
+    ]
+
+
 def _states() -> list[ProbeSpec]:
     return [
         ProbeSpec(
@@ -374,6 +403,6 @@ def all_specs() -> tuple[ProbeSpec, ...]:
     """Every Phase 0 probe, in a stable order."""
     specs: list[ProbeSpec] = []
     for group in (_afdc, _afdc_registrations, _atlas, _census, _energy_and_grid,
-                  _states, _seed_files):
+                  _crosswalks, _states, _seed_files):
         specs.extend(group())
     return tuple(sorted(specs, key=lambda s: s.source_id))

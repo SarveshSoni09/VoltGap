@@ -300,3 +300,40 @@ def test_an_empty_site_has_a_zero_confidence_share() -> None:
     assert site.generic_service_capacity_kw == 0.0
     assert site.rung_1_capacity_share == 0.0
     assert site.to_dict()["site_id"] == "s"
+
+
+def test_qualifies_for_level_uses_the_public_breakdown_only() -> None:
+    """A private DC charger must not make a site a public DCFC site."""
+    public_l2 = aggregate_unit_capacity("l2", "2", 1, [reported("J1772", 7.2)])
+    private_dc = aggregate_unit_capacity("dc", "dc_fast", 1, [reported("CCS", 350.0)])
+    site = aggregate_site_capacity("mixed", [public_l2, private_dc], [True, False])
+    assert site.qualifies_for_level({"2"}) is True
+    assert site.qualifies_for_level({"dc_fast"}) is False
+    assert site.has_public_operational_service is True
+    assert site.public_generic_service_capacity_kw == 7.2
+    assert site.generic_service_capacity_kw == 357.2
+
+
+def test_a_public_unit_with_unresolved_capacity_still_counts_as_public_service() -> None:
+    """Presence of service and amount of capacity are separate questions."""
+    unresolved = aggregate_unit_capacity("u", "dc_fast", 1, [reported("CCS", None)])
+    site = aggregate_site_capacity("s", [unresolved], [True])
+    assert site.has_public_operational_service is True
+    assert site.public_unit_count == 1
+    assert site.public_generic_service_capacity_kw == 0.0
+    assert site.public_ports_by_level == {"dc_fast": 1}
+
+
+def test_mismatched_public_flags_are_rejected() -> None:
+    unit = aggregate_unit_capacity("u", "dc_fast", 1, [reported("CCS", 100.0)])
+    with pytest.raises(ValueError, match="same length as units"):
+        aggregate_site_capacity("s", [unit, unit], [True])
+
+
+def test_omitting_the_public_flags_treats_every_unit_as_non_public() -> None:
+    """A caller that has not established public status must not get public capacity."""
+    unit = aggregate_unit_capacity("u", "dc_fast", 1, [reported("CCS", 100.0)])
+    site = aggregate_site_capacity("s", [unit])
+    assert site.generic_service_capacity_kw == 100.0
+    assert site.public_generic_service_capacity_kw == 0.0
+    assert site.has_public_operational_service is False

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections import Counter
+from pathlib import Path
 
 import pytest
 
@@ -22,6 +23,8 @@ def test_probe_defaults_match_the_agreed_provisional_tolerance() -> None:
 
 
 def test_api_keys_read_the_environment_at_call_time(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Isolated from any real .env, so the test asserts environment behaviour only."""
+    monkeypatch.setattr("pipeline.config.settings.load_dotenv", lambda *a, **k: {})
     monkeypatch.delenv("NREL_API_KEY", raising=False)
     monkeypatch.setenv("EIA_API_KEY", "e")
     keys = api_keys()
@@ -31,6 +34,42 @@ def test_api_keys_read_the_environment_at_call_time(monkeypatch: pytest.MonkeyPa
 
     monkeypatch.setenv("NREL_API_KEY", "personal")
     assert api_keys().nrel_is_demo is False
+
+
+def test_dotenv_supplies_a_credential_when_the_environment_does_not(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    from pipeline.config.settings import load_dotenv
+
+    env_file = tmp_path / ".env"
+    env_file.write_text('NREL_API_KEY="from-dotenv"\n# comment\nEMPTY=\n',
+                        encoding="utf-8")
+    values = load_dotenv(env_file)
+    assert values["NREL_API_KEY"] == "from-dotenv", "quotes are stripped"
+    assert values["EMPTY"] == ""
+    assert "# comment" not in values
+
+
+def test_a_missing_dotenv_is_normal_and_yields_nothing(tmp_path: Path) -> None:
+    from pipeline.config.settings import load_dotenv
+
+    assert load_dotenv(tmp_path / "absent") == {}
+
+
+def test_credential_presence_is_reportable_but_values_are_not(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr("pipeline.config.settings.load_dotenv", lambda *a, **k: {})
+    monkeypatch.setenv("HUD_USER_TOKEN", "a-token")
+    monkeypatch.delenv("CENSUS_API_KEY", raising=False)
+    keys = api_keys()
+    presence = keys.presence()
+    assert presence["HUD_USER_TOKEN"] is True
+    assert presence["CENSUS_API_KEY"] is False
+    assert all(isinstance(v, bool) for v in presence.values()), (
+        "presence() must report booleans, never values"
+    )
+    assert "a-token" in keys.secret_values(), "held in memory for the leakage scan"
 
 
 def test_api_keys_default_construction() -> None:

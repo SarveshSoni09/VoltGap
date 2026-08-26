@@ -462,7 +462,18 @@ def aggregate_unit_capacity(
 
 @dataclass(frozen=True)
 class SiteCapacity:
-    """Capacity for one site. Generic capacity sums across UNITS, never connectors."""
+    """Capacity for one site, reported separately for all units and for public supply.
+
+    A site can mix public and private infrastructure: domain rule G4 aggregates
+    co-located multi-network stations into one site, so a public ChargePoint station
+    and a private fleet depot can share a ``site_id``. **Private capacity must never be
+    added to public capacity**, and a site does not offer public DC fast charging
+    merely because it has *some* public station and *some* DCFC station - those can be
+    different stations.
+
+    Every ``public_*`` field is therefore computed from units that are simultaneously
+    public AND operational, and level qualification is evaluated on that same subset.
+    """
 
     site_id: str
     unit_count: int
@@ -472,6 +483,25 @@ class SiteCapacity:
     ports_by_level: Mapping[str, int]
     units_unresolved_capacity: int
     rung_1_capacity_share: float
+    # Public + operational subset. These are the fields access and siting must use.
+    public_unit_count: int = 0
+    public_simultaneous_service_ports: int = 0
+    public_generic_service_capacity_kw: float = 0.0
+    public_connector_compatible_kw: Mapping[str, float] = field(default_factory=dict)
+    public_ports_by_level: Mapping[str, int] = field(default_factory=dict)
+
+    @property
+    def has_public_operational_service(self) -> bool:
+        """True when at least one unit is simultaneously public and operational."""
+        return self.public_unit_count > 0
+
+    def qualifies_for_level(self, levels: frozenset[str] | set[str]) -> bool:
+        """True when a PUBLIC OPERATIONAL unit offers one of these charging levels.
+
+        Deliberately not "site has a public station and site has a DCFC station":
+        those can be different stations, and a driver cannot use a private DC charger.
+        """
+        return any(self.public_ports_by_level.get(level, 0) > 0 for level in levels)
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -483,27 +513,54 @@ class SiteCapacity:
             "ports_by_level": dict(sorted(self.ports_by_level.items())),
             "units_unresolved_capacity": self.units_unresolved_capacity,
             "rung_1_capacity_share": round(self.rung_1_capacity_share, 6),
+            "public_unit_count": self.public_unit_count,
+            "public_simultaneous_service_ports": self.public_simultaneous_service_ports,
+            "public_generic_service_capacity_kw": round(
+                self.public_generic_service_capacity_kw, 3),
+            "public_connector_compatible_kw": dict(
+                sorted(self.public_connector_compatible_kw.items())),
+            "public_ports_by_level": dict(sorted(self.public_ports_by_level.items())),
+            "has_public_operational_service": self.has_public_operational_service,
         }
 
 
-def aggregate_site_capacity(site_id: str, units: Sequence[UnitCapacity]) -> SiteCapacity:
-    """Sum capacity across a site's units.
+def aggregate_site_capacity(
+    site_id: str,
+    units: Sequence[UnitCapacity],
+    public_operational: Sequence[bool] | None = None,
+) -> SiteCapacity:
+    """Sum capacity across a site's units, separately for all and for public supply.
 
-    Summing across UNITS is correct — separate units genuinely serve separate vehicles
+    Summing across UNITS is correct - separate units genuinely serve separate vehicles
     (domain rule G4: co-located multi-network infrastructure is aggregated for coverage
     and its ports summed for capacity). Summing across CONNECTORS within a unit is not.
 
-    Connector-compatible capacity is also summed across units per standard, and is
-    still not physical capacity: a site whose every unit offers both CCS and CHAdeMO
-    reports the full site power under each standard, because a CCS vehicle really can
-    use all of it — just not at the same time as a CHAdeMO vehicle.
+    ``public_operational`` is a parallel sequence flagging which units are
+    simultaneously public and operational. Private and out-of-service capacity is
+    tallied in the all-units fields but **never** added to the ``public_*`` fields.
+
+    Connector-compatible capacity is summed across units per standard, and is still not
+    physical capacity: a site whose every unit offers both CCS and CHAdeMO reports the
+    full site power under each standard, because a CCS vehicle really can use all of it
+    - just not at the same time as a CHAdeMO vehicle.
     """
+    flags = (list(public_operational) if public_operational is not None
+             else [False] * len(units))
+    if len(flags) != len(units):
+        raise ValueError("public_operational must be the same length as units")
+
     compatible: dict[str, float] = {}
     levels: dict[str, int] = {}
     generic = 0.0
     unresolved = 0
     rung_1_capacity = 0.0
-    for unit in units:
+    pub_compatible: dict[str, float] = {}
+    pub_levels: dict[str, int] = {}
+    pub_generic = 0.0
+    pub_units = 0
+    pub_ports = 0
+
+    for unit, is_public in zip(units, flags, strict=True):
         if unit.generic_service_capacity_kw is None:
             unresolved += 1
         else:
@@ -514,6 +571,18 @@ def aggregate_site_capacity(site_id: str, units: Sequence[UnitCapacity]) -> Site
                                        + unit.simultaneous_service_ports)
         for name, power in unit.connector_compatible_kw.items():
             compatible[name] = compatible.get(name, 0.0) + power
+
+        if not is_public:
+            continue
+        pub_units += 1
+        pub_ports += unit.simultaneous_service_ports
+        if unit.generic_service_capacity_kw is not None:
+            pub_generic += unit.generic_service_capacity_kw
+        pub_levels[unit.charging_level] = (pub_levels.get(unit.charging_level, 0)
+                                           + unit.simultaneous_service_ports)
+        for name, power in unit.connector_compatible_kw.items():
+            pub_compatible[name] = pub_compatible.get(name, 0.0) + power
+
     return SiteCapacity(
         site_id=site_id,
         unit_count=len(units),
@@ -523,4 +592,9 @@ def aggregate_site_capacity(site_id: str, units: Sequence[UnitCapacity]) -> Site
         ports_by_level=levels,
         units_unresolved_capacity=unresolved,
         rung_1_capacity_share=(rung_1_capacity / generic) if generic > 0 else 0.0,
+        public_unit_count=pub_units,
+        public_simultaneous_service_ports=pub_ports,
+        public_generic_service_capacity_kw=pub_generic,
+        public_connector_compatible_kw=pub_compatible,
+        public_ports_by_level=pub_levels,
     )
