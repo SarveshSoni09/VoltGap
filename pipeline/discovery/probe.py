@@ -19,6 +19,7 @@ from __future__ import annotations
 
 import argparse
 import json
+from collections.abc import Mapping
 from pathlib import Path
 from typing import Any
 
@@ -110,7 +111,34 @@ def _measure_remote(spec: ProbeSpec, response: Response) -> measure.Measurement 
         )
     if spec.kind == "remote_html_table":
         return measure.measure_html_table(response.content)
+    if spec.kind == "nested_json_units":
+        # The AFDC primary representation nests charging units inside stations, so it
+        # is reshaped to one row per unit before measurement. Reshaping a fixed layout
+        # into rows is mechanical and lossless (amendment A15).
+        from pipeline.sources.base import NestedUnitsSource
+
+        try:
+            staged = NestedUnitsSource(spec.source_id, spec.url).load(
+                _StaticFetcher(response))
+        except (json.JSONDecodeError, KeyError, TypeError, AttributeError):
+            return None
+        return measure.measure_records(
+            list(staged.rows), staged.columns,  # type: ignore[arg-type]
+        )
     return None
+
+
+class _StaticFetcher:
+    """Serves one already-fetched response, so an adapter can measure it in place."""
+
+    def __init__(self, response: Response) -> None:
+        self._response = response
+
+    def get(self, source_id: str, url: str,
+            params: Mapping[str, str] | None = None,
+            headers: Mapping[str, str] | None = None,
+            max_bytes: int | None = None) -> Response:
+        return self._response
 
 
 def _classify(spec: ProbeSpec, response: Response,

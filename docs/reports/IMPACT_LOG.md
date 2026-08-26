@@ -13,6 +13,71 @@ results are invalid), **S2 Degrading** (usable but weaker than claimed), **S3 Co
 
 None.
 
+### I-2 — the Phase 1 report described a rounded 99.975% as "100.0%"
+
+| Field | Value |
+|---|---|
+| Opened | 2026-08-24, project owner review of the Phase 1 report |
+| Affected phase | 1 (`docs/reports/PHASE_1_REPORT.md` §9.1) |
+| Severity | **S3 Cosmetic** — presentation only; no measurement was wrong |
+| Status | **RESOLVED 2026-08-24** |
+
+**Assumed.** That `89,665 / 89,687` stations reconciling could be written as 100.0%.
+
+**Actually true.** The ratio is 99.9755%. The 22 exceptions are real and were unexamined.
+
+**Response.** Phase 2 preflight (CLAUDE.md 15.5.1) classified all 22 with zero
+unresolved: 12 planned stations with no unit records, 8 containing `legacy`-level units
+the L1/L2/DCFC aggregate does not count, and 2 holding only legacy units. Under the
+documented scope "at least one unit record and no legacy-level unit", reconciliation is
+89,736 / 89,736 = exactly 100.0000%. A dated correction was appended to the Phase 1
+report and a test now asserts the unscoped rate is never called 100%.
+
+### I-3 — `port_count == 1` was published as a guaranteed invariant
+
+| Field | Value |
+|---|---|
+| Opened | 2026-08-24, project owner review of the Phase 1 report |
+| Affected phase | 1 (`pipeline/schemas/canonical.py`, report §7.1) |
+| Severity | **S2 Degrading** — usable but claimed more than the source supports |
+| Status | **RESOLVED 2026-08-24** |
+
+**Assumed.** That every AFDC charging unit has exactly one port, permanently.
+
+**Actually true.** It holds for all 292,756 units in the 2026-08 snapshot, but it is a
+current-source property. Charging unit and port remain conceptually distinct entities,
+and a future record with several ports would be legitimate data. A schema pinned at
+`== 1` would have rejected it as corruption.
+
+**Response.** Amendment A19. The schema now requires `port_count >= 1`;
+`check_port_count_drift` monitors the `== 1` observation and reports a higher value as
+source drift requiring review, never raising. Gate check P2-D covers both directions,
+including that the schema accepts a 4-port record.
+
+### I-4 — the gate's coverage thresholds could not fail
+
+| Field | Value |
+|---|---|
+| Opened | 2026-08-24, during the Phase 2 gate run |
+| Affected phase | 1 (`Makefile`, `gate-1` and `coverage`) |
+| Severity | **S2 Degrading** — the gate reported a threshold it was not enforcing |
+| Status | **RESOLVED 2026-08-24** |
+
+**Assumed.** That `coverage report --fail-under=N | tail -2` fails when coverage is
+below N.
+
+**Actually true.** A shell pipeline returns the last command's exit status, so `tail`
+masked every coverage failure. The threshold could never fail the gate. It was caught
+because `pipeline/discovery/` reported 99% while the Phase 2 gate still passed.
+
+**What this did NOT invalidate.** The Phase 1 coverage figures were correct as measured
+and reported — 100% line and branch at that time. The defect meant a *future* regression
+would have gone unnoticed, not that the reported numbers were wrong.
+
+**Response.** Each check now captures output to a file and tests the exit status
+explicitly. The two statements the defect had hidden (the new nested-JSON probe branch)
+are now covered, and both the Phase 1 and Phase 2 gates were re-run and pass.
+
 ## Resolved entries
 
 ### I-1 — `afdc_charging_units` was published with `stable_keys: true` and a station-level join key

@@ -145,10 +145,19 @@ def test_build_result_serialises_with_sorted_keys() -> None:
     assert payload["semantic_hash"] == "abc"
 
 
-def test_mart_tables_matches_the_schema_registry() -> None:
+def test_every_phase_1_mart_has_a_schema() -> None:
+    """MART_TABLES is Phase 1's set; later phases register their own alongside it."""
     from pipeline.schemas.canonical import SCHEMAS
 
-    assert set(MART_TABLES) == set(SCHEMAS)
+    assert set(MART_TABLES) <= set(SCHEMAS)
+
+
+def test_phase_2_marts_are_registered_separately_from_phase_1() -> None:
+    from pipeline.model.build_supply_access import PHASE_2_MARTS
+    from pipeline.schemas.canonical import SCHEMAS
+
+    assert set(PHASE_2_MARTS) <= set(SCHEMAS)
+    assert not set(PHASE_2_MARTS) & set(MART_TABLES)
 
 
 def test_validate_marts_returns_row_counts(fixture_warehouse: Warehouse) -> None:
@@ -176,3 +185,57 @@ def test_a_schema_violation_blocks_the_build(fixture_warehouse: Warehouse) -> No
             "CREATE OR REPLACE TABLE mart_state_totals AS "
             "SELECT * FROM mart_state_totals_backup"
         )
+
+
+# --- Phase 2 build wiring -------------------------------------------------------------
+
+def test_supply_access_result_serialises() -> None:
+    from pipeline.model.build_supply_access import SupplyAccessResult
+
+    payload = SupplyAccessResult(
+        unit_capacities=[], site_capacities=[], ladder_distribution={"reported": 3},
+        ladder_share={"reported": 1.0}, empirical_summary=[{"usable": True}],
+        access={},
+    ).to_dict()
+    assert payload["units"] == 0
+    assert payload["ladder_distribution"] == {"reported": 3}
+    assert payload["empirical_groups_usable"] == 1
+
+
+def test_a_site_without_geography_is_skipped_rather_than_placed_at_a_default() -> None:
+    """Directive D8: a site with no coordinates cannot be given one."""
+    from pipeline.model.build_supply_access import site_supply_rows
+    from pipeline.model.supply import SiteCapacity
+
+    with Warehouse() as warehouse:
+        warehouse.connection.execute(
+            "CREATE TABLE mart_sites AS SELECT * FROM (VALUES "
+            "('has_geo', 44.9, -93.0, 'MN', 1), "
+            "('no_geo', NULL, NULL, 'MN', 1)) "
+            "t(site_id, latitude, longitude, state, public_operational_stations)"
+        )
+        capacities = [
+            SiteCapacity("has_geo", 1, 1, 50.0, {}, {"dc_fast": 1}, 0, 1.0),
+            SiteCapacity("no_geo", 1, 1, 50.0, {}, {"dc_fast": 1}, 0, 1.0),
+            SiteCapacity("absent", 1, 1, 50.0, {}, {"dc_fast": 1}, 0, 1.0),
+        ]
+        rows = site_supply_rows(warehouse, capacities)
+        assert [r["site_id"] for r in rows] == ["has_geo"]
+
+
+def test_a_site_with_no_public_operational_station_is_marked_non_public() -> None:
+    from pipeline.model.build_supply_access import site_supply_rows
+    from pipeline.model.supply import SiteCapacity
+
+    with Warehouse() as warehouse:
+        warehouse.connection.execute(
+            "CREATE TABLE mart_sites AS SELECT * FROM (VALUES "
+            "('private_site', 44.9, -93.0, 'MN', 0)) "
+            "t(site_id, latitude, longitude, state, public_operational_stations)"
+        )
+        rows = site_supply_rows(
+            warehouse,
+            [SiteCapacity("private_site", 1, 1, 50.0, {}, {"dc_fast": 1}, 0, 1.0)],
+        )
+        assert rows[0]["status_code"] == "T"
+        assert rows[0]["access_code"] == "private"

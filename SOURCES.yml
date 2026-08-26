@@ -219,38 +219,94 @@ sources:
       - "Establishes the vintage of the current snapshot only; no history is served."
 
   - id: afdc_charging_units
-    name: AFDC EV Charging Units export
+    name: AFDC EV Charging Units
     tier: core
     retrieval:
+      # AMENDED 2026-08-24 (specification amendment A23). Phase 0 contracted the CSV
+      # export. Phase 1 measurement established that the JSON representation exposes
+      # information the canonical model requires and the CSV does not expose
+      # equivalently, so JSON became the primary Core representation. The CSV is
+      # retained as a documented fallback. These are NOT two serialisations of one
+      # canonical schema: their observable structures differ materially.
       method: rest_api
-      endpoint: "https://developer.nlr.gov/api/alt-fuel-stations/v1/ev-charging-units.csv"
+      endpoint: "https://developer.nlr.gov/api/alt-fuel-stations/v1.json?fuel_type=ELEC&country=US&limit=all"
       auth: api_key_free
       rate_limit: "shared with afdc_stations; DEMO_KEY limit measured at 10 per window"
+    representations:
+      primary:
+        format: json
+        endpoint: "https://developer.nlr.gov/api/alt-fuel-stations/v1.json"
+        query: "fuel_type=ELEC&country=US&limit=all"
+        record_path: "fuel_stations[].ev_charging_units[]"
+        schema_version: 68cadbe608518980
+        staged_field_count: 35
+        unit_object_keys: [charging_level, connectors, funding_sources, network, port_count]
+        connector_standards_exposed: 8
+        why_required_for_core: >-
+          Carries nested charging-unit objects, a genuine UNIT-level port_count, all
+          eight observed connector standards, and the structure the Phase 1
+          identifiability analysis required. The canonical charging_units and
+          charging_unit_connectors tables cannot be built equivalently from the CSV.
+      fallback:
+        format: csv
+        endpoint: "https://developer.nlr.gov/api/alt-fuel-stations/v1/ev-charging-units.csv"
+        query: "fuel_type=ELEC&country=US&limit=all"
+        schema_version: c7ef314df7ff8fce
+        connector_standards_exposed: 5
+        limitations:
+          - >-
+            Exposes five connector columns (J1772, CCS, CHAdeMO, J3400, J3271) against
+            eight in the JSON. NEMA515, NEMA520 and NEMA1450 are absent entirely.
+          - >-
+            Carries STATION-level EVSE totals (EV Level1/Level2/DC Fast counts) rather
+            than a unit-level port_count, so per-unit service-port capacity cannot be
+            derived directly.
+          - >-
+            Column naming differs from the JSON taxonomy: the CSV writes CCS and J3400
+            where the JSON writes J1772COMBO and TESLA.
+        degradation_when_used: >-
+          Level 1 connector detail is lost, so port_count_l1 and any NEMA-specific
+          compatible-capacity output become unavailable. Generic service capacity must
+          then fall back to station-level EVSE totals, which the Phase 2 preflight
+          found disagree with unit counts for 22 stations. Falling back is a DEGRADED
+          mode and must be surfaced, not silently substituted (directive D8).
     coverage:
-      geographic: "US 50 states + DC + PR; probed Minnesota-scoped"
+      geographic: "US 50 states + DC + PR"
       temporal: "current snapshot only"
       historical_vintages_available: false
-      vintage_field: "Snapshot Date"
+      vintage_field: "Snapshot Date (CSV) / none in JSON"
       vintage_semantics: >-
-        Present-day snapshot. The column exists but the endpoint accepts no
-        snapshot/date parameter, so prior snapshots cannot be requested.
+        Present-day snapshot. The endpoint accepts no snapshot/date parameter, so prior
+        snapshots cannot be requested.
     schema:
-      # CORRECTED 2026-08-19, impact-log entry I-1. This entry previously recorded
-      # stable_keys: true, which implied row-level identity the source does not
-      # provide. `ID` is the STATION parent key, not charging-unit row identity.
-      parent_key: [ID]
+      # CORRECTED 2026-08-19, impact-log entry I-1. `ID` is the STATION parent key, not
+      # charging-unit row identity; the source exposes no unit identifier at all.
+      parent_key: [station_id]
       row_identity: none
-      join_keys: [ID]
+      join_keys: [station_id]
       stable_keys: false
-      schema_version: c7ef314df7ff8fce
-      expected_field_count: 86
+      # The PRIMARY (JSON) representation, reshaped to one row per charging unit.
+      # The fallback CSV's own hash is recorded under representations.fallback and is
+      # probed separately as afdc_charging_units_csv_fallback.
+      schema_version: 68cadbe608518980
+      expected_field_count: 35
     quality:
+      # This block describes what probe.py MEASURES, which is a bounded, Minnesota-
+      # scoped sample of the CSV fallback representation - not the national primary.
+      # Phase 0 probes are bounded by design (CLAUDE.md 4.2), so pinning a national
+      # expectation here would make every probe run report false drift. National
+      # counts for both representations live under `representations` above.
+      probe_scope: "PRIMARY JSON representation, state=MN, limit=all"
       expected_row_count: [2400, 3600]
       drift_tolerance: 0.20
       expected_range_derivation: >-
-        Provisional, for the Minnesota-scoped probe only. First verified live
-        observation was 2,951 unit rows for Minnesota on 2026-08-19, widened by the
-        default tolerance. The national export holds 292,435 unit rows.
+        First verified live observation of the probe's bounded scope: 2,957 unit rows
+        for Minnesota on 2026-08-24, widened by the default tolerance. Both
+        representations return the same 2,957 rows for Minnesota, which independently
+        corroborates that they carry the same underlying data in different structures.
+      national_row_count_primary_json: 292756
+      national_row_count_fallback_csv: 292435
+      national_stations: 89758
     license: "US Government work, public domain"
     update_cadence: "daily"
     fallback_source: afdc_stations
@@ -258,34 +314,81 @@ sources:
     backtest_eligible: false
     known_limitations:
       - >-
-        One row is a charging unit that may hold one or more ports and one or more
-        connectors; rows are not ports.
+        One row is a charging unit that may expose one or more connectors. In the
+        2026-08-24 national snapshot every unit reports port_count = 1, but that is a
+        CURRENT-SOURCE OBSERVATION, not a permanent ontology rule: charging unit and
+        port remain conceptually distinct source entities. A future record with
+        port_count > 1 is legitimate data and must trigger source-drift review, not a
+        schema failure. See CLAUDE.md section 6.1.1 and amendment A19.
       - >-
-        55 rows nationally report a power output of exactly 0.00 kW, which is not a
-        valid power and must not be treated as a rung-1 reported value.
+        16,610 units expose more than one connector standard on a single service port,
+        led by CHADEMO+J1772COMBO (7,071) and J1772COMBO+TESLA (5,168). Those connector
+        rows are ALTERNATIVE compatibility interfaces for one service position, so
+        their power values must never be summed into generic simultaneous capacity.
+        See CLAUDE.md section 7.1.1 and amendment A20.
+      - >-
+        55 rows report a power output of exactly 0.00 kW, which is not a valid power
+        and must not be treated as a rung-1 reported value.
       - >-
         Rung-1 power coverage is uneven by connector: 99.9% for CCS and CHAdeMO but
         73.4% for J3400 and 81.4% for J1772 (port-weighted, national).
       - >-
-        NO CHARGING-UNIT IDENTIFIER EXISTS. The export carries no unit id column; ID
-        is the station parent key, and 89,687 station IDs span 292,435 unit rows.
-        65.9% of rows (192,796) are byte-identical duplicates of another row and 90.9%
-        participate in an identical-row group; the largest group is 410 rows. Rows
-        cannot be distinguished by content, only by row order, which no refresh
-        guarantees. stable_keys is therefore false, and charging_unit_record_key is a
-        synthetic per-snapshot key carrying no longitudinal meaning. See CLAUDE.md
-        section 6.1.1 and docs/reports/IMPACT_LOG.md entry I-1.
+        NO CHARGING-UNIT IDENTIFIER EXISTS in either representation. The JSON unit
+        objects carry exactly five keys and none is an identifier; 99.4% of unit
+        objects are byte-identical to another. charging_unit_record_key is synthetic
+        and per-snapshot and carries no longitudinal meaning.
       - >-
-        The duplicates are NOT data errors. Row count reconciles to the station's
-        reported L1+L2+DCFC totals for 100.0% of stations (89,665 of 89,687), so the
-        export is one row per EVSE and identical rows are real distinct physical units
-        indistinguishable in every reported attribute - the same situation as domain
-        rule G4 for coordinate duplicates. Aggregate counts and capacity are therefore
-        trustworthy even though identity is not.
+        Charging level must be read from the unit's own charging_level field, never
+        inferred from a connector standard. NEMA 5-15, NEMA 5-20 and NEMA 14-50 are
+        connector standards, not universally Level 1 designations. See amendment A20.
+
+  - id: afdc_charging_units_csv_fallback
+    name: AFDC EV Charging Units, CSV fallback representation
+    tier: core
+    retrieval:
+      method: rest_api
+      endpoint: "https://developer.nlr.gov/api/alt-fuel-stations/v1/ev-charging-units.csv"
+      auth: api_key_free
+      rate_limit: "shared with afdc_stations; DEMO_KEY limit measured at 10 per window"
+    coverage:
+      geographic: "US 50 states + DC + PR"
+      temporal: "current snapshot only"
+      historical_vintages_available: false
+      vintage_field: "Snapshot Date"
+      vintage_semantics: "present-day snapshot"
+    schema:
+      parent_key: [ID]
+      row_identity: none
+      join_keys: [ID]
+      stable_keys: false
+      schema_version: c7ef314df7ff8fce
+      expected_field_count: 86
+    quality:
+      probe_scope: "state=MN, limit=all"
+      expected_row_count: [2400, 3600]
+      drift_tolerance: 0.20
+      expected_range_derivation: >-
+        2,957 unit rows for Minnesota on 2026-08-24, identical to the primary JSON
+        representation's row count for the same scope.
+    license: "US Government work, public domain"
+    update_cadence: "daily"
+    fallback_source: none
+    used_by: [source_verification]
+    backtest_eligible: false
+    known_limitations:
       - >-
-        Connectors are exposed as per-type counts and power on a unit row, not as
-        identified connectors. Model them at (charging_unit_record_key, connector_type)
-        grain; never manufacture connector_id rows from counts.
+        DOCUMENTED FALLBACK ONLY, not the Core representation (amendment A23). Probed
+        so its schema and its limitations stay verified rather than assumed.
+      - >-
+        Exposes five connector standards against eight in the JSON primary; NEMA515,
+        NEMA520 and NEMA1450 are absent entirely.
+      - >-
+        Carries station-level EVSE totals rather than a unit-level port_count, so
+        per-unit service-port capacity cannot be derived from it directly.
+      - >-
+        Falling back to this representation is a DEGRADED mode: Level 1 connector
+        detail is lost and generic service capacity must rest on station-level totals,
+        which disagree with unit counts for 22 stations (CLAUDE.md 15.5.1).
 
   # ---- AFDC state EV registration vintages (10 years) ---------------------------
 

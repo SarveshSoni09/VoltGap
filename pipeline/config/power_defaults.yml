@@ -1,0 +1,98 @@
+# Rung-3 documented type defaults for the power-resolution ladder (CLAUDE.md 7.1).
+#
+# Rung 3 is the LAST resort, used only where a connector has no reported power (rung 1)
+# and no sufficiently-populated empirical peer group (rung 2). Every value below carries
+# a cited justification. None of these numbers may be hard-coded in Python.
+#
+# Defaults are keyed by (normalised connector, source charging level) because the same
+# connector standard carries very different power at different levels - which is the
+# same reason level must never be inferred from a connector name (7.1.2).
+
+meta:
+  rung: 3
+  power_source_label: type_default
+  power_confidence: low
+  written: "2026-08-24"
+
+# Minimum number of rung-1 observations before an empirical median may be used as a
+# rung-2 fallback. Below this, the group is discarded and resolution falls through to
+# the next broader group, then to rung 3. Chosen so a median rests on a real
+# distribution rather than a handful of points; the sensitivity of results to this
+# threshold is reported in the Phase 2 report.
+rung_2_minimum_sample: 30
+
+# Rung-2 fallback hierarchy, most specific first. Each level is tried in order and the
+# first with at least rung_2_minimum_sample rung-1 observations wins.
+rung_2_hierarchy:
+  - [network, connector_normalized, charging_level]
+  - [connector_normalized, charging_level]
+  - [charging_level]
+
+defaults:
+  # --- AC ---
+  - connector: J1772
+    charging_level: "1"
+    power_kw: 1.4
+    justification: >-
+      120 V at 12 A continuous, the standard derated capacity of a 15 A household
+      branch circuit under NEC 625 continuous-load rules. 120 * 12 = 1.44 kW.
+  - connector: J1772
+    charging_level: "2"
+    power_kw: 7.2
+    justification: >-
+      240 V at 30 A continuous, the most common residential and commercial Level 2
+      installation on a 40 A circuit. 240 * 30 = 7.2 kW. Matches the 6.5-7.7 kW
+      interquartile range measured in the Phase 0 national rung-1 sample.
+  - connector: NEMA 5-15
+    charging_level: "1"
+    power_kw: 1.4
+    justification: "Same 120 V / 12 A continuous basis as J1772 Level 1."
+  - connector: NEMA 5-20
+    charging_level: "1"
+    power_kw: 1.9
+    justification: "120 V at 16 A continuous on a 20 A branch circuit. 120 * 16 = 1.92 kW."
+  - connector: NEMA 14-50
+    charging_level: "2"
+    power_kw: 9.6
+    justification: >-
+      240 V at 40 A continuous on a 50 A circuit, the standard NEMA 14-50 derating.
+      240 * 40 = 9.6 kW.
+  - connector: NEMA 14-50
+    charging_level: "1"
+    power_kw: 1.9
+    justification: >-
+      Where the source classifies a NEMA 14-50 outlet as Level 1, the level is
+      authoritative and the low-current basis applies. Recorded explicitly rather than
+      overriding the source with the connector name.
+  # --- DC ---
+  - connector: CCS
+    charging_level: dc_fast
+    power_kw: 150.0
+    justification: >-
+      Conservative below the 200 kW median measured in the Phase 0 national rung-1
+      sample (interquartile range 120-350 kW). A default should not flatter an
+      unmeasured site, so the lower end of the common installed band is used.
+  - connector: CHAdeMO
+    charging_level: dc_fast
+    power_kw: 50.0
+    justification: >-
+      The dominant installed CHAdeMO rating. The standard's higher revisions exist but
+      are rare in the US installed base.
+  - connector: J3400/NACS
+    charging_level: dc_fast
+    power_kw: 250.0
+    justification: >-
+      Matches the 250 kW median measured in the Phase 0 national rung-1 sample
+      (interquartile range 250-325 kW).
+  - connector: J3400/NACS
+    charging_level: "2"
+    power_kw: 11.5
+    justification: >-
+      240 V at 48 A continuous, the common AC destination-charger configuration. The
+      same connector at DC fast is 250 kW, which is why this table is keyed by level.
+  - connector: J3271
+    charging_level: dc_fast
+    power_kw: 350.0
+    justification: >-
+      Megawatt-class standard; only 10 ports nationally, all reporting power, so this
+      default is expected never to be used. Present so the ladder cannot fall through.

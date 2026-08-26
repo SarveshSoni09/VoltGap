@@ -1,0 +1,403 @@
+{
+  "investigation": "CLAUDE.md 15.5.1 (amendment A24) - the 22 station reconciliation exceptions",
+  "generated": "2026-08-24",
+  "question": "Phase 1 reported 89,665/89,687 stations reconciling, displayed as 100.0%. That is 99.975%, not 100%. Classify every exception before Phase 2 relies on the equivalence.",
+  "stations_examined": 89758,
+  "stations_reconciling": 89736,
+  "exception_count": 22,
+  "unscoped_reconciliation_rate": 0.999755,
+  "classification_tally": {
+    "legacy_charging_level": 8,
+    "missing_station_aggregate": 2,
+    "no_unit_records": 12
+  },
+  "exceptions": [
+    {
+      "station_id": "6509",
+      "status_code": "T",
+      "access_code": "public",
+      "network": "Non-Networked",
+      "unit_row_count": 1,
+      "reported_l1": null,
+      "reported_l2": null,
+      "reported_dcfc": null,
+      "reported_total": null,
+      "difference": null,
+      "charging_levels": [
+        "legacy"
+      ],
+      "connector_types": [],
+      "classification": "missing_station_aggregate"
+    },
+    {
+      "station_id": "25517",
+      "status_code": "E",
+      "access_code": "public",
+      "network": "Non-Networked",
+      "unit_row_count": 2,
+      "reported_l1": null,
+      "reported_l2": 1,
+      "reported_dcfc": null,
+      "reported_total": 1,
+      "difference": 1,
+      "charging_levels": [
+        "2",
+        "legacy"
+      ],
+      "connector_types": [
+        "J1772"
+      ],
+      "classification": "legacy_charging_level"
+    },
+    {
+      "station_id": "25518",
+      "status_code": "E",
+      "access_code": "public",
+      "network": "Non-Networked",
+      "unit_row_count": 9,
+      "reported_l1": null,
+      "reported_l2": 7,
+      "reported_dcfc": null,
+      "reported_total": 7,
+      "difference": 2,
+      "charging_levels": [
+        "2",
+        "legacy"
+      ],
+      "connector_types": [
+        "J1772"
+      ],
+      "classification": "legacy_charging_level"
+    },
+    {
+      "station_id": "25519",
+      "status_code": "E",
+      "access_code": "public",
+      "network": "Non-Networked",
+      "unit_row_count": 5,
+      "reported_l1": null,
+      "reported_l2": 4,
+      "reported_dcfc": null,
+      "reported_total": 4,
+      "difference": 1,
+      "charging_levels": [
+        "2",
+        "legacy"
+      ],
+      "connector_types": [
+        "J1772"
+      ],
+      "classification": "legacy_charging_level"
+    },
+    {
+      "station_id": "25520",
+      "status_code": "E",
+      "access_code": "public",
+      "network": "Non-Networked",
+      "unit_row_count": 3,
+      "reported_l1": 1,
+      "reported_l2": null,
+      "reported_dcfc": null,
+      "reported_total": 1,
+      "difference": 2,
+      "charging_levels": [
+        "1",
+        "legacy"
+      ],
+      "connector_types": [
+        "NEMA520"
+      ],
+      "classification": "legacy_charging_level"
+    },
+    {
+      "station_id": "27329",
+      "status_code": "E",
+      "access_code": "public",
+      "network": "Non-Networked",
+      "unit_row_count": 4,
+      "reported_l1": null,
+      "reported_l2": 3,
+      "reported_dcfc": null,
+      "reported_total": 3,
+      "difference": 1,
+      "charging_levels": [
+        "2",
+        "legacy"
+      ],
+      "connector_types": [
+        "J1772"
+      ],
+      "classification": "legacy_charging_level"
+    },
+    {
+      "station_id": "27335",
+      "status_code": "E",
+      "access_code": "public",
+      "network": "Non-Networked",
+      "unit_row_count": 4,
+      "reported_l1": null,
+      "reported_l2": null,
+      "reported_dcfc": null,
+      "reported_total": null,
+      "difference": null,
+      "charging_levels": [
+        "legacy"
+      ],
+      "connector_types": [],
+      "classification": "missing_station_aggregate"
+    },
+    {
+      "station_id": "29862",
+      "status_code": "E",
+      "access_code": "private",
+      "network": "Non-Networked",
+      "unit_row_count": 2,
+      "reported_l1": null,
+      "reported_l2": 1,
+      "reported_dcfc": null,
+      "reported_total": 1,
+      "difference": 1,
+      "charging_levels": [
+        "2",
+        "legacy"
+      ],
+      "connector_types": [
+        "J1772"
+      ],
+      "classification": "legacy_charging_level"
+    },
+    {
+      "station_id": "33545",
+      "status_code": "E",
+      "access_code": "public",
+      "network": "Non-Networked",
+      "unit_row_count": 3,
+      "reported_l1": 1,
+      "reported_l2": 1,
+      "reported_dcfc": null,
+      "reported_total": 2,
+      "difference": 1,
+      "charging_levels": [
+        "1",
+        "2",
+        "legacy"
+      ],
+      "connector_types": [
+        "J1772",
+        "NEMA515"
+      ],
+      "classification": "legacy_charging_level"
+    },
+    {
+      "station_id": "40603",
+      "status_code": "E",
+      "access_code": "public",
+      "network": "Non-Networked",
+      "unit_row_count": 31,
+      "reported_l1": null,
+      "reported_l2": 24,
+      "reported_dcfc": null,
+      "reported_total": 24,
+      "difference": 7,
+      "charging_levels": [
+        "2",
+        "legacy"
+      ],
+      "connector_types": [
+        "J1772"
+      ],
+      "classification": "legacy_charging_level"
+    },
+    {
+      "station_id": "65540",
+      "status_code": "P",
+      "access_code": "public",
+      "network": "None",
+      "unit_row_count": 0,
+      "reported_l1": null,
+      "reported_l2": null,
+      "reported_dcfc": null,
+      "reported_total": null,
+      "difference": null,
+      "charging_levels": [],
+      "connector_types": [],
+      "classification": "no_unit_records"
+    },
+    {
+      "station_id": "228968",
+      "status_code": "P",
+      "access_code": "public",
+      "network": "None",
+      "unit_row_count": 0,
+      "reported_l1": null,
+      "reported_l2": null,
+      "reported_dcfc": null,
+      "reported_total": null,
+      "difference": null,
+      "charging_levels": [],
+      "connector_types": [],
+      "classification": "no_unit_records"
+    },
+    {
+      "station_id": "322854",
+      "status_code": "P",
+      "access_code": "public",
+      "network": "None",
+      "unit_row_count": 0,
+      "reported_l1": null,
+      "reported_l2": null,
+      "reported_dcfc": null,
+      "reported_total": null,
+      "difference": null,
+      "charging_levels": [],
+      "connector_types": [],
+      "classification": "no_unit_records"
+    },
+    {
+      "station_id": "351782",
+      "status_code": "P",
+      "access_code": "public",
+      "network": "None",
+      "unit_row_count": 0,
+      "reported_l1": null,
+      "reported_l2": null,
+      "reported_dcfc": null,
+      "reported_total": null,
+      "difference": null,
+      "charging_levels": [],
+      "connector_types": [],
+      "classification": "no_unit_records"
+    },
+    {
+      "station_id": "351783",
+      "status_code": "P",
+      "access_code": "public",
+      "network": "None",
+      "unit_row_count": 0,
+      "reported_l1": null,
+      "reported_l2": null,
+      "reported_dcfc": null,
+      "reported_total": null,
+      "difference": null,
+      "charging_levels": [],
+      "connector_types": [],
+      "classification": "no_unit_records"
+    },
+    {
+      "station_id": "351785",
+      "status_code": "P",
+      "access_code": "public",
+      "network": "None",
+      "unit_row_count": 0,
+      "reported_l1": null,
+      "reported_l2": null,
+      "reported_dcfc": null,
+      "reported_total": null,
+      "difference": null,
+      "charging_levels": [],
+      "connector_types": [],
+      "classification": "no_unit_records"
+    },
+    {
+      "station_id": "351788",
+      "status_code": "P",
+      "access_code": "public",
+      "network": "None",
+      "unit_row_count": 0,
+      "reported_l1": null,
+      "reported_l2": null,
+      "reported_dcfc": null,
+      "reported_total": null,
+      "difference": null,
+      "charging_levels": [],
+      "connector_types": [],
+      "classification": "no_unit_records"
+    },
+    {
+      "station_id": "351790",
+      "status_code": "P",
+      "access_code": "public",
+      "network": "None",
+      "unit_row_count": 0,
+      "reported_l1": null,
+      "reported_l2": null,
+      "reported_dcfc": null,
+      "reported_total": null,
+      "difference": null,
+      "charging_levels": [],
+      "connector_types": [],
+      "classification": "no_unit_records"
+    },
+    {
+      "station_id": "351793",
+      "status_code": "P",
+      "access_code": "public",
+      "network": "None",
+      "unit_row_count": 0,
+      "reported_l1": null,
+      "reported_l2": null,
+      "reported_dcfc": null,
+      "reported_total": null,
+      "difference": null,
+      "charging_levels": [],
+      "connector_types": [],
+      "classification": "no_unit_records"
+    },
+    {
+      "station_id": "351794",
+      "status_code": "P",
+      "access_code": "public",
+      "network": "None",
+      "unit_row_count": 0,
+      "reported_l1": null,
+      "reported_l2": null,
+      "reported_dcfc": null,
+      "reported_total": null,
+      "difference": null,
+      "charging_levels": [],
+      "connector_types": [],
+      "classification": "no_unit_records"
+    },
+    {
+      "station_id": "351795",
+      "status_code": "P",
+      "access_code": "public",
+      "network": "None",
+      "unit_row_count": 0,
+      "reported_l1": null,
+      "reported_l2": null,
+      "reported_dcfc": null,
+      "reported_total": null,
+      "difference": null,
+      "charging_levels": [],
+      "connector_types": [],
+      "classification": "no_unit_records"
+    },
+    {
+      "station_id": "351796",
+      "status_code": "P",
+      "access_code": "public",
+      "network": "None",
+      "unit_row_count": 0,
+      "reported_l1": null,
+      "reported_l2": null,
+      "reported_dcfc": null,
+      "reported_total": null,
+      "difference": null,
+      "charging_levels": [],
+      "connector_types": [],
+      "classification": "no_unit_records"
+    }
+  ],
+  "resolution": {
+    "unresolved_count": 0,
+    "explanation": "All 22 exceptions are explained by exactly two source semantics, and none is unresolved. (1) Twelve stations have Status Code = P (planned): they carry no charging-unit records and no station-level EVSE totals, because nothing is built yet. Domain rule G2 already excludes them from operational supply. (2) Ten stations contain units whose charging_level is 'legacy'. Legacy units are not counted in the L1/L2/DCFC aggregate, so the unit-row count exceeds the reported total by exactly the legacy count; two of those ten hold ONLY legacy units and so report no aggregate at all. 12 + 10 = 22.",
+    "documented_scope_definition": "stations with at least one charging-unit record AND no legacy-level unit",
+    "scoped_reconciliation": "89,736 / 89,736 = 1.000000 (exactly 100%)",
+    "authoritative_source_per_metric": {
+      "simultaneous_service_ports": "charging-unit records, because they carry the unit-level port_count and include legacy units that the station aggregate omits",
+      "reported_l1_l2_dcfc_totals": "station-level fields, used only for cross-checking; they exclude legacy units by construction"
+    },
+    "rule_encoded_as_test": "tests/regression/test_phase2_gates.py::test_p2e_reconciliation_exceptions_are_all_classified"
+  }
+}

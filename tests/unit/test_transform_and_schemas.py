@@ -230,7 +230,13 @@ def test_validate_all_checks_every_supplied_table() -> None:
 
 
 def test_every_mart_has_a_schema_and_every_schema_requires_provenance() -> None:
-    assert len(SCHEMAS) == 6
+    # Six Phase 1 marts plus the two Phase 2 supply marts. Later phases add more, so
+    # this asserts the Phase 1 set is intact rather than pinning a total.
+    phase_1 = {"mart_sites", "mart_stations", "mart_charging_units",
+               "mart_charging_unit_connectors", "mart_state_totals",
+               "mart_observed_subregion_ev"}
+    assert phase_1 <= set(SCHEMAS)
+    assert len(SCHEMAS) >= 6
     for name, schema in SCHEMAS.items():
         assert "computed_at" in schema.columns, name
         assert "source_vintages" in schema.columns, name
