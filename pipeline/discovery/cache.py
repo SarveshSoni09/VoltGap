@@ -31,7 +31,15 @@ import httpx
 from pipeline.config.settings import PROBE
 
 # Query-parameter names whose values are secrets and must never be written to disk.
-REDACTED_PARAMS: frozenset[str] = frozenset({"api_key", "key", "token"})
+REDACTED_PARAMS: frozenset[str] = frozenset({
+    "api_key", "key", "token", "apikey", "access_token", "auth", "secret",
+})
+# Request-header names carrying credentials. Request headers are persisted in cache
+# metadata, so a Bearer token would otherwise land on disk in plain text.
+REDACTED_HEADERS: frozenset[str] = frozenset({
+    "authorization", "x-api-key", "api-key", "token", "x-auth-token", "cookie",
+    "proxy-authorization",
+})
 REDACTION = "<redacted>"
 
 
@@ -65,7 +73,14 @@ class Response:
 
 def redact(params: Mapping[str, str]) -> dict[str, str]:
     """Replace secret parameter values so nothing sensitive reaches the cache or a report."""
-    return {k: (REDACTION if k in REDACTED_PARAMS else v) for k, v in params.items()}
+    return {k: (REDACTION if k.lower() in REDACTED_PARAMS else v)
+            for k, v in params.items()}
+
+
+def redact_headers(headers: Mapping[str, str]) -> dict[str, str]:
+    """Same, for request headers. ``Authorization: Bearer <jwt>`` must never persist."""
+    return {k: (REDACTION if k.lower() in REDACTED_HEADERS else v)
+            for k, v in headers.items()}
 
 
 def cache_key(
@@ -81,7 +96,7 @@ def cache_key(
         {
             "url": url,
             "params": dict(sorted(redact(params).items())),
-            "headers": dict(sorted((headers or {}).items())),
+            "headers": dict(sorted(redact_headers(headers or {}).items())),
         },
         sort_keys=True,
         separators=(",", ":"),
@@ -197,7 +212,7 @@ class LiveFetcher:
         response = Response(
             url=url,
             params=redact(params),
-            request_headers=dict(headers),
+            request_headers=redact_headers(headers),
             status_code=status_code,
             content=body,
             headers=response_headers,
