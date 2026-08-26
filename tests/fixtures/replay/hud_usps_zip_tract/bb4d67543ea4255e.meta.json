@@ -1,0 +1,33 @@
+{
+  "content_bytes": 1857,
+  "content_sha256": "c09befb2d27a9cc69ca706e4513aa331b9ccb6ee21d1e198d840cd0caaed6795",
+  "elapsed_ms": 608.7,
+  "headers": {
+    "access-control-allow-headers": "Origin, X-Requested-With, Content-Type, Accept, Authorization",
+    "access-control-allow-origin": "*",
+    "cache-control": "no-cache, private",
+    "connection": "keep-alive",
+    "content-length": "1857",
+    "content-security-policy": "form-action 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' *.huduser.gov *.awswaf.com *.arcgis.com *.google.com *.gstatic.com *.googleapis.com *.jquery.com *.cloudflare.com *.jsdelivr.net *.datatables.net *.cloudfront.net *.bootstrapcdn.com *.fontawesome.com *.google-analytics.com *.googletagmanager.com mailchimp.com chimpstatic.com *.digitalgov.gov *.highcharts.com; worker-src 'self' blob:; frame-ancestors 'self' https://www.hud.gov https://hud.gov;",
+    "content-type": "application/json",
+    "date": "Wed, 26 Aug 2026 18:22:19 GMT",
+    "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+    "x-content-type-options": "nosniff",
+    "x-frame-options": "SAMEORIGIN",
+    "x-ratelimit-limit": "60",
+    "x-ratelimit-remaining": "58",
+    "x-xss-protection": "1; mode=block"
+  },
+  "params": {
+    "query": "98101",
+    "type": "1"
+  },
+  "request_headers": {
+    "Authorization": "<redacted>"
+  },
+  "retrieved_at": "2026-08-26T18:22:19+00:00",
+  "source_id": "hud_usps_zip_tract",
+  "status_code": 200,
+  "truncated": false,
+  "url": "https://www.huduser.gov/hudapi/public/usps"
+}

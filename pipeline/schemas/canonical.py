@@ -275,6 +275,15 @@ MART_SITE_SUPPLY = _schema(
         "ports_legacy": Column(int, Check.ge(0)),
         "units_unresolved_capacity": Column(int, Check.ge(0)),
         "power_confidence_share": Column(float, Check.in_range(0.0, 1.0)),
+        # Public + operational subset. Private capacity co-located at the same site is
+        # counted in the all-units columns above and NEVER added to these.
+        "public_unit_count": Column(int, Check.ge(0)),
+        "public_simultaneous_service_ports": Column(int, Check.ge(0)),
+        "public_generic_service_capacity_kw": Column(float, Check.ge(0)),
+        "public_ports_l1": Column(int, Check.ge(0)),
+        "public_ports_l2": Column(int, Check.ge(0)),
+        "public_ports_dcfc": Column(int, Check.ge(0)),
+        "has_public_operational_service": Column(bool),
     }
 )
 

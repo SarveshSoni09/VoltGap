@@ -896,11 +896,22 @@ sources:
     backtest_eligible: true
     known_limitations:
       - >-
-        Now returns an HTML "Missing Key" page without CENSUS_API_KEY. SETUP.md
-        describes the key as optional; that is no longer true for the API path.
+        CORRECTED 2026-08-26 by live evidence. The earlier wording said only "the API
+        requires a key". The precise, tested behaviour is worse than that: a keyless
+        request returns **HTTP 200 with an HTML "Missing Key" page**, not a 4xx. An
+        adapter checking only the status code would treat the error page as success.
+        The probe classifies it correctly via a body marker. Verified live for
+        /data/2023/acs/acs5 on 2026-08-26; an authenticated request to the identical
+        query returns JSON.
       - >-
-        Not blocking: the keyless bulk summary file (census_acs_bulk) supplies the
-        same estimates and is the primary retrieval path.
+        Not blocking: the keyless bulk summary file (census_acs_bulk) supplies the same
+        estimates and is the primary retrieval path. Verified live on 2026-08-26 that
+        the API and bulk agree exactly for tract 53033007202, table B25003, ACS 2023
+        5-year.
+      - >-
+        The two routes NAME the same variable differently: the API uses B25003_001E and
+        the bulk file uses B25003_E001. A join on variable name across routes fails
+        silently unless translated.
 
   - id: census_acs_bulk
     name: Census ACS 5-year table-based summary file
@@ -1552,6 +1563,114 @@ sources:
         candidate filter in section 7.8 is road geometry, not traffic volume, and does
         not depend on this source. Do not invent a traffic feature to justify keeping
         it. See CLAUDE.md section 7.13.
+
+  - id: hud_usps_zip_tract
+    name: HUD USER USPS ZIP Code Crosswalk, ZIP to Census tract
+    tier: core
+    retrieval:
+      method: rest_api
+      endpoint: "https://www.huduser.gov/hudapi/public/usps"
+      auth: api_key_free
+      rate_limit: >-
+        Measured live on 2026-08-26: x-ratelimit-limit 60 per minute. Six concurrent
+        workers triggered HTTP 429 immediately; serial requests with a 0.35 s delay
+        completed 261 of 262 without a single retry exhaustion.
+    coverage:
+      geographic: "US ZIP Codes with an areal equivalent"
+      temporal: "quarterly"
+      historical_vintages_available: true
+      vintage_field: "data.year and data.quarter"
+      vintage_semantics: >-
+        Address counts as of the named quarter. Live response on 2026-08-26 reported
+        year 2026, quarter 2, crosswalk_type zip-tract.
+    schema:
+      join_keys: [zip, geoid]
+      stable_keys: true
+      schema_version: null
+      expected_field_count: 8
+      fields: [zip, geoid, city, state, res_ratio, bus_ratio, oth_ratio, tot_ratio]
+      granularity: tract
+    quality:
+      probe_scope: "one ZIP per request; type=1 selects ZIP to tract"
+      expected_row_count: [1, 60]
+      drift_tolerance: 0.20
+      expected_range_derivation: >-
+        Tracts per ZIP observed live: 1 (99546) to 24 (20001) across the tested sample.
+        The range is deliberately wide because it is a per-ZIP fan-out, not a dataset
+        size.
+    license: "US Government work, public domain"
+    update_cadence: "quarterly"
+    fallback_source: census_zcta_tract_landarea
+    used_by: [demand_geographic_allocation]
+    backtest_eligible: true
+    known_limitations:
+      - >-
+        AUTHENTICATION IS A BEARER TOKEN, not a query parameter. HUD_USER_TOKEN must be
+        sent as an Authorization header and must never be persisted: the cache redacts
+        Authorization before writing metadata.
+      - >-
+        Missing and invalid tokens both return HTTP 401 with body {"error":
+        "Unauthenticated"}; they are not distinguishable, unlike AFDC and EIA which
+        separate API_KEY_MISSING from API_KEY_INVALID.
+      - >-
+        res_ratio sums to exactly 1.0 for a residential ZIP, but a ZIP with no
+        residential addresses sums to 0.0 (verified live for 99546). Such a ZIP is
+        UNALLOCATABLE by the residential method and must not be renormalised - doing so
+        would invent residents.
+      - >-
+        A ZIP with no areal equivalent returns HTTP 404 (verified live for 98504, a
+        PO-Box-only ZIP). It must be reported as unallocatable, not silently skipped.
+      - >-
+        The ratio chosen matters: res_ratio, bus_ratio, oth_ratio and tot_ratio are
+        different allocations of the same ZIP. Residential is appropriate for allocating
+        registered vehicles, which are garaged at residential addresses.
+
+  - id: census_zcta_tract_landarea
+    name: Census 2020 ZCTA-to-tract relationship file (land-area crosswalk)
+    tier: core
+    retrieval:
+      method: bulk_download
+      endpoint: "https://www2.census.gov/geo/docs/maps-data/data/rel2020/zcta520/tab20_zcta520_tract20_natl.txt"
+      auth: none
+      rate_limit: "none advertised"
+    coverage:
+      geographic: "US, all ZCTAs"
+      temporal: "2020 decennial geography"
+      historical_vintages_available: false
+      vintage_field: null
+      vintage_semantics: "2020 ZCTA and tract boundaries"
+    schema:
+      join_keys: [GEOID_ZCTA5_20, GEOID_TRACT_20]
+      stable_keys: true
+      schema_version: null
+      expected_field_count: 17
+    quality:
+      # Describes the PROBE's bounded 64 KiB sample, not the whole file, so a probe run
+      # cannot report false drift. Full-file counts are recorded below.
+      probe_scope: "first 65,536 bytes of the national relationship file"
+      expected_row_count: [560, 840]
+      drift_tolerance: 0.20
+      expected_range_derivation: >-
+        697 rows decoded from the first 65,536 bytes on 2026-08-26, widened by the
+        default tolerance.
+      full_file_zctas_with_tract_links: 33791
+      full_file_zctas_spanning_multiple_tracts: 25770
+    license: "US Government work, public domain"
+    update_cadence: "decennial"
+    fallback_source: none
+    used_by: [demand_geographic_allocation]
+    backtest_eligible: false
+    known_limitations:
+      - >-
+        DEMOTED TO FALLBACK 2026-08-26. Land-area weighting assumes uniform population
+        within a ZCTA. Washington paired validation showed it misallocates 25.79% of EV
+        mass on an EV-weighted basis against 17.94% for the HUD residential-address
+        ratio, so HUD is now the preferred method and this is the documented degraded
+        fallback.
+      - >-
+        Requires a USPS ZIP to ZCTA approximation first. A USPS ZIP Code is a
+        mail-delivery route collection, not an area, and is not interchangeable with a
+        Census ZCTA.
 
   # ---- Washington (tract-granularity registrations) ------------------------------
 

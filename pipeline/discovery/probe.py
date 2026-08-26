@@ -144,9 +144,12 @@ class _StaticFetcher:
 def _classify(spec: ProbeSpec, response: Response,
               measurement: measure.Measurement | None) -> tuple[str, str]:
     """Assign one of confirmed / degraded / gated / unavailable, with a reason."""
-    if looks_gated(response):
+    if looks_gated(response) or response.status_code == 401:
+        required = (f"{spec.needs_api_key.upper()}_API_KEY" if spec.needs_api_key
+                    else f"{spec.needs_bearer.upper()}_USER_TOKEN" if spec.needs_bearer
+                    else "a credential")
         return "gated", (
-            f"credential required; set {spec.needs_api_key.upper()}_API_KEY. "
+            f"credential required; set {required}. "
             "No credential is fabricated or persisted by this pipeline."
         )
     if response.status_code == 429:
@@ -213,12 +216,26 @@ def request_params(spec: ProbeSpec) -> dict[str, str]:
     return params
 
 
+def request_headers(spec: ProbeSpec) -> dict[str, str]:
+    """Request headers for a spec, including a Bearer token where one is required.
+
+    The token is attached here and redacted by the cache before anything is written to
+    disk, so ``Authorization: Bearer <jwt>`` never persists.
+    """
+    headers = dict(spec.headers)
+    if spec.needs_bearer:
+        token = getattr(api_keys(), spec.needs_bearer)
+        if token:
+            headers["Authorization"] = f"Bearer {token}"
+    return headers
+
+
 def probe_remote(spec: ProbeSpec, fetcher: Fetcher) -> Observation:
     """Fetch (or replay) one remote source and measure the response."""
     params = request_params(spec)
     try:
         response = fetcher.get(
-            spec.source_id, spec.url, params, spec.headers, spec.max_bytes
+            spec.source_id, spec.url, params, request_headers(spec), spec.max_bytes
         )
     except (ConnectionError, CacheMissError) as exc:
         return Observation(
@@ -227,7 +244,11 @@ def probe_remote(spec: ProbeSpec, fetcher: Fetcher) -> Observation:
             content_sha256=None, measurement=None, rate_limit_headers={}, vintage=None,
             note=f"{type(exc).__name__}: {exc}",
         )
-    result = _measure_remote(spec, response)
+    # A failed or credential-gated response must not be measured. Measuring an error
+    # body yields row_count = 0, which a downstream reader could mistake for "this
+    # source is empty" rather than "this request failed" (directive D8).
+    result = _measure_remote(spec, response) if (
+        response.ok and not looks_gated(response)) else None
     status, reason = _classify(spec, response, result)
     return Observation(
         source_id=spec.source_id,

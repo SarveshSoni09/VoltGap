@@ -1,0 +1,36 @@
+{
+  "content_bytes": 65536,
+  "content_sha256": "a1e56055c42bbb1d3e101721e3c03ff9f465d3853260c62d8c1ed3c00adab89b",
+  "elapsed_ms": 191.9,
+  "headers": {
+    "age": "458416",
+    "cache-control": "public, max-age=14400",
+    "cf-cache-status": "HIT",
+    "cf-ray": "a314dc7a6a5922d3-ORD",
+    "connection": "keep-alive",
+    "content-length": "65536",
+    "content-range": "bytes 0-65535/24334353",
+    "content-security-policy": "default-src 'self' 'unsafe-inline' 'unsafe-eval' census.gov *.census.gov http://www.census.gov assets.adobedtm.com www.googletagmanager.com https://dpm.demdex.net https://cm.everesttech.net https://uscensusbureau.demdex.net dap.digitalgov.gov www.google-analytics.com https://static.cloudflareinsights.com; frame-ancestors 'self';",
+    "content-type": "text/plain",
+    "date": "Wed, 26 Aug 2026 18:22:19 GMT",
+    "expires": "Wed, 26 Aug 2026 22:22:19 GMT",
+    "last-modified": "Thu, 09 Dec 2021 16:30:22 GMT",
+    "referrer-policy": "strict-origin-when-cross-origin",
+    "server": "cloudflare",
+    "set-cookie": "__cf_bm=Fppd0bEo91gL5UYynTRVHvzr.J5EcFBfRT1tWR4lCPI-1787768539.270253-1.0.1.1-aXnW6cFkxOf9KZzZyFJHbdU98zmfcMNPwuh6RRNb5gNBbwZ8i5fFncNus1uVQ1QM6W.qCTULRThnuc3JfBD2NjDhZU4t_DvoRYU0KwV39ckIUmWDrS_N7ykHugKyoXTK; HttpOnly; SameSite=None; Secure; Path=/; Domain=www2.census.gov; Expires=Wed, 26 Aug 2026 18:52:19 GMT",
+    "strict-transport-security": "max-age=31536000",
+    "vary": "Accept-Encoding",
+    "x-content-type-options": "nosniff",
+    "x-frame-options": "SAMEORIGIN",
+    "x-xss-protection": "1; mode=block"
+  },
+  "params": {},
+  "request_headers": {
+    "Range": "bytes=0-65535"
+  },
+  "retrieved_at": "2026-08-26T18:22:19+00:00",
+  "source_id": "census_zcta_tract_landarea",
+  "status_code": 206,
+  "truncated": true,
+  "url": "https://www2.census.gov/geo/docs/maps-data/data/rel2020/zcta520/tab20_zcta520_tract20_natl.txt"
+}

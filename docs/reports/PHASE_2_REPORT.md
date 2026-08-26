@@ -521,4 +521,73 @@ primary demand model.
 
 ## Corrections
 
-*(none)*
+## Correction — 2026-08-26 (mixed public/private sites)
+
+Required by the project owner's review of this report. Phase 2 remains **PASS**; this
+corrects how public capacity and level qualification are computed at sites that mix
+public and private infrastructure. The text above is preserved unedited.
+
+**What was wrong.** Domain rule G4 aggregates co-located multi-network stations into one
+site, so a site can hold a public ChargePoint station *and* a private fleet depot. The
+original implementation treated a site as public operational supply if **any** of its
+stations was, and then counted **all** of its capacity as public. It also qualified a
+site for DCFC access if the site had some public station and some DCFC station — which
+can be *different stations*. A driver cannot use a private DC charger.
+
+**The corrected rule.** Three separate statements, each now enforced:
+
+1. **Public site existence** — a site offers public operational service when at least
+   one unit is simultaneously public *and* operational.
+2. **Public capacity** — only units that are simultaneously public and operational
+   contribute to `public_generic_service_capacity_kw` and
+   `public_connector_compatible_kw`. Private and out-of-service capacity is still
+   tallied, in separate all-units columns, and never added to the public totals.
+3. **Level qualification** — a site qualifies for DCFC (or L2) only if a **public
+   operational unit** offers that level, evaluated on `public_ports_by_level`.
+
+```python
+# pipeline/model/supply.py
+def qualifies_for_level(self, levels: frozenset[str] | set[str]) -> bool:
+    """True when a PUBLIC OPERATIONAL unit offers one of these charging levels.
+
+    Deliberately not "site has a public station and site has a DCFC station":
+    those can be different stations, and a driver cannot use a private DC charger.
+    """
+    return any(self.public_ports_by_level.get(level, 0) > 0 for level in levels)
+```
+
+**Before and after, national:**
+
+| Figure | Before | After | Delta |
+|---|---:|---:|---:|
+| Generic service capacity | 19,679,636 kW (all units) | **19,001,862 kW** (public only) | **−677,774 kW (−3.44%)** |
+| DCFC qualifying sites | 13,143 | **13,079** | −64 |
+| DCFC access gap population | 32,113,986 (9.69%) | **32,169,758 (9.71%)** | +55,772 |
+| L2 qualifying sites | 42,928 | **42,861** | −67 |
+| L2 access gap population | 53,462,245 (16.13%) | **53,584,530 (16.17%)** | +122,285 |
+
+The 64 sites that lost DCFC qualification are exactly the case the correction exists
+for: each had a public station and a DC fast station, but no unit that was both.
+677,774 kW of private or out-of-service capacity is no longer reported as public.
+
+Every other Phase 2 figure is unchanged, including the power-ladder distribution and the
+10.69% connector double-counting overstatement, because neither depends on public status.
+
+**Also corrected in this pass:**
+
+- **The "lower bound" claim was too strong.** Section 9.3 described the access-gap
+  population as a lower bound. Straight-line distance is a lower bound on network
+  distance *for each representative point*, but because each block group is represented
+  by one population-weighted point, the aggregate is an **approximation** and is not
+  guaranteed to bound the true population lacking road access. The artifact's own
+  `interpretation` field now says so, and a stratified block-level benchmark is required
+  before publication.
+- **Assumption A-2.2 was pointed at the wrong phase.** Rung-2 validation is a *supply*
+  method question and does not belong in the Phase 3 demand model. It is now a **Phase 4
+  prerequisite**, to be validated by masked-power evaluation holding out entire stations
+  or sites rather than random connector rows.
+- **Rung 3 at 0% is accepted as-is.** It is not forced merely to exercise it; synthetic
+  tests cover it instead. This answers open question Q1 in section 12.
+
+New gate check **P2-I** covers the mixed-site rule. The Phase 2 gate was re-run after
+these changes.

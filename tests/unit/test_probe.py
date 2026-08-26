@@ -210,6 +210,7 @@ def test_the_api_key_is_attached_when_the_spec_needs_one(monkeypatch: pytest.Mon
 def test_no_api_key_parameter_is_sent_when_none_is_configured(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
+    monkeypatch.setattr("pipeline.config.settings.load_dotenv", lambda *a, **k: {})
     monkeypatch.setenv("CENSUS_API_KEY", "")
     seen: dict[str, str] = {}
 
@@ -397,3 +398,32 @@ def test_nested_json_units_measurement_returns_none_on_an_unparseable_payload() 
     assert _measure_remote(
         ProbeSpec("s", "nested_json_units"), response(content=b"<html>not json</html>")
     ) is None
+
+
+def test_a_bearer_token_is_attached_when_a_spec_requires_one(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from pipeline.discovery.probe import request_headers
+
+    monkeypatch.setattr("pipeline.config.settings.load_dotenv", lambda *a, **k: {})
+    monkeypatch.setenv("HUD_USER_TOKEN", "a-token")
+    headers = request_headers(ProbeSpec("s", "rest_json", needs_bearer="hud"))
+    assert headers["Authorization"] == "Bearer a-token"
+
+
+def test_no_authorization_header_is_sent_when_no_token_is_configured(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from pipeline.discovery.probe import request_headers
+
+    monkeypatch.setattr("pipeline.config.settings.load_dotenv", lambda *a, **k: {})
+    monkeypatch.delenv("HUD_USER_TOKEN", raising=False)
+    headers = request_headers(ProbeSpec("s", "rest_json", needs_bearer="hud"))
+    assert "Authorization" not in headers
+
+
+def test_a_spec_without_a_bearer_requirement_gets_only_its_own_headers() -> None:
+    from pipeline.discovery.probe import request_headers
+
+    spec = ProbeSpec("s", "rest_json", headers={"User-Agent": "VoltGap"})
+    assert request_headers(spec) == {"User-Agent": "VoltGap"}

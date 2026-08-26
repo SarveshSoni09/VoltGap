@@ -387,3 +387,63 @@ def test_p2h_power_defaults_are_configured_not_hard_coded() -> None:
     assert "150.0" not in source and "250.0" not in source, (
         "rung-3 default values must live in power_defaults.yml, never in Python"
     )
+
+
+# --- P2-I: mixed public/private sites -------------------------------------------------
+
+def test_p2i_private_capacity_is_never_added_to_public_capacity() -> None:
+    """G4 aggregates co-located stations, so a site can mix public and private."""
+    public_l2 = aggregate_unit_capacity("l2", "2", 1,
+                                        [reported("J1772", "J1772", "2", 1, 7.2)])
+    private_dc = aggregate_unit_capacity(
+        "dc", "dc_fast", 1, [reported("J1772COMBO", "CCS", "dc_fast", 1, 350.0)])
+    site = aggregate_site_capacity("mixed", [public_l2, private_dc], [True, False])
+    assert site.generic_service_capacity_kw == 357.2, "all-units total is unchanged"
+    assert site.public_generic_service_capacity_kw == 7.2, "private 350 kW excluded"
+    assert site.public_unit_count == 1
+
+
+def test_p2i_a_public_station_plus_a_private_dcfc_is_not_a_public_dcfc_site() -> None:
+    """The specific inference the correction forbids."""
+    public_l2 = aggregate_unit_capacity("l2", "2", 1,
+                                        [reported("J1772", "J1772", "2", 1, 7.2)])
+    private_dc = aggregate_unit_capacity(
+        "dc", "dc_fast", 1, [reported("J1772COMBO", "CCS", "dc_fast", 1, 350.0)])
+    site = aggregate_site_capacity("mixed", [public_l2, private_dc], [True, False])
+    assert site.has_public_operational_service is True, "it does offer public service"
+    assert site.qualifies_for_level({"dc_fast"}) is False, (
+        "but not PUBLIC DC fast service: those are different stations"
+    )
+    assert site.qualifies_for_level({"2"}) is True
+
+
+def test_p2i_a_genuinely_public_dcfc_unit_does_qualify() -> None:
+    unit = aggregate_unit_capacity(
+        "dc", "dc_fast", 1, [reported("J1772COMBO", "CCS", "dc_fast", 1, 350.0)])
+    site = aggregate_site_capacity("public", [unit], [True])
+    assert site.qualifies_for_level({"dc_fast"}) is True
+    assert site.public_generic_service_capacity_kw == 350.0
+
+
+def test_p2i_the_mart_carries_public_and_all_unit_columns_separately(
+    phase2_warehouse: Warehouse,
+) -> None:
+    columns = {str(r[0]) for r in
+               phase2_warehouse.connection.execute("DESCRIBE mart_site_supply").fetchall()}
+    assert {"generic_service_capacity_kw", "public_generic_service_capacity_kw",
+            "public_ports_dcfc", "has_public_operational_service"} <= columns
+    row = phase2_warehouse.connection.execute(
+        "SELECT sum(generic_service_capacity_kw), sum(public_generic_service_capacity_kw) "
+        "FROM mart_site_supply").fetchone()
+    assert row is not None
+    assert row[0] >= row[1], "public capacity can never exceed all-units capacity"
+
+
+def test_p2i_access_qualification_uses_public_ports_only(
+    phase2_warehouse: Warehouse,
+) -> None:
+    mismatched = phase2_warehouse.connection.execute(
+        "SELECT count(*) FROM mart_site_supply "
+        "WHERE public_ports_dcfc > ports_dcfc OR public_ports_l2 > ports_l2"
+    ).fetchone()
+    assert mismatched is not None and mismatched[0] == 0

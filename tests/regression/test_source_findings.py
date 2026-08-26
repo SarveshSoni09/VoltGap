@@ -200,10 +200,15 @@ def test_every_atlas_state_entry_declares_its_granularity() -> None:
 
 
 def test_washington_is_the_only_tract_granularity_registration_source() -> None:
-    tract_grain = [
+    """A crosswalk also outputs tract grain; the claim is about REGISTRATION sources."""
+    registration_sources = {
         source_id for source_id, entry in SOURCES.items()
-        if entry["schema"].get("granularity") == "tract"
-    ]
+        if "demand_model" in entry["used_by"] or "demand_validation" in entry["used_by"]
+    }
+    tract_grain = sorted(
+        source_id for source_id in registration_sources
+        if SOURCES[source_id]["schema"].get("granularity") == "tract"
+    )
     assert tract_grain == ["wa_ev_population"]
     assert SOURCES["wa_ev_population"]["backtest_eligible"] is False
 

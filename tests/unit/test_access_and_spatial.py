@@ -264,7 +264,9 @@ def test_access_result_serialises_with_its_interpretation() -> None:
     thresholds = load_thresholds()
     payload = compute_access(population(2), [site()], thresholds, "DCFC").to_dict()
     assert payload["distance_basis"] == "straight_line_haversine"
-    assert "LOWER BOUND" in payload["interpretation"]
+    assert "APPROXIMATION" in payload["interpretation"]
+    assert "not guaranteed to be a lower bound" in payload["interpretation"]
+    assert payload["population_point_grain"].startswith("census block group")
     assert len(payload["sensitivity_curve"]) == 80
 
 

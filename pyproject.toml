@@ -56,9 +56,13 @@ ignore_missing_imports = true
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-addopts = "-q --strict-markers"
+# Live-network tests are EXCLUDED BY DEFAULT. The deterministic phase gates must stay
+# network-independent, so a plain `pytest` run - which is what `make gate` invokes -
+# never touches an external service. Run them deliberately with `-m live`, or through
+# `make live-smoke` / `make live-integration` / `make integration-assurance`.
+addopts = '-q --strict-markers -m "not live"'
 markers = [
-    "live: hits the live network; excluded from the deterministic gate",
+    "live: hits a production endpoint; excluded from the deterministic gate by default",
 ]
 
 [tool.coverage.run]
