@@ -113,3 +113,32 @@ surface spec problems while they are cheap.
 
 Phase 0 should take roughly a week part-time and end with it stopping and waiting for you.
 That stop is the protocol working, not a failure.
+
+---
+
+## Correction — 2026-08-26
+
+*Appended, not edited. The text above is preserved as delivered.*
+
+Section 3's API-key table is out of date in two ways, both established by live evidence.
+
+| Key | Table says | Actually |
+|---|---|---|
+| NREL Developer key | sign up at `developer.nrel.gov/signup` | **That host no longer resolves.** NREL retired it on 29 May 2026. Get the key from **`developer.nlr.gov`**. Phase 0 finding F-5 |
+| Census API key | "optional (bulk download works without)" | Optional **for the pipeline**, because the keyless bulk summary file is the primary route. But the **API itself now requires a key**: a keyless request returns HTTP 200 with an HTML "Missing Key" page, not a 4xx |
+
+A fourth credential is now used and is not listed in the table:
+
+| Key | Where | Used for | Env var |
+|---|---|---|---|
+| HUD USER API token | `huduser.gov/portal/dataset/uspszip-api.html` | USPS ZIP Code Crosswalk, the preferred ZIP-to-tract allocation path | `HUD_USER_TOKEN` |
+
+Select the **USPS ZIP CODE CROSSWALK** dataset when requesting the token. It is sent as
+an `Authorization: Bearer` header, not a query parameter, and is redacted before any
+cache write.
+
+**What actually needs a key.** Only `NREL_API_KEY` is materially useful: the shared
+`DEMO_KEY` is limited to 10 requests per window, while a personal key allows 1,000 per
+hour. `CENSUS_API_KEY` and `EIA_API_KEY` are optional because keyless bulk routes exist.
+`HUD_USER_TOKEN` is required for the preferred allocation path; without it the pipeline
+falls back to land-area weighting, which is a documented degraded mode.

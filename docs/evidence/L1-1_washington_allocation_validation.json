@@ -1,0 +1,92 @@
+{
+  "investigation": "Washington paired ZIP-to-tract allocation validation",
+  "generated": "2026-08-26",
+  "decision_rule_preregistered_at": "commit 66f1bfb, docs/evidence/L1-0_wa_decision_rule_preregistered.md",
+  "why_washington": "Washington's EV registration records carry BOTH a postal ZIP Code and a 2020 census tract on the same observed vehicle row, so the observed ZIP-to-tract EV distribution is directly measurable. This is NOT national ground truth: it is direct paired evidence from one state.",
+  "inputs": {
+    "wa_vehicle_records_retrieved": 294193,
+    "records_with_usable_zip_and_tract": 294178,
+    "records_in_washington_tracts": 293432,
+    "distinct_zips": 588,
+    "distinct_zip_tract_pairs": 3111,
+    "zips_spanning_multiple_tracts": 400,
+    "hud_vintage": "2026 Q2, crosswalk_type zip-tract",
+    "land_area_crosswalk": "Census 2020 ZCTA-to-tract relationship file"
+  },
+  "scope": {
+    "zips_compared": 431,
+    "evs_covered": 292581,
+    "excluded": {
+      "under_10_evs": 149,
+      "landarea_no_zcta": 1,
+      "hud_zero_res_ratio": 6,
+      "hud_no_mapping": 1
+    },
+    "exclusion_note": "ZIPs below 10 EVs are excluded from the weighted mean because a share vector built on a handful of vehicles is noise. Six ZIPs were excluded because their HUD res_ratio sums to zero (no residential addresses) and one because HUD returned no mapping at all; neither was renormalised."
+  },
+  "results": {
+    "weighted_mean_tvd_hud_res_ratio": 0.179354,
+    "weighted_mean_tvd_land_area": 0.257865,
+    "unweighted_mean_tvd_hud_res_ratio": 0.143874,
+    "unweighted_mean_tvd_land_area": 0.276683,
+    "weighted_mean_mae_hud_res_ratio": 0.033665,
+    "weighted_mean_mae_land_area": 0.053144,
+    "top_tract_accuracy_hud_res_ratio": 0.596288,
+    "top_tract_accuracy_land_area": 0.470998,
+    "hud_win_share": 0.645012,
+    "D_land_area_minus_hud": 0.078512,
+    "max_conservation_error_hud": 0.0,
+    "max_conservation_error_land_area": 1.1102230246251565e-16
+  },
+  "stratified_by_tracts_per_zip": {
+    "1": {
+      "zips": 57,
+      "evs": 2601,
+      "weighted_tvd_hud": 0.004584,
+      "weighted_tvd_land_area": 0.021186,
+      "hud_win_share": 0.192982
+    },
+    "2-3": {
+      "zips": 100,
+      "evs": 12654,
+      "weighted_tvd_hud": 0.107645,
+      "weighted_tvd_land_area": 0.235075,
+      "hud_win_share": 0.78
+    },
+    "4-7": {
+      "zips": 111,
+      "evs": 51773,
+      "weighted_tvd_hud": 0.171512,
+      "weighted_tvd_land_area": 0.257601,
+      "hud_win_share": 0.72973
+    },
+    "8+": {
+      "zips": 163,
+      "evs": 225553,
+      "weighted_tvd_hud": 0.187192,
+      "weighted_tvd_land_area": 0.261934,
+      "hud_win_share": 0.662577
+    }
+  },
+  "decision": {
+    "condition_1_absolute_gap": {
+      "threshold": 0.05,
+      "observed": 0.078512,
+      "met": true
+    },
+    "condition_2_win_share": {
+      "threshold": 0.6,
+      "observed": 0.645012,
+      "met": true
+    },
+    "acceptability_floor": {
+      "threshold": 0.35,
+      "hud": 0.179354,
+      "land_area": 0.257865,
+      "either_exceeds": false
+    },
+    "outcome": "HUD residential-address ratio MATERIALLY OUTPERFORMS land area",
+    "action": "HUD res_ratio becomes the preferred Phase 3 ZIP-to-tract allocation method. Land-area allocation is retained as a documented degraded fallback. Method provenance stays on every allocated row. No plan change is triggered: neither method exceeds the 0.35 acceptability floor.",
+    "caveat": "Even the winning method misallocates 17.94% of EV mass on an EV-weighted basis in a single state. This selects between two candidates; it does not establish that ZIP-anchored tract estimates are good enough to be called observed. They remain zip_anchored / crosswalked."
+  }
+}
