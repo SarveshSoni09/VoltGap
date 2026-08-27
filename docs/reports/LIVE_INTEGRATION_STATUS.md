@@ -1,8 +1,9 @@
-# Live Integration Assurance Checkpoint — status at pause
+# Live Integration Assurance Checkpoint — SUPERSEDED, checkpoint complete
 
-**Paused mid-checkpoint. `LIVE_INTEGRATION_AUDIT.md` has NOT been written yet.**
-Everything below is done, verified and committed. All measurements needed for the audit
-report are captured in evidence artifacts, so nothing needs re-deriving or re-fetching.
+> **This file is superseded.** It recorded a mid-checkpoint pause. The checkpoint is now
+> complete: see `docs/reports/LIVE_INTEGRATION_AUDIT.md` for the finished report. The
+> content below is preserved as the record of where work stopped, so the resume path
+> stays auditable. Every item listed as remaining was completed.
 
 Verified state at pause: **585 deterministic tests pass, 46 live tests pass**,
 100% line and branch coverage (2,325 statements, 548 branches, zero missed),
@@ -75,5 +76,10 @@ preferred Phase 3 ZIP→tract method; land-area is retained as documented degrad
 4. Update `SETUP.md` / `.env.example` notes for the retired NREL host and `HUD_USER_TOKEN`.
 5. Update `IMPACT_LOG.md` with the two defects above.
 6. Re-run the Phase 0 and Phase 1 gates (Phase 2 already re-run and passing).
+
+**All six remaining items were completed.** `LIVE_INTEGRATION_AUDIT.md` and
+`live_integration_status.json` are written, the Washington evidence artifact is hashed,
+`SETUP.md` and `.env.example` carry dated corrections, `IMPACT_LOG.md` records I-5 and
+I-6, and the Phase 0, 1 and 2 gates were all re-run and pass.
 
 **Phase 3 has not started and must not start until the audit report is reviewed.**

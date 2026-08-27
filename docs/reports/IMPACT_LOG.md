@@ -13,6 +13,55 @@ results are invalid), **S2 Degrading** (usable but weaker than claimed), **S3 Co
 
 None.
 
+### I-5 — the probe attached a measurement to failed responses
+
+| Field | Value |
+|---|---|
+| Opened | 2026-08-26, Live Integration Assurance Checkpoint |
+| Affected phase | 0, 1, 2 (`pipeline/discovery/probe.py`) |
+| Severity | **S2 Degrading** — a failure was reportable as an empty dataset |
+| Status | **RESOLVED 2026-08-26** |
+
+**Assumed.** That measuring a response was harmless regardless of its status.
+
+**Actually true.** A 4xx or 5xx body was measured like any other payload, producing a
+measurement with `row_count: 0`. A downstream reader could take that as "this source has
+no rows" rather than "this request failed" — precisely the silent-empty-dataset outcome
+directive D8 forbids. Found by a mocked failure-mode test, not by live traffic.
+
+**Response.** Non-OK and credential-gated responses are no longer measured; the
+observation carries `measurement: None` and a status of `unavailable` or `gated`. All
+prior gates re-run and passing. No published number changes: every real probe run to date
+returned 200 for the sources whose measurements were used.
+
+### I-6 — request headers were persisted to the cache unredacted
+
+| Field | Value |
+|---|---|
+| Opened | 2026-08-26, before any live credential was used |
+| Affected phase | 1, 2 (`pipeline/discovery/cache.py`) |
+| Severity | **S2 Degrading** — a credential could have been written to disk |
+| Status | **RESOLVED 2026-08-26** |
+
+**Assumed.** That redacting query parameters was sufficient, because every credential up
+to this point was a query parameter.
+
+**Actually true.** `_record` wrote `request_headers` verbatim into cache metadata. HUD
+authenticates with `Authorization: Bearer <jwt>`, so the first HUD fetch would have
+written a live token to disk in plain text — and `tests/fixtures/replay/` is tracked by
+git.
+
+**Caught before any exposure.** The hole was found and closed during the mandatory
+secret-hygiene step, before the first authenticated request. No credential was ever
+written: the HUD cache records `"Authorization": "<redacted>"`.
+
+**Response.** `REDACTED_HEADERS` added covering `authorization`, `x-api-key`, `api-key`,
+`token`, `x-auth-token`, `cookie` and `proxy-authorization`; `REDACTED_PARAMS` widened
+and matched case-insensitively; redaction applied before the metadata write. Cache keys
+hash the *redacted* form, so a fixture recorded under one credential replays under
+another. A leakage scan over tracked files, caches, evidence, reports and `.body`
+payloads passes.
+
 ### I-2 — the Phase 1 report described a rounded 99.975% as "100.0%"
 
 | Field | Value |
