@@ -12,15 +12,26 @@ the areas it constrains, and on a partition the exact solution is a single propo
 scaling - no iteration, no convergence question, no residual. That is
 :class:`ProportionalReconciler`, and it is the published path.
 
-**ZIP constraints are deliberately not applied.** A USPS ZIP Code does not nest inside
-anything; ZIP and tract partitions overlap, which is what iterative proportional fitting
-is for, and :class:`IterativeProportionalFitting` implements it. It is **not** used for
-the published surface, because binding tract estimates to ZIP totals requires the
-ZIP→tract allocation whose error was *measured* at 17.94% EV-weighted total variation
-distance in Washington (``docs/evidence/P3-1_wa_allocation_scope_and_error.json``).
-Applying it would inject that measured error into every published estimate in exchange
-for tightening a constraint the state total already sets. It is implemented, tested and
-reported so the choice rests on a comparison rather than an assertion.
+**ZIP constraints are not applied in Phase 3, and the reason is scope, not merit.** A
+USPS ZIP Code does not nest inside anything; ZIP and tract partitions overlap, which is
+what iterative proportional fitting is for, and
+:class:`IterativeProportionalFitting` implements it. Binding tract estimates to ZIP
+totals would require the ZIP→tract allocation, and the Washington measurement is
+genuinely two-sided about that:
+
+* the allocation misplaces EV mass - 17.94% EV-weighted total variation distance
+  within ZIPs (``docs/evidence/P3-1_wa_allocation_scope_and_error.json``);
+* but measured *statewide at tract level*, ZIP-anchored allocation lands EV mass
+  substantially better than a state total alone does - TVD 0.1621 against 0.3049 under
+  a common distribution method
+  (:func:`pipeline.validation.washington.measure_transformation_ladder`).
+
+The second figure weakens the case against ZIP constraints rather than supporting it, so
+this module does not claim they would be harmful. Phase 3 does not apply them because
+evaluating a new constraint set properly is its own piece of work, and CLAUDE.md §19
+scope control sends a useful enhancement to ``docs/FUTURE_WORK.md`` rather than into the
+current phase. The IPF implementation is here, tested, so that the work is a comparison
+when it happens and not a rewrite.
 
 **Reconciliation moves things, and how much it moved is an output.** The movement is
 component `c3` of the continuous uncertainty score: an estimate that had to be dragged a
