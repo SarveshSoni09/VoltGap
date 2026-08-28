@@ -239,3 +239,36 @@ def allocate_many(
 def conservation_error(allocated: Sequence[AllocatedValue], expected_total: float) -> float:
     """Allocation must conserve mass. Returns the absolute difference."""
     return abs(sum(a.value for a in allocated) - expected_total)
+
+
+def zcta_state_index(path: Path | None = None) -> dict[str, frozenset[str]]:
+    """ZCTA -> the set of state FIPS codes it intersects.
+
+    Needed because a state DMV export can carry an **out-of-state mailing ZIP Code**.
+    Oregon's export, for example, contains ZIPs 00907 (Puerto Rico), 01742
+    (Massachusetts) and 10010 (Manhattan), each holding a handful of vehicles. Matching
+    those to their like-numbered ZCTA pulls the households of a distant area into the
+    state's panel: for Oregon that was 3.5 million households, 62% of the state's
+    matched exposure, attached to ZIPs holding 378 vehicles between them.
+
+    A ZCTA's state membership is read from the tract GEOIDs it intersects, whose first
+    two digits are the state FIPS. 137 of 33,791 ZCTAs genuinely span more than one
+    state, so membership is a set rather than a single value.
+    """
+    reference = path or ZCTA_TRACT_RELATIONSHIP
+    if not reference.exists():
+        raise GeographyError(
+            f"ZCTA-to-tract crosswalk missing at {reference}. Without it an "
+            "out-of-state mailing ZIP cannot be told from a local one, and the "
+            "difference is large enough to change every published estimate."
+        )
+    states: dict[str, set[str]] = {}
+    with reference.open("r", encoding="utf-8-sig", newline="") as handle:
+        for row in csv.DictReader(handle, delimiter="|"):
+            zcta = (row.get("GEOID_ZCTA5_20") or "").strip()
+            tract = (row.get("GEOID_TRACT_20") or "").strip()
+            if zcta and len(tract) == 11:
+                states.setdefault(zcta, set()).add(tract[:2])
+    if not states:
+        raise GeographyError(f"{reference} parsed to zero ZCTA-state links")
+    return {zcta: frozenset(codes) for zcta, codes in states.items()}
