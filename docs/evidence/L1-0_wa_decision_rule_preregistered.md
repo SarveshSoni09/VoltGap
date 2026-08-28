@@ -59,3 +59,21 @@ Let `D = weighted_mean_TVD(land_area) - weighted_mean_TVD(hud_res_ratio)`.
 - This comparison does **not** by itself decide whether either method is good enough for
   national use. It decides which of the two is preferred, and whether either clears the
   acceptability floor.
+
+---
+
+## Terminology note appended 2026-08-28 — wording only, rule unchanged
+
+**This pre-registration is not otherwise edited.** Its value rests on having been
+committed at `66f1bfb` before any comparison result existed, so the decision rule, the
+thresholds and the scope limits above stand exactly as written.
+
+One word was wrong. The final bullet calls 0.35 an "acceptability floor". 0.35 is a
+**maximum acceptable total variation distance** — an acceptability **ceiling** — and
+*exceeding* it is the failing direction that triggers `PLAN_CHANGE_3.md`. The decision
+table above already states the rule correctly ("**Both** methods exceed a weighted mean
+TVD of **0.35**"), so the number, the direction of the test and the outcome are
+unaffected. Only the noun in the closing bullet was inverted.
+
+The repository now uses "maximum acceptable TVD" or "acceptability ceiling" throughout,
+encoded as `pipeline.validation.allocation_error.MAX_ACCEPTABLE_TVD = 0.35`.
