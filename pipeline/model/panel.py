@@ -21,7 +21,7 @@ they are part of the state total but cannot be attributed to any in-state area.
 
 from __future__ import annotations
 
-from collections.abc import Mapping, Sequence
+from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -74,7 +74,7 @@ def build_area_table(
 ) -> AreaTable:
     """Features, imputation counts and medians for one ACS summary level."""
     areas = land_areas if land_areas is not None else load_land_area_km2(geography)
-    rows = build_feature_rows(staged, geography, areas, _state_of)
+    rows = build_feature_rows(staged, geography, areas, state_resolver(geography))
     filled, missing, medians = impute(rows)
     return AreaTable(
         geography=geography,
@@ -85,23 +85,17 @@ def build_area_table(
     )
 
 
-def _state_of(geoid: str) -> str:
-    """State FIPS from a GEOID. A ZCTA carries no state, so it reports none.
+def state_resolver(geography: str) -> Callable[[str], str]:
+    """How to read a state FIPS out of a GEOID at this summary level.
 
-    Returning an empty string rather than guessing is deliberate: a ZCTA's state is a
-    property of the areas it intersects, not of its number, and 137 ZCTAs span more
-    than one state.
+    A tract or county GEOID begins with its state FIPS. **A ZCTA does not carry a state
+    at all** - its state membership is a property of the areas it intersects, and 137 of
+    33,791 ZCTAs span more than one - so it reports an empty string rather than the
+    first two digits of a postal number that mean nothing.
     """
-    return geoid[:2] if len(geoid) in (5, 11) and not _looks_like_zcta(geoid) else ""
-
-
-def _looks_like_zcta(geoid: str) -> bool:
-    """Five digits alone is a ZCTA; a five-digit county GEOID is also five digits.
-
-    They are told apart by the caller, which knows the summary level it asked for, so
-    this only guards the default path used when no level is known.
-    """
-    return False
+    if geography == "zcta":
+        return lambda geoid: ""
+    return lambda geoid: geoid[:2]
 
 
 def load_area_tables(

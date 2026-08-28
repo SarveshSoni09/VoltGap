@@ -13,6 +13,106 @@ results are invalid), **S2 Degrading** (usable but weaker than claimed), **S3 Co
 
 None.
 
+### Risks closed by Phase 3
+
+Two open risks recorded in `docs/reports/LIVE_INTEGRATION_AUDIT.md` §I are closed. That
+report is frozen, so the closures are recorded here and in
+`docs/reports/PHASE_3_REPORT.md` §8.2 rather than by editing it.
+
+| Risk | As recorded | Closed how |
+|---|---|---|
+| **R-5** (S3) | "HUD's 60/min rate limit makes a national ZIP sweep slow (~34,000 ZIPs ≈ 9.5 hours serially). Phase 3 needs a cached bulk strategy" | The crosswalk API accepts a **state abbreviation**, so the twelve states Phase 3 needs cost **twelve requests**. Validated against the known-good per-ZIP Washington cache: the state route is a strict superset (700 ZIPs against 438), every shared ZIP matches to **0.0** absolute difference in `res_ratio`, no tract is missing, and the Washington comparison scope is unchanged — same six zero-residential ZIPs, same 404 ZIP 98504 |
+| **R-3** (S2) | "HUD and land-area allocation disagree materially, and even HUD misallocates 17.94% of EV mass in Washington. Allocation error must feed the uncertainty score" | It does, as uncertainty component `c4`, derived from a **measurement** rather than a chosen penalty: statewide tract TVD 0.0000 (`native_tract`), 0.1621 (`zip_anchored`, HUD `res_ratio`), 0.2367 (`county_anchored`), 0.3049 (`state_total_only`) |
+
+### I-11 — a like-numbered ZCTA join imported out-of-state households as exposure
+
+| Field | Value |
+|---|---|
+| Opened | 2026-08-28, during Phase 3 model development |
+| Affected phase | 3 (`pipeline/model/panel.py`); **no earlier phase published anything from this path** |
+| Severity | **S1 Blocking had it shipped** — every ZIP-grain state's demand estimate would have been wrong. Caught before any Phase 3 output was published |
+| Status | **RESOLVED 2026-08-28** |
+
+**Assumed.** That a USPS ZIP Code appearing in a state's DMV export belongs to that
+state, so matching it to the like-numbered ZCTA yields that ZIP's households.
+
+**Actually true.** State DMV exports carry **out-of-state mailing ZIPs**. Oregon's latest
+snapshot contains ZIP 00907 (Puerto Rico), 01742 (Massachusetts), 02852 (Rhode Island),
+07054 (New Jersey) and 10010 (Manhattan), each holding one or two vehicles. Matching
+those to their like-numbered ZCTA imported **3,541,636 households — 62% of Oregon's
+matched exposure — behind ZIPs holding 378 vehicles between them.** The model then
+predicted large EV counts where the state has no residents. Oregon's rank correlation
+between predicted and observed went **negative (−0.177)**, and Vermont's was **−0.365**.
+
+Scale across the eleven ZIP-grain states: 333 such ZIPs in Colorado, 327 in New York,
+310 in Oregon, 170 in Vermont, 116 in North Carolina (5,040 vehicles, 7.6% of the state
+total), 1 in Texas, none in New Jersey or New Mexico.
+
+**Response.** Every ZIP is checked against a ZCTA-to-state index built from the Census
+2020 relationship file, and one lying wholly outside the registering state is excluded
+**by name**, with its vehicles counted in the panel ledger rather than dropped: they are
+real, they belong in the state total, and they cannot be attributed to any in-state area.
+Aggregate leave-one-state-out WAPE moved from **0.72 to 0.33**.
+
+**Why this is not an earlier-phase impact.** Phase 1 built the allocation machinery but
+amendment A21 forbade Phase 2 from consuming registration allocations at all, and Phase 2
+did not. No published number from any earlier phase passed through this path.
+
+### I-12 — a within-group TVD is not comparable across geographic grains
+
+| Field | Value |
+|---|---|
+| Opened | 2026-08-28, while measuring the transformation ladder |
+| Affected phase | 3 (`pipeline/validation/washington.py`) |
+| Severity | **S2 Degrading** — it produced a measurement that appeared to falsify the specification |
+| Status | **RESOLVED 2026-08-28** |
+
+**Assumed.** That the EV-weighted mean of per-group total variation distances measures
+"how far a tract value is from directly observed evidence", and can be compared between
+ZIP, county and state rungs.
+
+**Actually true.** It cannot, for two independent reasons. First, the initial
+implementation derived each group's tract membership **from the observed records**, which
+hands every method perfect knowledge of which tracts actually hold vehicles — the hardest
+part of the problem. Second, a within-group mean averages many small separate problems
+whose scales differ: a ZIP's residual error spreads over a few adjacent tracts while a
+state's spreads over every tract in the state.
+
+Measured that way, the ladder read `county_anchored` 0.2367 **better than** `zip_anchored`
+0.3461, which would have been reported as falsifying the ordering CLAUDE.md §7.4
+component 5 predicts.
+
+**Response.** Membership now comes from geography alone — GEOID nesting for county and
+state, the HUD crosswalk for ZIP — and the metric is the **statewide tract-level TVD**:
+rebuild the whole state's tract vector from each transformation and compare it against the
+observed one. On that metric the specification's ordering holds:
+`native_tract` 0.0000 < `zip_anchored` 0.1621 < `county_anchored` 0.2367 <
+`state_total_only` 0.3049. `assert_ladder_ordering` now checks the result against the
+specification's claim rather than assuming it.
+
+**Nothing published was wrong**, because the flawed metric was never released; it is
+recorded because it nearly produced a false finding against the specification.
+
+### I-13 — the population-share baseline was algebraically the household baseline
+
+| Field | Value |
+|---|---|
+| Opened | 2026-08-28, during Phase 3 model development |
+| Affected phase | 3 (`pipeline/model/demand.py`) |
+| Severity | **S3 Cosmetic** — a second baseline that was secretly the first |
+| Status | **RESOLVED 2026-08-28** |
+
+**Assumed.** That fitting a per-person rate and converting it to a per-household rate
+gave a baseline distinct from the household-share baseline.
+
+**Actually true.** `(Σcount / Σpopulation) × (Σpopulation / Σhouseholds)` is
+`Σcount / Σhouseholds` — exactly the household baseline. The two reported **identical
+WAPE to four decimal places for every state**, which is what exposed it.
+
+**Response.** An `exposure_kind` on every estimator, so the population baseline predicts
+from population and the rest from households. The two now differ (0.7096 against 0.7119
+in the aggregate), and a test asserts they are not equal.
+
 ### I-7 — two checkpoint documents published a test count that was never true
 
 | Field | Value |

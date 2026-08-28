@@ -111,9 +111,9 @@ class Estimator(Protocol):
     exposure_kind: str
 
     def fit(self, features: FloatArray, rate: FloatArray,
-            exposure: FloatArray) -> None: ...
+            exposure: FloatArray) -> None: ...  # pragma: no cover - Protocol declaration
 
-    def predict_rate(self, features: FloatArray) -> FloatArray: ...
+    def predict_rate(self, features: FloatArray) -> FloatArray: ...  # pragma: no cover
 
 
 @dataclass

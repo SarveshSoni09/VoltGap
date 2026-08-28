@@ -163,12 +163,14 @@ def score_state(
     panel: StatePanel,
     mode: str,
     state_total: StateTotal | None = None,
+    feature_names: Sequence[str] | None = None,
 ) -> StateScore:
     """Fit on the training states and score one held-out state at its own grain."""
     rows = list(panel.rows)
     if not rows:
         raise ValidationError(f"{panel.state}: nothing to score")
-    model = fit(estimator, training)
+    model = (fit(estimator, training, feature_names) if feature_names is not None
+             else fit(estimator, training))
     predicted = model.predict_counts(rows)
     actual = observed(rows)
     total: float | None = None
@@ -210,6 +212,8 @@ class LosoResult:
     selection_mode: str
     independent_states: tuple[str, ...]
     excluded_states: Mapping[str, str]
+    states_without_a_published_total: tuple[str, ...] = ()
+    unscorable_states: tuple[str, ...] = ()
 
     def to_dict(self) -> dict[str, object]:
         return {
@@ -217,6 +221,10 @@ class LosoResult:
             "protocol": "leave-one-state-out at each state's native observed granularity",
             "independent_states": list(self.independent_states),
             "excluded_from_independent_aggregate": dict(self.excluded_states),
+            "states_without_a_published_total": list(
+                self.states_without_a_published_total
+            ),
+            "states_with_no_rows_to_score": list(self.unscorable_states),
             "selection_rule": (
                 "lowest EV-weighted WAPE across the independent states in the "
                 f"{self.selection_mode} mode; ties inside {TIE_BREAK_WAPE:.0%} of WAPE "
@@ -257,6 +265,7 @@ def run_loso(
     state_totals: Mapping[str, list[StateTotal]],
     estimators: Sequence[Estimator] | None = None,
     selection_mode: str = STATE_TOTAL_RECONCILED,
+    feature_names: Sequence[str] | None = None,
 ) -> LosoResult:
     """Leave-one-state-out across every independent state, for every candidate."""
     candidates = list(estimators) if estimators is not None else candidate_estimators()
@@ -270,10 +279,18 @@ def run_loso(
         )
 
     scores: list[StateScore] = []
+    missing_total: set[str] = set()
+    unscorable: set[str] = set()
     aggregates: dict[str, dict[str, float]] = {mode: {} for mode in RECONCILIATION_MODES}
     for estimator in candidates:
         by_mode: dict[str, list[StateScore]] = {m: [] for m in RECONCILIATION_MODES}
         for held, panel in sorted(panels.items()):
+            if not panel.rows:
+                # Nothing of this state survived the join, so there is nothing to
+                # score. Recorded by name rather than crashing the whole harness or,
+                # worse, quietly contributing an empty row to the aggregate.
+                unscorable.add(held)
+                continue
             training = [
                 row for state, other in panels.items()
                 if state != held and other.is_independent
@@ -282,12 +299,21 @@ def run_loso(
             series = state_totals.get(STATE_FIPS[held], [])
             chosen = (nearest_vintage(series, snapshot_date(panel.vintage_label))
                       if series else None)
+            if chosen is None:
+                # No published registration total for this jurisdiction, so the
+                # reconciled mode cannot be run for it. Recorded rather than silently
+                # scored against the held-out state's own observed sum, which would be
+                # the leakage this harness exists to avoid.
+                missing_total.add(held)
             for mode in RECONCILIATION_MODES:
+                if mode == STATE_TOTAL_RECONCILED and chosen is None:
+                    continue
                 # A fresh estimator per fit: a fitted object must never carry a
                 # previous state's coefficients into the next fold.
                 score = score_state(
                     _fresh(estimator), training, panel, mode,
                     chosen if mode == STATE_TOTAL_RECONCILED else None,
+                    feature_names,
                 )
                 scores.append(score)
                 if panel.is_independent:
@@ -305,6 +331,8 @@ def run_loso(
             state: "non_independent_preprocessing_selection_state"
             for state, panel in sorted(panels.items()) if not panel.is_independent
         },
+        states_without_a_published_total=tuple(sorted(missing_total)),
+        unscorable_states=tuple(sorted(unscorable)),
     )
 
 

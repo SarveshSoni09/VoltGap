@@ -430,7 +430,10 @@ def assert_primary_feature_set_is_clean(
                 "declared ACS demographic variable. Supply-derived inputs belong only "
                 "in the labelled ablation (CLAUDE.md D2 and §7.3)."
             )
-    named = sorted(f.name for f in features if FORBIDDEN_WORD_PATTERN.search(f.name))
+    # Underscores are word characters, so "charger_density" does not match a \bcharger\b
+    # pattern as written. Feature names are snake_case, so they are matched as words.
+    named = sorted(f.name for f in features
+                   if FORBIDDEN_WORD_PATTERN.search(f.name.replace("_", " ")))
     if named:
         raise FeatureError(
             f"D2 violation: feature name(s) {named} describe infrastructure."
