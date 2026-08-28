@@ -1,0 +1,94 @@
+{
+  "decision_rule_preregistered_at": "commit 66f1bfb, docs/evidence/L1-0_wa_decision_rule_preregistered.md",
+  "included_evs": 292581,
+  "included_zips": 431,
+  "investigation": "Washington paired ZIP-to-tract allocation: scope reconciliation and measured allocation error",
+  "max_acceptable_tvd": 0.35,
+  "methods": {
+    "hud_res_ratio": {
+      "top_tract_accuracy": 0.598608,
+      "unweighted_mean_tvd": 0.143874,
+      "weighted_mean_mae": 0.032767,
+      "weighted_mean_tvd": 0.179354
+    },
+    "land_area": {
+      "top_tract_accuracy": 0.473318,
+      "unweighted_mean_tvd": 0.276683,
+      "weighted_mean_mae": 0.053009,
+      "weighted_mean_tvd": 0.257865
+    }
+  },
+  "record_accounting": {
+    "balances": true,
+    "excluded_by_reason": {
+      "tract_outside_state": 746,
+      "unusable_zip_or_tract": 15,
+      "zip_below_minimum_ev_count": 535,
+      "zip_no_mapping_hud_res_ratio": 71,
+      "zip_no_mapping_land_area": 12,
+      "zip_zero_weight_hud_res_ratio": 233
+    },
+    "excluded_total": 1612,
+    "exclusion_descriptions": {
+      "tract_outside_state": "the geocoded tract lies outside the state whose crosswalk is under test; the vehicle is registered in-state but garaged or geocoded elsewhere, and the comparison is a within-state one",
+      "unusable_zip_or_tract": "the row carries no 5-digit ZIP Code or no 11-digit 2020 census tract, so it cannot enter a paired comparison at all",
+      "zip_below_minimum_ev_count": "fewer than 10 observed EVs, so the observed share vector is noise rather than evidence; pre-registered in L1-0 before any result",
+      "zip_no_mapping_hud_res_ratio": "method 'hud_res_ratio' returns no tract mapping for this ZIP, so it cannot be scored; reported as unallocatable, not rescued",
+      "zip_no_mapping_land_area": "method 'land_area' returns no tract mapping for this ZIP, so it cannot be scored; reported as unallocatable, not rescued",
+      "zip_zero_weight_hud_res_ratio": "method 'hud_res_ratio' returns weights summing to zero for this ZIP (no residential addresses). Never renormalised"
+    },
+    "included": 292581,
+    "retrieved": 294193
+  },
+  "state_fips": "53",
+  "stratified_by_observed_tracts_per_zip": {
+    "1": {
+      "evs": 2601.0,
+      "weighted_tvd_hud_res_ratio": 0.004584,
+      "weighted_tvd_land_area": 0.021186,
+      "zips": 57.0
+    },
+    "2-3": {
+      "evs": 12654.0,
+      "weighted_tvd_hud_res_ratio": 0.107645,
+      "weighted_tvd_land_area": 0.235075,
+      "zips": 100.0
+    },
+    "4-7": {
+      "evs": 51773.0,
+      "weighted_tvd_hud_res_ratio": 0.171512,
+      "weighted_tvd_land_area": 0.257601,
+      "zips": 111.0
+    },
+    "8+": {
+      "evs": 225553.0,
+      "weighted_tvd_hud_res_ratio": 0.187192,
+      "weighted_tvd_land_area": 0.261934,
+      "zips": 163.0
+    }
+  },
+  "supersedes": "docs/evidence/L1-1_washington_allocation_validation.json, which reported the same comparison but published only the included denominator (292,581) without accounting for the 1,612 excluded records by reason",
+  "why_washington": "Washington EV registration records carry both a postal ZIP Code and a 2020 census tract on the same observed vehicle row, so the observed ZIP-to-tract EV distribution is directly measurable. This is NOT national ground truth.",
+  "win_share": {
+    "hud_res_ratio": 0.645012,
+    "land_area": 0.257541
+  },
+  "zip_accounting": {
+    "balances": true,
+    "excluded_by_reason": {
+      "zip_below_minimum_ev_count": 149,
+      "zip_no_mapping_hud_res_ratio": 1,
+      "zip_no_mapping_land_area": 1,
+      "zip_zero_weight_hud_res_ratio": 6
+    },
+    "excluded_total": 157,
+    "exclusion_descriptions": {
+      "zip_below_minimum_ev_count": "fewer than 10 observed EVs, so the observed share vector is noise rather than evidence; pre-registered in L1-0 before any result",
+      "zip_no_mapping_hud_res_ratio": "method 'hud_res_ratio' returns no tract mapping for this ZIP, so it cannot be scored; reported as unallocatable, not rescued",
+      "zip_no_mapping_land_area": "method 'land_area' returns no tract mapping for this ZIP, so it cannot be scored; reported as unallocatable, not rescued",
+      "zip_zero_weight_hud_res_ratio": "method 'hud_res_ratio' returns weights summing to zero for this ZIP (no residential addresses). Never renormalised"
+    },
+    "included": 431,
+    "retrieved": 588
+  }
+}

@@ -4,8 +4,8 @@
 |---|---|
 | Date | 2026-08-26 |
 | Scope | Integration correctness only. Not Phase 3. No model fitting, siting, forecasting or frontend work |
-| Deterministic suite | 585 tests pass; 100% line and branch coverage (2,325 statements, 548 branches, zero missed) |
-| Live suite | 46 tests pass, all marked `live` and excluded from every deterministic gate |
+| Deterministic suite | ~~585~~ **563** tests pass (corrected 2026-08-28, see §K); 100% line and branch coverage (2,325 statements, 548 branches, zero missed) — the coverage figures were and remain correct |
+| Live suite | 46 tests in `tests/live/`; **47** tests carry the `live` marker repository-wide (corrected 2026-08-28, see §K). All are excluded from every deterministic gate |
 | Prepared by | Claude Code |
 
 ---
@@ -305,3 +305,153 @@ Redaction was **hardened before any credential touched the network**:
 | 18 | No S1 unresolved integration defect | ✅ |
 
 **18/18. Live-network tests are not part of any deterministic `make gate` invocation.**
+
+---
+
+## K. Correction — 2026-08-28
+
+Four corrections raised on review of this report, before any Phase 3 model was fitted.
+The original wording is preserved above (struck through where it was a bare number) so
+the audit trail survives. **No integration finding changes. The checkpoint result
+remains PASS.**
+
+### K.1 Test counts were wrong; the coverage figures were not
+
+This report and `LIVE_INTEGRATION_STATUS.md` both claimed **585 deterministic tests and
+46 live tests**. Measured on the same commit those documents describe (`39f5bbf`, working
+tree clean), with `.venv/bin/python -m pytest --collect-only -q`:
+
+| Selection | Command | Collected |
+|---|---|---:|
+| Deterministic (what `make gate` runs) | `pytest --collect-only -q` — the default `addopts = -m "not live"` applies | **563** |
+| Live-marked, repository-wide | `pytest --collect-only -q -m live` | **47** |
+| Everything, no marker filter | `pytest --collect-only -q -m ""` | **610** |
+
+563 + 47 = 610, so the three figures reconcile.
+
+**Why "46" appeared, and it is a real distinction, not a typo.** 46 is the number of
+tests in the `tests/live/` **directory**. 47 is the number carrying the `live`
+**marker**, because one live-marked test lives outside that directory:
+
+```
+tests/integration/test_determinism.py::test_live_refresh_is_not_expected_to_be_byte_identical
+```
+
+That test is marked `live` deliberately — it documents that a live refresh producing
+different artifacts is not a determinism failure (CLAUDE.md §14.1), and it must not run
+in the deterministic gate. Per-file live collection confirms the split:
+
+```
+tests/integration/test_determinism.py: 1
+tests/live/test_live_afdc.py: 12
+tests/live/test_live_census.py: 6
+tests/live/test_live_eia.py: 6
+tests/live/test_live_equivalence_and_secrets.py: 9
+tests/live/test_live_hud.py: 13
+```
+
+**Where "585" came from: nowhere in the repository.** It matches no committed state.
+Counted from a `git worktree` at the Phase 2 gate commit `3330e79`, the suite collected
+**529** tests (there was no live/deterministic split then, so all 529 were
+deterministic). At `95d7ecf` and `39f5bbf` it collects 563 deterministic and 47 live —
+and `git show --stat 39f5bbf -- tests pyproject.toml Makefile` is empty, so no test,
+marker or configuration change occurred between those two commits. 585 is a stale or
+mistyped figure that was never true.
+
+**The coverage figures in this report were correct and are unchanged.** Re-run on
+2026-08-28: 563 tests pass, `TOTAL 2325 statements, 0 missed, 548 branches, 0 partial,
+100%`, with every per-package threshold met (`pipeline/discovery` 677/198,
+`pipeline/spatial` 285/70, `pipeline/model` 527/116, `pipeline/quality` 287/64,
+`pipeline/schemas` 52/2, `pipeline/sources` 213/46, `pipeline/transform` 100/14 — all
+100%).
+
+**Counts after this correction landed.** The correction itself adds tests, so the
+figures above describe `39f5bbf` and the figures here describe the commit that carries
+§K: **609 deterministic**, **47 live-marked**, **656 collected in total**, still 100%
+line and branch coverage (`TOTAL 2584 statements, 0 missed, 602 branches, 0 partial`)
+with a new `pipeline/validation` tier at 100% (259 statements, 54 branches).
+
+**Prevented from recurring.** `tests/unit/test_suite_composition.py` (5 tests) now
+asserts the structure rather than a total: every test under `tests/live/` carries the
+marker; the live-marked tests outside `tests/live/` are exactly the one enumerated
+above, so adding another forces the list and the documentation to be updated; and
+`pyproject.toml` still deselects live tests by default.
+
+### K.2 "Acceptability floor" was the wrong word for a ceiling
+
+§E.1 said neither method "exceeds the 0.35 acceptability floor". 0.35 is a **maximum
+acceptable total variation distance** — an acceptability **ceiling** — and exceeding it
+is the failing direction that triggers a plan change. The threshold, the direction of
+the test and the conclusion are all unchanged; only the noun was wrong. The repository
+now says **"maximum acceptable TVD"**, encoded as
+`pipeline.validation.allocation_error.MAX_ACCEPTABLE_TVD = 0.35`.
+
+### K.3 The Washington denominator is now fully accounted for
+
+§E.1 reported the comparison over **292,581** EVs while §C recorded **294,193** records
+retrieved. The 1,612-record difference was real and defensible but was never published,
+so a reader could not tell deliberate exclusion from silent loss.
+
+The comparison has been re-implemented as reproducible code
+(`pipeline/validation/allocation_error.py`, `pipeline/validation/washington.py`) over
+the full 294,193-record retrieval, classifying every record through an ordered,
+first-match-wins rule list so the reasons are **mutually exclusive by construction**.
+`ExclusionLedger.assert_balanced()` raises unless
+`retrieved == included + sum(excluded_by_reason)`.
+
+| Disposition | Records | ZIPs |
+|---|---:|---:|
+| **Included** | **292,581** | **431** |
+| `unusable_zip_or_tract` — no 5-digit ZIP or no 11-digit 2020 tract on the row | 15 | — |
+| `tract_outside_state` — geocoded tract is not in Washington | 746 | — |
+| `zip_below_minimum_ev_count` — fewer than 10 observed EVs (pre-registered in L1-0) | 535 | 149 |
+| `zip_zero_weight_hud_res_ratio` — HUD `res_ratio` sums to 0.0; never renormalised | 233 | 6 |
+| `zip_no_mapping_hud_res_ratio` — HUD returns no mapping for the ZIP | 71 | 1 |
+| `zip_no_mapping_land_area` — no like-numbered ZCTA in the Census 2020 relationship file | 12 | 1 |
+| **Retrieved** | **294,193** | **588** |
+
+292,581 + 15 + 746 + 535 + 233 + 71 + 12 = 294,193. The ZIP counts (149 / 6 / 1 / 1)
+reproduce §E.1's exactly; what is new is the **record** count behind each.
+
+**The re-implementation reproduces the decision exactly.** EV-weighted mean TVD
+0.179354 (HUD) against 0.257865 (land area), unweighted 0.143874 against 0.276683, win
+share 0.645012, and all four complexity strata identical to the values in §E.1. `D` is
+still `+0.078512` against the 0.05 threshold and the win share still clears 0.60, so
+**HUD `res_ratio` remains the preferred ZIP→tract method** and land area remains the
+documented degraded fallback.
+
+Two secondary metrics moved slightly, both explained:
+
+- **Top-tract accuracy**: 59.86% / 47.33% here against 59.63% / 47.10% in §E.1. The gap
+  is exactly `1/431` for both methods. Cause: **ZIP 98586 is the one included ZIP whose
+  observed top tract is tied**, and the new implementation breaks ties deterministically
+  by lowest tract id instead of leaving the answer to dictionary order.
+- **EV-weighted mean MAE**: 0.032767 / 0.053009 here against 0.033665 / 0.053144. The
+  new implementation states its denominator explicitly — the union of observed and
+  estimated tracts for that ZIP.
+
+Neither metric is decisive under the pre-registered rule, which rests on weighted TVD
+and win share; both of those reproduce to six decimal places.
+
+New evidence artifact: `docs/evidence/P3-1_wa_allocation_scope_and_error.json`. It
+supersedes `docs/evidence/L1-1_washington_allocation_validation.json`, which is left
+unedited as the frozen record of what was published at the checkpoint.
+
+### K.4 Washington is method-selection data, not independent validation
+
+§E.1 selected HUD over land area **using Washington**. Any later Washington
+leave-one-state-out result is therefore tuning-influenced. Fixed before Phase 3 began,
+in `docs/evidence/P3-0_phase3_preregistration.md`:
+
+- Washington carries the status `non_independent_preprocessing_selection_state`;
+- it is **excluded from any headline aggregate described as independent** leave-one-state-out
+  demand model validation;
+- it is still run and still reported, in its own labelled row, since it is the only
+  tract-native state;
+- every held-out state is scored at its **own native observed granularity** — tract-native
+  compared at tract, ZIP-native aggregated back to ZIP, county-native aggregated back to
+  county — and crosswalk-generated tract values are **never** used as observed tract
+  labels.
+
+The cost is accepted explicitly: with Washington excluded, the independent aggregate is
+scored entirely at ZIP or county grain, and no tract-native state remains in it.

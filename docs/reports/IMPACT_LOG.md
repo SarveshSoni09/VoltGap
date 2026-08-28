@@ -13,6 +13,109 @@ results are invalid), **S2 Degrading** (usable but weaker than claimed), **S3 Co
 
 None.
 
+### I-7 — two checkpoint documents published a test count that was never true
+
+| Field | Value |
+|---|---|
+| Opened | 2026-08-28, owner review of the Live Integration Assurance Checkpoint |
+| Affected phase | Live Integration Assurance Checkpoint (`LIVE_INTEGRATION_AUDIT.md`, `LIVE_INTEGRATION_STATUS.md`) |
+| Severity | **S3 Cosmetic** — reporting only; no measurement or gate result was wrong |
+| Status | **RESOLVED 2026-08-28** |
+
+**Assumed.** That the suite held 585 deterministic tests and 46 live tests.
+
+**Actually true.** At the commit both documents describe (`39f5bbf`, clean tree) the
+suite collects **563** deterministic tests, **47** carrying the `live` marker, **610**
+in total. 585 matches no committed state: at the Phase 2 gate commit `3330e79` the suite
+collected 529, and `git show --stat 39f5bbf -- tests pyproject.toml Makefile` is empty,
+so nothing about the tests changed between `95d7ecf` and `39f5bbf`.
+
+The 46-versus-47 half is a real distinction rather than a typo: 46 is the `tests/live/`
+**directory** count and 47 is the **marker** count, because
+`tests/integration/test_determinism.py::test_live_refresh_is_not_expected_to_be_byte_identical`
+is deliberately marked `live` so it stays out of the deterministic gate.
+
+**Response.** Both documents corrected with the original figures struck through and the
+derivation shown (`LIVE_INTEGRATION_AUDIT.md` §K.1). `tests/unit/test_suite_composition.py`
+now asserts the structure instead of a total: every test under `tests/live/` carries the
+marker, the live-marked tests outside that directory are exactly one enumerated entry,
+and `pyproject.toml` still deselects `live` by default.
+
+### I-8 — the Washington comparison published a denominator it did not account for
+
+| Field | Value |
+|---|---|
+| Opened | 2026-08-28, owner review of the Live Integration Assurance Checkpoint |
+| Affected phase | Live Integration Assurance Checkpoint (§E.1), Phase 3 inputs |
+| Severity | **S3 Cosmetic** — the measurement was right; the accounting for it was absent |
+| Status | **RESOLVED 2026-08-28** |
+
+**Assumed.** That reporting the comparison over 292,581 EVs, against 294,193 records
+retrieved, was self-explanatory.
+
+**Actually true.** The 1,612-record gap was defensible but unpublished, so a reader could
+not distinguish deliberate exclusion from silent loss — the quiet form of the failure
+directive D8 forbids.
+
+**Response.** The comparison is now reproducible code
+(`pipeline/validation/allocation_error.py`, `pipeline/validation/washington.py`) over the
+full 294,193-record retrieval, classifying every record through an ordered,
+first-match-wins rule list so reasons are mutually exclusive by construction, with
+`ExclusionLedger.assert_balanced()` raising unless
+`retrieved == included + sum(excluded_by_reason)`. The published table is 15 + 746 + 535
++ 233 + 71 + 12 = 1,612 excluded, 292,581 included.
+
+**The decision did not change.** Weighted mean TVD 0.179354 (HUD) against 0.257865 (land
+area), win share 0.645012, all four complexity strata identical to §E.1. Two secondary
+metrics moved: top-tract accuracy by exactly `1/431` for both methods, because ZIP 98586
+is the one included ZIP with a tied observed top tract and ties now break deterministically
+on the lowest tract id; and weighted mean MAE, because the denominator is now stated
+explicitly as the union of observed and estimated tracts.
+
+### I-9 — Washington was used to select a preprocessing method and could have been reused as independent validation
+
+| Field | Value |
+|---|---|
+| Opened | 2026-08-28, owner review before Phase 3 model fitting |
+| Affected phase | 3 (validation design) |
+| Severity | **S2 Degrading** — a Washington LOSO figure inside a headline aggregate would have been weaker than the label claimed |
+| Status | **RESOLVED 2026-08-28**, before any model was fitted |
+
+**Assumed.** That Washington could serve both as the holdout that chose HUD over
+land-area weighting and as a state in the independent leave-one-state-out aggregate.
+
+**Actually true.** A preprocessing method tuned on Washington makes any later Washington
+result tuning-influenced. Reporting it inside an aggregate described as independent
+validation would overstate the evidence.
+
+**Response.** Fixed in `docs/evidence/P3-0_phase3_preregistration.md`, written and
+committed before any Phase 3 fitting: Washington carries the status
+`non_independent_preprocessing_selection_state`, is excluded from any headline aggregate
+described as independent, and is still run and reported in its own labelled row. Every
+held-out state is scored at its own native observed granularity, and crosswalk-generated
+tract values are never used as observed tract labels. The cost — no tract-native state
+remains in the independent aggregate — is recorded rather than avoided.
+
+### I-10 — "acceptability floor" inverted the sense of the 0.35 threshold
+
+| Field | Value |
+|---|---|
+| Opened | 2026-08-28, owner review |
+| Affected phase | Live Integration Assurance Checkpoint, `L1-0`, `L1-1` |
+| Severity | **S3 Cosmetic** — wording only; the number, the direction of the test and the outcome were all correct |
+| Status | **RESOLVED 2026-08-28** |
+
+**Assumed.** That "floor" described a threshold whose failing direction is upward.
+
+**Actually true.** 0.35 is a **maximum acceptable TVD** — an acceptability **ceiling**.
+Exceeding it is what triggers a plan change.
+
+**Response.** The repository now says "maximum acceptable TVD" or "acceptability
+ceiling", encoded as `pipeline.validation.allocation_error.MAX_ACCEPTABLE_TVD = 0.35`. A
+dated terminology note is appended to `L1-0` rather than editing a pre-registration in
+place; `L1-1` is left frozen and is superseded by
+`docs/evidence/P3-1_wa_allocation_scope_and_error.json`.
+
 ### I-5 — the probe attached a measurement to failed responses
 
 | Field | Value |

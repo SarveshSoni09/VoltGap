@@ -38,8 +38,8 @@ coverage:
 	@# coverage data. Running pytest once per threshold would multiply a multi-minute
 	@# suite by the number of tiers for no additional signal.
 	@# 100% line AND branch on result-computing code; 85% on sources/transform;
-	@# 70% repository wide. pipeline/validation does not exist yet;
-	@# its 100% requirement first binds in Phase 5, which creates it.
+	@# 70% repository wide. pipeline/validation was created in Phase 3 (the record
+	@# ledger and the measured allocation error), so its 100% tier binds from Phase 3.
 	$(PY) -m pytest -q --cov=pipeline --cov-branch --cov-report=
 	@echo "--- repository wide (>= 70%) ---"
 	@$(PY) -m coverage report --fail-under=70 > /tmp/voltgap_cov.txt 2>&1 || (tail -3 /tmp/voltgap_cov.txt && exit 1)
@@ -49,6 +49,9 @@ coverage:
 	@tail -2 /tmp/voltgap_cov.txt
 	@echo "--- pipeline/spatial (= 100%) ---"
 	@$(PY) -m coverage report --include="pipeline/spatial/*" --fail-under=100 > /tmp/voltgap_cov.txt 2>&1 || (tail -3 /tmp/voltgap_cov.txt && exit 1)
+	@tail -2 /tmp/voltgap_cov.txt
+	@echo "--- pipeline/validation (= 100%) ---"
+	@$(PY) -m coverage report --include="pipeline/validation/*" --fail-under=100 > /tmp/voltgap_cov.txt 2>&1 || (tail -3 /tmp/voltgap_cov.txt && exit 1)
 	@tail -2 /tmp/voltgap_cov.txt
 	@echo "--- pipeline/model (= 100%) ---"
 	@$(PY) -m coverage report --include="pipeline/model/*" --fail-under=100 > /tmp/voltgap_cov.txt 2>&1 || (tail -3 /tmp/voltgap_cov.txt && exit 1)

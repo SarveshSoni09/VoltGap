@@ -5,7 +5,7 @@
 > content below is preserved as the record of where work stopped, so the resume path
 > stays auditable. Every item listed as remaining was completed.
 
-Verified state at pause: **585 deterministic tests pass, 46 live tests pass**,
+Verified state at pause: ~~585 deterministic tests pass, 46 live tests pass~~ **563 deterministic tests pass; 47 tests carry the `live` marker, 46 of them in `tests/live/`** (corrected 2026-08-28 — see `LIVE_INTEGRATION_AUDIT.md` §K.1),
 100% line and branch coverage (2,325 statements, 548 branches, zero missed),
 ruff and mypy strict clean, copy lint clean (104 files), **Phase 2 gate PASS**.
 
@@ -16,7 +16,7 @@ ruff and mypy strict clean, copy lint clean (104 files), **Phase 2 gate PASS**.
 | Secret hygiene verified first | `.env` git-ignored and untracked; `.env.example` has 7 assignments, **0** with values |
 | Redaction hardened | `REDACTED_PARAMS` widened; new `REDACTED_HEADERS` covers `Authorization`, `x-api-key`, `cookie`. Request headers are redacted **before** the cache write. Cache keys are stable across different credential values |
 | `.env` loading + `HUD_USER_TOKEN` | `load_dotenv()` never mutates `os.environ`; `presence()` reports booleans; `secret_values()` is in-memory only, for the leak scan |
-| Live tests separated from the gate | `addopts = -m "not live"` in `pyproject.toml`, so a plain `pytest` (what `make gate` runs) never touches the network. 46 tests marked `live` |
+| Live tests separated from the gate | `addopts = -m "not live"` in `pyproject.toml`, so a plain `pytest` (what `make gate` runs) never touches the network. 46 tests live in `tests/live/`; **47** carry the `live` marker, the extra one being `tests/integration/test_determinism.py::test_live_refresh_is_not_expected_to_be_byte_identical` (corrected 2026-08-28) |
 | Makefile targets | `live-smoke`, `live-integration`, `integration-assurance` |
 | **AFDC** live (12 tests) | Valid key OK; **rate limit 1,000/hr vs DEMO_KEY's 10**; missing→403 `API_KEY_MISSING`; invalid→403 `API_KEY_INVALID`; pagination has no overlap/drop; JSON schema unchanged; **no unit identifier has appeared upstream** |
 | **Census** live (6 tests) | Keyless returns **HTTP 200 with an HTML "Missing Key" page**, not a 4xx; authenticated returns JSON; **API and bulk agree exactly** for tract 53033007202 / B25003 / ACS 2023; all 8 planned Phase 3 tables exist in vintages 2019–2023 |
@@ -43,7 +43,9 @@ Against the pre-registered rule, **HUD materially outperforms** on both conditio
 | Top-tract accuracy | **59.6%** | 47.1% |
 
 `D = +0.0785` (threshold 0.05) and HUD wins **64.5%** of ZIPs (threshold 60%). Neither
-exceeds the 0.35 acceptability floor, so **no plan change is triggered**. HUD becomes the
+exceeds the 0.35 **maximum acceptable TVD** (an acceptability *ceiling*; the earlier
+wording "floor" inverted the sense — corrected 2026-08-28), so **no plan change is
+triggered**. HUD becomes the
 preferred Phase 3 ZIP→tract method; land-area is retained as documented degraded fallback.
 
 ## Phase 2 correction, before/after
@@ -83,3 +85,17 @@ preferred Phase 3 ZIP→tract method; land-area is retained as documented degrad
 I-6, and the Phase 0, 1 and 2 gates were all re-run and pass.
 
 **Phase 3 has not started and must not start until the audit report is reviewed.**
+
+---
+
+## Correction — 2026-08-28
+
+This file is superseded and is preserved as the record of a mid-checkpoint pause, so its
+body is left as written apart from the three inline corrections marked above. The full
+corrections — test counts, the acceptability-ceiling wording, the Washington record
+accounting, and Washington's status as method-selection rather than independent
+validation data — are in `docs/reports/LIVE_INTEGRATION_AUDIT.md` §K.
+
+The Washington comparison itself is now reproducible code rather than a one-off script:
+`pipeline/validation/allocation_error.py` and `pipeline/validation/washington.py`, with
+the balanced record ledger in `docs/evidence/P3-1_wa_allocation_scope_and_error.json`.
