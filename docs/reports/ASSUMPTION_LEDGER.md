@@ -93,3 +93,29 @@ review, and A-0.5 moved forward to Phase 1. Phase 1's gate re-checks all open en
 | A-1.4 | Row order within a station is stable enough within one snapshot for the record key to join | **HOLDS.** Unit-to-connector joins produced zero orphans across 292,756 national units | smoke-forward, 5 tests |
 | A-0.6 | Block-level population weighting is constructible from TIGER + P.L. 94-171 | **UNTESTED.** Phase 2 used block-group centroids instead; superseded in scope by A-2.3 | Phase 4 |
 | A-1.3, A-0.19 | A rule-based copy lint catches the claims that matter | **HOLDS so far.** 95 files clean. Four legitimate quotations of a prohibited phrase needed inline allow markers this phase, which is the mechanism working | copy lint |
+
+---
+
+## Opened by Phase 3 (2026-08-28)
+
+| ID | Falsifiable statement | Depends on | Tested in | Status |
+|---|---|---|---|---|
+| A-3.1 | New Jersey's observed BEV total is materially incomplete rather than definitionally different from the AFDC series. | Observed 164,538 against AFDC 2025's 210,000, **−21.65% at the same vintage**, where 13 of the other 14 states agree within 9%. Its latest snapshot carries **one distinct registration date** against 36 for Connecticut and 138 for New York. Corrected G9 forbids marking it low-confidence on statistical unusualness alone, so it is flagged and left in the panel. | Phase 5 | OPEN |
+| A-3.2 | The Washington-measured transformation ladder generalises to other states, so a `c4` derived there is a fair penalty nationally. | Washington is the only state whose vehicle rows carry a ZIP, a county and a tract together, so it is the only place the ladder can be measured at all. Its housing and settlement pattern is not the national one. | Phase 5 | OPEN |
+| A-3.3 | Fitting at each state's own observed geography and predicting at tract grain does not introduce material aggregation bias. | A rate model fitted on ZCTA and county rows is applied to tracts. Share features aggregate as population-weighted means, which is what a coarser area's share *is*, but the relationship need not be scale-invariant. Washington is the only place this could be checked, and it is the non-independent state. | Phase 5 | OPEN |
+| A-3.4 | The AFDC state totals, rounded to the nearest 100, are precise enough to serve as exact reconciliation constraints. | Every reconciled tract estimate inherits a constraint good to about ±50 vehicles per state. At national scale that is ~±2,550 vehicles against 5,755,687. | Phase 4 | OPEN |
+| A-3.5 | Population density is an adequate stand-in for the urban/rural classification CLAUDE.md §7.3 names. | No keyless tract-level Census urban/rural product was retrieved this phase, so the feature ships as a continuous proxy. A classification would let the model treat rural areas as a distinct regime rather than an extreme of one. | Phase 4 | OPEN |
+| A-3.6 | The eleven ZIP-grain states' registration data are better used as training and validation evidence than as reconciliation constraints. | The measured ladder says ZIP-anchored allocation places EV mass better than a state total alone (statewide tract TVD 0.1621 against 0.3049), which is evidence *for* using them as constraints. Phase 3 declined on scope grounds under CLAUDE.md §19, not on merit. | Phase 4, or a reviewer decision | OPEN |
+
+## Re-checked at the Phase 3 gate
+
+| ID | Assumption | Status this phase | Evidence |
+|---|---|---|---|
+| A-0.7 | ZIP-code counts can be reallocated to tracts with acceptable error | **Not exercised as stated, and deliberately.** Phase 3 allocates no ZIP count onto a tract; ACS publishes features at ZCTA grain, so each state is fitted against the counts it actually publishes. The allocation error was still *measured* (0.1621 statewide tract TVD under HUD `res_ratio`) and feeds the uncertainty score | transformation ladder, §5.5 of the Phase 3 report |
+| A-0.12 | The number of genuinely usable sub-state anchored states is large enough for LOSO to have power | **CONFIRMED.** 14 independent states after excluding Washington, well above the 3-or-fewer plan-change trigger, which the harness raises on | `test_three_or_fewer_usable_states_triggers_a_plan_change_not_a_weaker_test` |
+| A-0.18 | A public ZIP-to-tract crosswalk exists whose allocation error can be measured rather than assumed | **CONFIRMED.** HUD 2026 Q2, measured against Washington's paired records at three grains | `docs/evidence/P3-1_wa_allocation_scope_and_error.json`, `P3-2_demand_model.json` |
+| A-1.1 | Land-area weighting is acceptable as an interim allocation basis, and its error is small enough for Phase 3 to correct rather than discard | **FALSIFIED as the preferred method, retained as the documented fallback.** HUD `res_ratio` reaches statewide tract TVD 0.1621 against land area's 0.2100 under a common method, and 0.1794 against 0.2579 EV-weighted within ZIPs | Live Integration Assurance Checkpoint §E.1; ladder §5.5 |
+| A-0.4 | The NREL county home-charging shares cannot serve as a present-day calibration target | **Remains CONFIRMED, and unused.** Home charging access is absent from the primary feature set, as amendment A7 requires | `assert_primary_feature_set_is_clean` |
+| A-2.1, A-2.2, A-2.3, A-2.4, A-2.5 | The Phase 2 supply and access assumptions | **UNTESTED this phase.** Phase 3 consumes no Phase 2 supply output except inside the labelled ablation, which is not part of the published surface | Phase 4 |
+| A-1.3, A-0.19 | A rule-based copy lint catches the claims that matter | **HOLDS so far.** 140 files clean, 15 rules | copy lint |
+| A-0.21 | Excluding volatile metadata from the semantic hash still detects every genuine change | HOLDS | `tests/integration/test_determinism.py` |

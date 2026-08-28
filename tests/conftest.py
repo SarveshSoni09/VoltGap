@@ -91,3 +91,28 @@ def scalar(warehouse: Warehouse, sql: str) -> object:
     row = warehouse.connection.execute(sql).fetchone()
     assert row is not None, f"query returned no rows: {sql}"
     return row[0]
+
+
+class FakeFetcher:
+    """A Fetcher that answers from a caller-supplied queue, recording every request.
+
+    The ACS adapter splits a variable list across several requests and joins the
+    responses, so the tests need to control what each request returns and to see what
+    was asked for.
+    """
+
+    def __init__(self, bodies: list[bytes], status_code: int = 200) -> None:
+        self.bodies = list(bodies)
+        self.status_code = status_code
+        self.requests: list[dict[str, str]] = []
+
+    def get(self, source_id, url, params=None, headers=None, max_bytes=None):  # type: ignore[no-untyped-def]
+        from pipeline.discovery.cache import Response
+
+        self.requests.append(dict(params or {}))
+        body = self.bodies.pop(0) if self.bodies else b"[]"
+        return Response(
+            url=url, params=dict(params or {}), request_headers=dict(headers or {}),
+            status_code=self.status_code, content=body, headers={},
+            retrieved_at="2026-01-01T00:00:00+00:00", elapsed_ms=1.0, from_cache=False,
+        )

@@ -169,3 +169,40 @@ nationally.
   importantly, a refresh health indicator in the UI.
 - **CEJST via the Internet Archive** is a third-party dependency and a single point of
   failure. A local mirror should be taken before Phase 6.
+
+## 7. Demand model limits (Phase 3)
+
+- **No tract-native state validates the headline result.** Washington is the only source
+  reporting registrations at census-tract grain, and it was used to *select* the ZIP→tract
+  allocation method, so any Washington validation result is tuning-influenced. It is
+  excluded from the independent leave-one-state-out aggregate and reported separately.
+  The consequence is that **every independent validation figure is scored at ZIP or county
+  grain**, and tract-level accuracy is not directly validated by an independent state.
+- **Uncertainty calibration rests on one state, and is mixed.** Washington is the only
+  place a tract-level error can be computed. Mean absolute error by uncertainty quintile
+  is 54.04, 57.69, 50.96, 50.72, 74.92: the top quintile behaves as intended, the middle
+  three are flat. The weights were fixed before fitting and have not been retuned in
+  response.
+- **The geographic transformation penalty is extrapolated from one state.** The measured
+  ladder (`native_tract` 0.0000, `zip_anchored` 0.1621, `county_anchored` 0.2367,
+  `state_total_only` 0.3049) comes entirely from Washington and is applied nationally.
+- **Reconciliation constraints are rounded.** AFDC publishes state registration counts
+  rounded to the nearest 100, so every reconciled tract estimate inherits a constraint
+  precise to about ±50 vehicles per state.
+- **Sub-state observations are not contemporaneous with one another.** State DMV snapshots
+  span 2024-06 (North Carolina) to 2026-07 (New Mexico). Each state is reconciled to the
+  AFDC vintage nearest its own snapshot, which contains the problem but does not remove it.
+- **The target is battery-electric vehicles only.** Plug-in hybrids are counted separately
+  and never added in, because the AFDC state series that supplies every constraint counts
+  BEVs only.
+- **Vehicles registered to out-of-state mailing ZIPs cannot be placed sub-state.** They are
+  real, they belong in the state total, and they are excluded from the panel by name with
+  their counts recorded — 6,922 in New York, 5,040 in North Carolina, 1,316 in Connecticut,
+  1,253 in Oregon.
+- **Texas loses 15,405 BEV (3.9% of its observed total) to ZIPs with no like-numbered
+  ZCTA**, which are typically point or PO-Box ZIPs with no areal equivalent.
+- **Urban/rural is a continuous proxy, not a classification.** CLAUDE.md §7.3 names
+  urban/rural among the primary features; Phase 3 represents it by logged population
+  density because no keyless tract-level Census classification was retrieved.
+- **New Jersey's observed total is 21.65% below the AFDC figure at the same vintage** and
+  is flagged for review rather than marked low-confidence, per corrected domain rule G9.

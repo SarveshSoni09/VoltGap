@@ -2446,6 +2446,8 @@
     "protocol": "leave-one-state-out at each state's native observed granularity",
     "selected_estimator": "poisson_glm",
     "selection_rule": "lowest EV-weighted WAPE across the independent states in the state_total_reconciled mode; ties inside 1% of WAPE go to the simpler model. Pre-registered before any candidate was run.",
+    "states_with_no_rows_to_score": [],
+    "states_without_a_published_total": [],
     "validation_term": "demand model validation"
   },
   "national_surface": {
@@ -3203,6 +3205,39 @@
   "phase": 3,
   "pre_registration": "docs/evidence/P3-0_phase3_preregistration.md",
   "selection_mode": "state_total_reconciled",
+  "supply_feature_ablation": {
+    "WARNING": "SUPPLY-FEATURE ABLATION ONLY. These features are forbidden in the primary demand model by directive D2: existing infrastructure is an OUTCOME of prior investment decisions, so using it to predict demand and then siting from that demand launders historical deployment patterns into 'need'. This result is not used for anything and must never be quoted as the model's performance.",
+    "aggregate_weighted_wape_with_supply_features": {
+      "state_total_reconciled": {
+        "poisson_glm": 0.42317,
+        "ridge_log_rate": 0.400848
+      },
+      "unreconciled": {
+        "poisson_glm": 70.714564,
+        "ridge_log_rate": 0.457432
+      }
+    },
+    "aggregate_weighted_wape_without_supply_features": {
+      "state_total_reconciled": {
+        "poisson_glm": 0.351694,
+        "ridge_log_rate": 0.405567
+      },
+      "unreconciled": {
+        "poisson_glm": 0.408785,
+        "ridge_log_rate": 0.463529
+      }
+    },
+    "in_sample_wape": {
+      "with_supply_features": 0.366342,
+      "without_supply_features": 0.366382
+    },
+    "scope": "the eleven ZIP-grain states, which is where AFDC ZIPs join directly",
+    "supply_features_added": [
+      "dcfc_ports_per_1k_households",
+      "l2_ports_per_1k_households",
+      "public_stations_per_1k_households"
+    ]
+  },
   "target_definition": "battery-electric (BEV) registrations. AFDC publishes Electric (EV) and Plug-In Hybrid Electric (PHEV) separately and the delivered seed totals match the BEV column; counting PHEVs would make tract estimates irreconcilable with the only state constraint available.",
   "transformation_ladder": [
     {

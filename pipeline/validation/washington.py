@@ -329,6 +329,11 @@ def measure_transformation_ladder(
     for grain, field in (("zip_anchored", "zip_code"),
                          ("county_anchored", COUNTY_FIELD),
                          ("state_total_only", STATE_FIELD)):
+        if grain == "zip_anchored" and crosswalk is None:
+            # Without the crosswalk a deployment would have, the ZIP rung cannot be
+            # measured. It is omitted and says so, rather than being approximated by
+            # some other grouping and reported as if it had been measured (D8).
+            continue
         groups = _rekey(tract_groups(all_tracts, grain, crosswalk), grain)
         methods: dict[str, Mapping[str, Mapping[str, float]]] = {
             HOUSEHOLD_SHARE: household_share_links(households, groups)

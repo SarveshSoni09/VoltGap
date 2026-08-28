@@ -119,8 +119,9 @@ class Reconciler(Protocol):
 
     name: str
 
-    def reconcile(self, estimates: FloatArray,
-                  constraints: Sequence[Constraint]) -> ReconciledEstimates: ...
+    def reconcile(  # pragma: no cover - Protocol declaration, never executed
+        self, estimates: FloatArray, constraints: Sequence[Constraint]
+    ) -> ReconciledEstimates: ...
 
 
 def _check_partition(estimates: FloatArray,
