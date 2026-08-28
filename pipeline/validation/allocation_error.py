@@ -57,12 +57,14 @@ class AllocationValidationError(ValueError):
     """The paired comparison cannot be computed from the inputs given."""
 
 
-@dataclass(frozen=True)
-class PairedRecord:
-    """One observed vehicle, carrying both geographies from the same source row."""
-
-    zip_code: str
-    tract_geoid: str
+#: The field holding the coarse geography on a paired record. Washington's vehicle
+#: rows carry a postal ZIP Code AND a county name AND a 2020 census tract, so the same
+#: paired protocol measures the ZIP-to-tract, county-to-tract and state-to-tract
+#: transformations from one file. The field is named by the caller rather than assumed,
+#: for the same reason CLAUDE.md §7.5.1 forbids inferring a source geography from a
+#: column header.
+DEFAULT_SOURCE_FIELD = "zip_code"
+TRACT_FIELD = "_2020_census_tract"
 
 
 def normalise_digits(value: object, length: int) -> str | None:
@@ -73,18 +75,33 @@ def normalise_digits(value: object, length: int) -> str | None:
     return digits if len(digits) == length else None
 
 
-def record_level_rules(state_fips: str) -> tuple[ExclusionRule[Mapping[str, object]], ...]:
+def source_key(record: Mapping[str, object], field: str) -> str | None:
+    """The coarse geography key on a paired record, normalised for its kind.
+
+    A ZIP is five digits; anything else - a county name, a state code - is used as
+    written, trimmed. Nothing is invented for a blank.
+    """
+    raw = record.get(field)
+    if field == DEFAULT_SOURCE_FIELD:
+        return normalise_digits(raw, 5)
+    text = str(raw if raw is not None else "").strip()
+    return text or None
+
+
+def record_level_rules(
+    state_fips: str, source_field: str = DEFAULT_SOURCE_FIELD
+) -> tuple[ExclusionRule[Mapping[str, object]], ...]:
     """Dispositions applied to individual vehicle rows, in precedence order."""
     return (
         ExclusionRule(
             reason="unusable_zip_or_tract",
             description=(
-                "the row carries no 5-digit ZIP Code or no 11-digit 2020 census tract, "
-                "so it cannot enter a paired comparison at all"
+                f"the row carries no usable {source_field!r} value or no 11-digit 2020 "
+                "census tract, so it cannot enter a paired comparison at all"
             ),
             predicate=lambda r: (
-                normalise_digits(r.get("zip_code"), 5) is None
-                or normalise_digits(r.get("_2020_census_tract"), 11) is None
+                source_key(r, source_field) is None
+                or normalise_digits(r.get(TRACT_FIELD), 11) is None
             ),
         ),
         ExclusionRule(
@@ -95,27 +112,28 @@ def record_level_rules(state_fips: str) -> tuple[ExclusionRule[Mapping[str, obje
                 "elsewhere, and the comparison is a within-state one"
             ),
             predicate=lambda r: not str(
-                normalise_digits(r.get("_2020_census_tract"), 11) or ""
+                normalise_digits(r.get(TRACT_FIELD), 11) or ""
             ).startswith(state_fips),
         ),
     )
 
 
 def paired_counts(
-    records: Iterable[Mapping[str, object]], state_fips: str = "53"
+    records: Iterable[Mapping[str, object]], state_fips: str = "53",
+    source_field: str = DEFAULT_SOURCE_FIELD,
 ) -> tuple[dict[tuple[str, str], int], ExclusionLedger]:
-    """Aggregate raw vehicle rows into observed (ZIP, tract) counts.
+    """Aggregate raw vehicle rows into observed (coarse area, tract) counts.
 
     Returns the counts and the record-level ledger. Nothing is dropped silently: the
     ledger accounts for every retrieved row by name.
     """
-    kept, ledger = classify(records, record_level_rules(state_fips))
+    kept, ledger = classify(records, record_level_rules(state_fips, source_field))
     counts: dict[tuple[str, str], int] = {}
     for row in kept:
-        zip_code = normalise_digits(row.get("zip_code"), 5)
-        tract = normalise_digits(row.get("_2020_census_tract"), 11)
-        assert zip_code is not None and tract is not None  # guaranteed by the rules
-        counts[(zip_code, tract)] = counts.get((zip_code, tract), 0) + 1
+        area = source_key(row, source_field)
+        tract = normalise_digits(row.get(TRACT_FIELD), 11)
+        assert area is not None and tract is not None  # guaranteed by the rules
+        counts[(area, tract)] = counts.get((area, tract), 0) + 1
     return counts, ledger
 
 
@@ -300,16 +318,18 @@ def compare_methods(
     methods: Mapping[str, Mapping[str, Mapping[str, float]]],
     state_fips: str = "53",
     min_evs: int = MIN_EVS_PER_ZIP,
+    source_field: str = DEFAULT_SOURCE_FIELD,
 ) -> AllocationErrorResult:
     """Score every allocation method against the observed paired distribution.
 
-    ``methods`` maps method name -> ZIP -> tract -> weight. Weights are used exactly as
-    the method supplies them; this function never renormalises a method's output.
+    ``methods`` maps method name -> coarse area -> tract -> weight. Weights are used
+    exactly as the method supplies them; this function never renormalises a method's
+    output.
     """
     if not methods:
         raise AllocationValidationError("no allocation methods were supplied")
 
-    counts, record_ledger = paired_counts(records, state_fips)
+    counts, record_ledger = paired_counts(records, state_fips, source_field)
     zip_evs: dict[str, int] = {}
     observed: dict[str, dict[str, float]] = {}
     for (zip_code, tract), n in counts.items():
