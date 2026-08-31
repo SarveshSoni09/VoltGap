@@ -1240,3 +1240,202 @@ propagation) emitted by `HistGradientBoostingRegressor` inside the ablation's fo
 - **Reconciliation is unchanged**: proportional, on partitions, residual 2.33e-10.
 - **The uncertainty weights were not retuned**, and the components are the same five.
 - **New Jersey was not downgraded.**
+
+---
+
+# 15. External Review Corrections — audit items A, B and C (2026-08-31)
+
+Three audit items raised after the ACS 2024 refresh was accepted. **Item B uncovered an
+S1 defect that the two-vehicle question was not looking for**, and correcting it changes
+the published national estimate.
+
+## 15.1 Item A — the 84,400 → 84,401 tract set, reconciled
+
+**The earlier wording was an overclaim and is withdrawn.** §14.2 said "identical area
+counts at every grain". That rested on a **bounded Rhode Island retrieval check** (250
+tracts) plus national ZCTA and county counts. It was **never a national tract-count
+comparison**, and the national tract count had in fact changed. The claim should have read:
+*ZCTA and county sets are identical nationally; the tract set gained one.*
+
+Complete national GEOID-set comparison, ACS 2023 against ACS 2024:
+
+| Grain | 2023 | 2024 | Intersection | Old-only | New-only |
+|---|---:|---:|---:|---:|---:|
+| **tract** | 84,400 | **84,401** | 84,400 | **0** | **1** |
+| ZCTA | 33,772 | 33,772 | 33,772 | 0 | 0 |
+| county | 3,222 | 3,222 | 3,222 | 0 | 0 |
+
+**The one tract that entered:**
+
+| Field | Value |
+|---|---|
+| GEOID | **36111954401** |
+| Name | Census Tract 9544.01, **Ulster County, New York** |
+| Population / households | 6,088 / 690 |
+| Median household income | $146,824 |
+| Constraint | New York state total, 2025 vintage (New York is ZIP-observed, so no county totals bind) |
+| Evidence grain / tier | `state_total_only` / **B** |
+| **Reason it entered** | It **does not exist in ACS 2023**: the live API returns **HTTP 204 No Content** for `state:36 county:111 tract:954401` in the 2023 release and HTTP 200 in 2024. Ulster County went from 49 to 50 published tracts. Its pair 9544.**02** was already published in 2023, so 9544.01 is the half that had no published estimates until this release |
+
+Nothing left the surface. The ratio of 6,088 people to 690 households (8.8) points to a
+substantial group-quarters population, which is consistent with a tract that only became
+publishable once its estimates cleared disclosure thresholds — but the Census does not
+state a reason, and none is asserted here.
+
+`tract_set_reconciliation` is now computed on **every** run and lands in the evidence
+artifact, so a future vintage change is named tract by tract rather than noticed later.
+
+## 15.2 Item B — the national total, and the S1 defect it exposed
+
+The reviewer was right to refuse "floating-point noise". Building the exact accounting
+showed the national total **exceeding the sum of its constraints by 141,816** — a gap four
+orders of magnitude larger than the two vehicles under investigation.
+
+### The defect (impact I-15, S1)
+
+"Reconcile to county totals where they exist, else to the state total" partitions a
+state's tracts cleanly **only when county coverage is complete**. Where a state's DMV
+reports *some* of its counties, the remaining tracts fell through to a group keyed by the
+state whose total was the **full state total** — which the observed counties had already
+claimed. Both were counted.
+
+| State | Counties observed | Published before | Correct | Error |
+|---|---|---:|---:|---:|
+| **Montana** | 51 of 56 | **13,673** | 6,900 | +6,773 |
+| **Virginia** | 129 of 133 | **266,876** | 134,900 | +131,976 |
+| Tennessee | 95 of 95 (complete) | 53,029 | 53,029 | none |
+
+Every Montana and Virginia tract outside an observed county carried roughly **twice** the
+demand it should have.
+
+**Why every existing check passed.** `ProportionalReconciler` was working correctly: every
+constraint was satisfied exactly, the residual really was 2.33e-10, and `_check_partition`
+confirmed no tract was bound twice — the tracts *were* partitioned. The defect was in the
+**totals handed to the reconciler**, not in the reconciliation. Nothing verified that the
+constraint totals themselves summed to the intended national figure.
+
+### The fix and the identity that now guards it
+
+The state-level fallback is the **residual** — state total minus county totals already
+claimed. A state whose county totals *exceed* its state total raises rather than clamping
+to a negative residual. `ConstraintAccounting` proves this identity on every build:
+
+```
+national_published == constraint_sum + observed_substitution_delta + unconstrained_sum
+```
+
+| Term | Value | Meaning |
+|---|---:|---|
+| `constraint_sum` | **5,616,329.0000** | 325 groups: 51 state groups + 274 observed county groups |
+| `observed_substitution_delta` | **611.0328** | Washington's 1,769 directly observed tract counts published in place of estimates, overriding its state constraint by design |
+| `unconstrained_sum` | **0.0000** | Tracts no constraint binds. Zero: every jurisdiction has a published total |
+| **`national_published`** | **5,616,940.0328** | |
+| **Imbalance** | **1e-09** | |
+
+`constraint_sum` (5,616,329) is **not** the sum of the 51 state totals (5,618,700). The
+difference of **2,371** is exactly Tennessee's: its complete county coverage displaces its
+state total, and 53,029 county-observed vehicles replace a 55,400 state figure. That is
+§7.3 working as specified — county totals take precedence where they exist.
+
+### The original two-vehicle question, answered
+
+| Quantity | ACS 2023 | ACS 2024 | Change |
+|---|---:|---:|---:|
+| `constraint_sum` | 5,616,329.0000 | 5,616,329.0000 | **0** |
+| `observed_substitution_delta` | 610.3405 | 611.0328 | **+0.6923** |
+| `unconstrained_sum` | 0.0 | 0.0 | 0 |
+| **National published** | 5,616,939.3405 | 5,616,940.0328 | **+0.6923** |
+
+**The constraint totals did not change at all.** The entire difference is the Washington
+observed-substitution term, which is *not* a constraint: it is the gap between Washington's
+observed tract counts and the reconciled values they displace, and those reconciled values
+depend on the ACS features. A feature refresh therefore moves it. The displayed integers
+differed by 2 rather than 1 because the pre-fix totals were dominated by the double count
+and rounded across a boundary.
+
+### National estimate, corrected
+
+| | |
+|---|---:|
+| Published in §9.6 and §14.3 (defective) | 5,755,687 / 5,755,689 |
+| **Corrected** | **5,616,940** |
+| Overstatement removed | **138,749** (≈2.5%) |
+
+Confidence tiers move by one tract (B 58,820 → 58,821, from the new Ulster tract);
+evidence grains are 1,769 `native_tract` / 4,204 `county_anchored` / 78,428
+`state_total_only`; mean uncertainty 0.202676; B/C threshold 0.260165. **The measured
+transformation ladder, the estimator selection, the LOSO metrics and the ablation are all
+unaffected** — none of them depends on the constraint plan.
+
+## 15.3 Item C — the New Jersey claim, corrected
+
+**The earlier claim was too strong and is withdrawn.** §14.6 said New Jersey "did not
+drive selection, and structurally could not have". The second half is false: **New Jersey
+was in the aggregate that selected the estimator**, so it could in principle have
+influenced candidate ranking. The defensible claim is narrower:
+
+> The **post-selection** New Jersey sensitivity was not used to alter estimator selection.
+> It reuses already-generated leave-one-state-out scores — no refitting, no reselection —
+> and the estimator chosen under the original pre-registered rule is retained regardless
+> of what the table shows.
+
+**Candidate sensitivity, all five, from already-generated scores:**
+
+| Candidate | With NJ | Without NJ | Delta |
+|---|---:|---:|---:|
+| **`poisson_glm`** *(selected)* | **0.320310** | **0.303913** | −0.016397 |
+| `boosted_poisson` | 0.328979 | 0.313015 | −0.015964 |
+| `ridge_log_rate` | 0.376339 | 0.363478 | −0.012861 |
+| `baseline_population_share` | 0.705842 | 0.701335 | −0.004507 |
+| `baseline_household_share` | 0.708315 | 0.701188 | −0.007127 |
+
+**Ranking with NJ:** poisson_glm, boosted_poisson, ridge_log_rate,
+baseline_population_share, baseline_household_share
+**Ranking without NJ:** poisson_glm, boosted_poisson, ridge_log_rate,
+**baseline_household_share, baseline_population_share**
+
+**The ranking does change — and the change is confined to the two baselines**, which swap
+by 0.000147. The winner is unchanged, and the ordering *among models* is unchanged. Since
+a baseline is a floor to clear rather than a candidate that can win, this is not selection
+fragility in any sense that bears on the choice. Reporting a bare "the ranking is not
+stable" would have been true and useless; the artifact records which part moved.
+
+Removing New Jersey improves the headline aggregate by **1.64 percentage points**, which
+remains material and is stated as such. New Jersey stays `flagged_for_review`, stays in
+the panel, stays in the training set, and confidence tiers are untouched. **A-3.1 remains
+open for Phase 5.**
+
+## 15.4 Regression coverage added
+
+| Item | Guards |
+|---|---|
+| **A** | tract-set reconciliation computed every run; entered/left fully enumerated with profiles; `intersection + entered == current`; ZCTA and county compared **nationally** |
+| **B** | national accounting identity asserted on every build and raises if unmet; partial county coverage constrains the remainder to the residual; complete coverage creates no state group; county totals exceeding a state total are refused rather than clamped |
+| **C** | sensitivity covers all five candidates; the narrow claim is asserted verbatim; the pre-registered winner is retained; an ordering change must be described precisely rather than as a bare boolean |
+
+## 15.5 Newly discovered defect
+
+**I-15, S1** — described in §15.2. It is the only new defect. It was caught before the
+surface reached any downstream phase, and no earlier phase consumed it.
+
+## 15.6 Gate evidence for the audit correction pass
+
+`make gate PHASE=3`:
+
+| Step | Result |
+|---|---|
+| 1. lint | ruff clean; `mypy --strict` clean over 99 source files |
+| 2. full test suite | **903 passed, 47 deselected** in 99.38s |
+| 3. coverage | **100% line and branch on every tier**: 4,135 statements, 1,002 branches, zero missed |
+| 4. prior gate suites (Phase 0, 1, 2) | pass; probe determinism byte-identical |
+| 5. Phase 3 acceptance criteria | **20 passed** |
+| 6. D3 copy lint | clean, 141 files |
+| 7. semantic determinism | pass |
+| 8. one-command rebuild | canonical tables and every Phase 3 number rebuilt |
+| **Verdict** | **PASS** |
+
+The suite grew 883 → **903**: nine checks for audit items A, B and C, four for the
+partial-county-coverage defect, and seven for the fragility description and tract-set
+reconciliation. **The gate failed twice during this pass** — once because the completed
+accounting identity caught its own missing `unconstrained_sum` term, once on the untested
+branches of the new fragility helper — and both were fixed rather than accommodated.

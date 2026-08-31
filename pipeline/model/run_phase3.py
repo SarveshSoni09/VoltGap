@@ -12,7 +12,7 @@ from __future__ import annotations
 import argparse
 import functools
 import json
-from collections.abc import Sequence
+from collections.abc import Mapping, Sequence
 from pathlib import Path
 from typing import Any
 
@@ -202,22 +202,63 @@ def _in_sample_wape(primary: dict[str, Any],
     return {k: round(v, 6) for k, v in out.items()}
 
 
+def _fragility(rank_with: Sequence[str], rank_without: Sequence[str],
+               models_with: Sequence[str], models_without: Sequence[str]) -> str:
+    """Describe an ordering change precisely, rather than as a bare boolean.
+
+    "The ranking is not stable" is true but useless if the only movement is two
+    baselines swapping by 0.00015 while every real model holds its place. What matters
+    is whether the *selected* estimator or the ordering *among models* moves.
+    """
+    if rank_with[0] != rank_without[0]:
+        return (f"the WINNER changes without New Jersey: {rank_with[0]} -> "
+                f"{rank_without[0]}. The estimator selected under the original "
+                "pre-registered rule is retained regardless")
+    if list(models_with) != list(models_without):
+        return ("the winner is unchanged but the ordering AMONG MODELS moves without "
+                "New Jersey")
+    if list(rank_with) != list(rank_without):
+        return ("the winner and the model ordering are both unchanged; only the two "
+                "BASELINES swap places, which does not bear on selection since a "
+                "baseline is a floor to clear rather than a candidate that can win")
+    return "the candidate ordering is stable to removing New Jersey"
+
+
 def _new_jersey_sensitivity(loso: LosoResult) -> dict[str, Any]:
-    """The independent aggregate with and without New Jersey. **Diagnostic only.**
+    """The independent aggregate with and without New Jersey, for **every candidate**.
 
     New Jersey's observed total is 21.65% below the comparable AFDC figure and its latest
     snapshot carries one distinct registration date, but corrected domain rule G9 forbids
-    marking a state low-confidence on statistical unusualness alone. It therefore stays
-    `flagged_for_review` and stays in the panel. This quantifies what it is doing to the
-    headline number, computed from scores that were already used to select the estimator
-    so it cannot feed back into that choice.
+    marking a state low-confidence on statistical unusualness alone. It stays
+    ``flagged_for_review`` and stays in the panel.
+
+    **The precise claim.** New Jersey **was** part of the aggregate that selected the
+    estimator, so it could in principle have influenced candidate ranking. What is true is
+    narrower and is stated as such: **this post-selection sensitivity was not used to
+    alter estimator selection.** It reuses already-generated leave-one-state-out scores -
+    no refit, no reselection - and the estimator chosen under the original pre-registered
+    rule is retained regardless of what the table shows.
     """
-    estimator, mode = loso.selected_estimator, loso.selection_mode
-    with_nj = aggregate_excluding(loso, estimator, mode, ())
-    without_nj = aggregate_excluding(loso, estimator, mode, ("NJ",))
-    before, after = with_nj["weighted_wape"], without_nj["weighted_wape"]
-    assert isinstance(before, float) and isinstance(after, float)
-    delta = after - before
+    mode = loso.selection_mode
+    candidates = sorted({s.estimator for s in loso.scores})
+
+    def wape_of(result: dict[str, Any]) -> float:
+        value = result["weighted_wape"]
+        assert isinstance(value, float)
+        return value
+
+    with_nj = {c: wape_of(aggregate_excluding(loso, c, mode, ()))
+               for c in candidates}
+    without_nj = {c: wape_of(aggregate_excluding(loso, c, mode, ("NJ",)))
+                  for c in candidates}
+
+    def rank(table: dict[str, float]) -> list[str]:
+        return sorted(candidates, key=lambda c: table[c])
+
+    rank_with, rank_without = rank(with_nj), rank(without_nj)
+    models = [c for c in candidates if not c.startswith("baseline_")]
+    model_rank_with = [c for c in rank_with if c in models]
+    model_rank_without = [c for c in rank_without if c in models]
     return {
         "new_jersey_status": "flagged_for_review",
         "not_marked_low_confidence_because": (
@@ -225,11 +266,83 @@ def _new_jersey_sensitivity(loso: LosoResult) -> dict[str, Any]:
             "coverage, definition or source-quality problem; a statistical anomaly "
             "alone is not enough"
         ),
-        "with_new_jersey": with_nj,
-        "without_new_jersey": without_nj,
-        "delta_weighted_wape": round(delta, 6),
-        "affected_estimator_selection": False,
+        "interpretation": (
+            "New Jersey WAS included in the aggregate that selected the estimator and "
+            "could therefore in principle have influenced candidate ranking. The precise "
+            "claim is narrower: this post-selection sensitivity was not used to alter "
+            "estimator selection. It reuses already-generated LOSO scores - no refit, no "
+            "reselection - and the estimator chosen under the original pre-registered "
+            "rule is retained regardless of what this table shows."
+        ),
+        "selected_under_the_pre_registered_rule": loso.selected_estimator,
+        "per_candidate": {
+            candidate: {
+                "with_new_jersey": round(with_nj[candidate], 6),
+                "without_new_jersey": round(without_nj[candidate], 6),
+                "delta": round(without_nj[candidate] - with_nj[candidate], 6),
+            }
+            for candidate in candidates
+        },
+        "ranking_with_new_jersey": rank_with,
+        "ranking_without_new_jersey": rank_without,
+        "ranking_changes_without_new_jersey": rank_with != rank_without,
+        "model_ranking_changes_without_new_jersey": (
+            model_rank_with != model_rank_without),
+        "selected_estimator_changes_without_new_jersey": (
+            rank_with[0] != rank_without[0]),
+        "selection_fragility": _fragility(rank_with, rank_without,
+                                          model_rank_with, model_rank_without),
+        "with_new_jersey": round(with_nj[loso.selected_estimator], 6),
+        "without_new_jersey": round(without_nj[loso.selected_estimator], 6),
+        "delta_weighted_wape": round(
+            without_nj[loso.selected_estimator]
+            - with_nj[loso.selected_estimator], 6),
+        "used_to_alter_estimator_selection": False,
         "affected_confidence_tiers": False,
+    }
+
+
+def tract_set_reconciliation(
+    production: Mapping[str, Any],
+    states: Sequence[str],
+    historical_year: int | None = None,
+) -> dict[str, Any]:
+    """Account for every tract that entered or left the surface between ACS vintages.
+
+    A national tract count that changes between releases is a fact about the Census, not
+    noise, and it must be named tract by tract. "Identical area counts" was claimed once
+    on the strength of a **bounded** Rhode Island retrieval check plus national ZCTA and
+    county counts - it was never a national tract-count comparison, and the national
+    tract count had in fact changed by one.
+    """
+    year = historical_year or HISTORICAL_ACS_YEARS[0]
+    previous = load_area_tables(states=states, year=year)
+    old, new = set(previous["tracts"].rows), set(production["tracts"].rows)
+    entered, left = sorted(new - old), sorted(old - new)
+
+    def profile(geoid: str, table: Any) -> dict[str, Any]:
+        row = table["tracts"].rows[geoid]
+        return {
+            "geoid": geoid,
+            "state_fips": geoid[:2],
+            "county_fips": geoid[:5],
+            "population": row.population,
+            "households": row.households,
+        }
+
+    return {
+        "comparison": f"ACS {year} 5-year against ACS {ACS_YEAR} 5-year",
+        "tracts_previous": len(old),
+        "tracts_current": len(new),
+        "intersection": len(old & new),
+        "entered_count": len(entered),
+        "left_count": len(left),
+        "entered": [profile(g, production) for g in entered],
+        "left": [profile(g, previous) for g in left],
+        "zcta_previous": len(previous["zcta"].rows),
+        "zcta_current": len(production["zcta"].rows),
+        "county_previous": len(previous["county"].rows),
+        "county_current": len(production["county"].rows),
     }
 
 
@@ -284,6 +397,7 @@ def run(states: Sequence[str] = ALL_STATE_FIPS,
             ),
         },
         "national_surface": surface.summary(),
+        "tract_set_reconciliation": tract_set_reconciliation(tables, states),
         "supply_feature_ablation": supply_feature_ablation(
             dict(panels), dict(load_state_totals()), supply_snapshot
         ),

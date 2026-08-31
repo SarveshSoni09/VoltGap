@@ -137,3 +137,20 @@ review, and A-0.5 moved forward to Phase 1. Phase 1's gate re-checks all open en
 | A-3.1 | New Jersey's observed total is materially incomplete rather than definitionally different | **STILL OPEN, and now quantified.** New Jersey stays `flagged_for_review`, not marked low-confidence, per corrected G9. A bounded with/without sensitivity on the headline aggregate is reported as a diagnostic that cannot feed back into selection | `test_check_10_new_jersey_sensitivity_is_reported_and_cannot_drive_selection` |
 | A-3.2 | The Washington-measured transformation ladder generalises nationally | **STILL OPEN.** Unchanged by the ACS refresh; the limitation that `c4` is extrapolated from one state is preserved | Phase 5 |
 | A-3.6 | ZIP-grain data are better used as evidence than as constraints | **CLOSED by external review** — see above | reviewer decision |
+
+---
+
+## Opened by the audit correction pass (2026-08-31)
+
+| ID | Falsifiable statement | Depends on | Tested in | Status |
+|---|---|---|---|---|
+| A-3.10 | Every jurisdiction Phase 3 publishes has a registration total, so no tract's estimate rests on no observed total at all. | `unconstrained_sum` is currently **0.0** across 84,401 tracts. If a future refresh loses a jurisdiction's total, that state's tracts would keep raw model values with no constraint, and the national accounting reports the amount rather than absorbing it. | Phase 4 | OPEN |
+| A-3.11 | Where a state publishes county totals for only part of its territory, the state total minus those county totals is a meaningful residual for the remaining tracts. | Montana 51 of 56 counties leaves a residual of 127 vehicles across 5 counties; Virginia 129 of 133 leaves 2,924. Both are positive and plausible, but the two sources have different vintages and definitions, so a residual is a subtraction across sources rather than a measurement. | Phase 5 | OPEN |
+| A-3.12 | Tennessee's complete county coverage displacing its state total is correct rather than a coverage gap. | Tennessee publishes all 95 counties totalling 53,029 against a 2025 state total of 55,400, a 2,371 difference that is simply excluded from the national constraint sum. CLAUDE.md §7.3 says county totals take precedence where they exist, so this is specified behaviour - but it does mean the national figure omits 2,371 vehicles the state series reports. | Phase 4 | OPEN |
+
+## Re-checked at the audit gate
+
+| ID | Assumption | Status | Evidence |
+|---|---|---|---|
+| A-3.7 | ACS 2024 is a like-for-like replacement | **CONFIRMED with a correction to the claim.** ZCTA and county sets are identical nationally; the **tract set gained one** (36111954401, Ulster County NY, absent from ACS 2023 with HTTP 204). The earlier "identical area counts at every grain" rested on a bounded Rhode Island check and is withdrawn | `tract_set_reconciliation` |
+| A-3.4 | AFDC totals rounded to the nearest 100 are precise enough as exact constraints | **STILL OPEN, and now measurable.** The national accounting makes the constraint sum explicit (5,616,329) so rounding error is visible rather than buried | Phase 4 |

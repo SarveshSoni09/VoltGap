@@ -184,30 +184,31 @@ def test_check_09_zip_anchored_is_absent_from_the_production_surface(
 
 # --- 10. the New Jersey sensitivity is diagnostic only ------------------------------
 
-def test_check_10_new_jersey_sensitivity_is_reported_and_cannot_drive_selection(
+def test_check_10_new_jersey_sensitivity_is_reported_and_was_not_used_to_reselect(
     evidence: dict[str, Any],
 ) -> None:
     sensitivity = evidence["new_jersey_sensitivity"]
     assert sensitivity["new_jersey_status"] == "flagged_for_review"
-    assert sensitivity["affected_estimator_selection"] is False
+    assert sensitivity["used_to_alter_estimator_selection"] is False
     assert sensitivity["affected_confidence_tiers"] is False
-    assert sensitivity["with_new_jersey"]["diagnostic_only"] is True
-    assert sensitivity["without_new_jersey"]["excluded_states"] == ["NJ"]
-    # New Jersey is still IN the aggregate that selected the estimator.
+    # New Jersey is still IN the aggregate that selected the estimator, and the
+    # published claim says so rather than pretending otherwise.
     assert "NJ" in evidence["demand_model_validation"]["independent_validation_states"]
-    assert sensitivity["with_new_jersey"]["states_aggregated"] == (
-        sensitivity["without_new_jersey"]["states_aggregated"] + 1)
+    assert isinstance(sensitivity["with_new_jersey"], float)
+    assert isinstance(sensitivity["without_new_jersey"], float)
+    assert sensitivity["delta_weighted_wape"] == pytest.approx(
+        sensitivity["without_new_jersey"] - sensitivity["with_new_jersey"], abs=1e-6)
 
 
-def test_check_10b_the_selected_estimator_is_unchanged_by_the_sensitivity(
+def test_check_10b_the_pre_registered_winner_is_retained(
     evidence: dict[str, Any],
 ) -> None:
     validation = evidence["demand_model_validation"]
     aggregates = validation["aggregate_weighted_wape"][evidence["selection_mode"]]
     best = min(aggregates.values())
     assert aggregates[validation["selected_estimator"]] <= best + 0.01
-    assert evidence["new_jersey_sensitivity"]["with_new_jersey"]["estimator"] == (
-        validation["selected_estimator"])
+    assert evidence["new_jersey_sensitivity"][
+        "selected_under_the_pre_registered_rule"] == validation["selected_estimator"]
 
 
 # --- 11. no calibration overclaim anywhere -----------------------------------------
@@ -301,3 +302,126 @@ def test_a_vintage_can_be_requested_by_name_rather_than_by_mutating_a_constant()
         "every household count is identical across vintages; the loader is probably "
         "ignoring its year argument and serving one vintage for both"
     )
+
+
+# --- A. the tract set is reconciled between vintages, not asserted identical ---------
+
+def test_check_a_every_tract_that_entered_or_left_is_named(
+    evidence: dict[str, Any],
+) -> None:
+    """A national tract count that changes between releases is a fact about the Census,
+    and it must be named tract by tract rather than waved through."""
+    recon = evidence["tract_set_reconciliation"]
+    assert recon["intersection"] + recon["entered_count"] == recon["tracts_current"]
+    assert recon["intersection"] + recon["left_count"] == recon["tracts_previous"]
+    assert len(recon["entered"]) == recon["entered_count"]
+    assert len(recon["left"]) == recon["left_count"]
+    for row in recon["entered"] + recon["left"]:
+        assert set(row) == {"geoid", "state_fips", "county_fips",
+                            "population", "households"}
+        assert len(row["geoid"]) == 11
+
+
+def test_check_a_the_surface_tract_count_matches_the_reconciliation(
+    evidence: dict[str, Any],
+) -> None:
+    assert (evidence["tract_set_reconciliation"]["tracts_current"]
+            == evidence["national_surface"]["tracts"])
+
+
+def test_check_a_zcta_and_county_sets_are_compared_nationally_not_by_sample(
+    evidence: dict[str, Any],
+) -> None:
+    """The earlier 'identical area counts' claim rested on a BOUNDED Rhode Island
+    retrieval check. These are national counts."""
+    recon = evidence["tract_set_reconciliation"]
+    assert recon["zcta_previous"] == recon["zcta_current"] == 33772
+    assert recon["county_previous"] == recon["county_current"] == 3222
+
+
+# --- B. the national total is fully accounted for -----------------------------------
+
+def test_check_b_the_national_total_balances_against_its_constraints(
+    evidence: dict[str, Any],
+) -> None:
+    """A two-vehicle discrepancy is not floating-point noise when the reconciliation
+    residual is 2.3e-10. Every vehicle in the national figure is attributed."""
+    accounting = evidence["national_surface"]["national_accounting"]
+    assert accounting["balances"] is True
+    assert abs(accounting["imbalance"]) < 1e-6
+    rebuilt = (accounting["constraint_sum"]
+               + accounting["observed_substitution_delta"]
+               + accounting["unconstrained_sum"])
+    assert abs(rebuilt - accounting["national_published"]) < 1e-6
+
+
+def test_check_b_the_only_override_of_a_constraint_is_an_observed_tract(
+    evidence: dict[str, Any],
+) -> None:
+    accounting = evidence["national_surface"]["national_accounting"]
+    # Washington's 1,769 observed tracts are published in place of estimates.
+    assert accounting["observed_substitution_delta"] != 0.0
+    # Every jurisdiction has a published registration total, so nothing is unconstrained.
+    assert accounting["unconstrained_sum"] == 0.0
+
+
+def test_check_b_no_state_is_counted_twice_by_partial_county_coverage(
+    evidence: dict[str, Any],
+) -> None:
+    """Impact I-15: Montana publishes 51 of 56 counties and Virginia 129 of 133.
+    Reconciling the leftover tracts to the FULL state total counted both roughly twice."""
+    accounting = evidence["national_surface"]["national_accounting"]
+    # 51 state groups + 274 observed county groups, none overlapping.
+    assert accounting["constraint_groups"] == 325
+    # The constraint sum is the sum of state totals MINUS Tennessee's difference, since
+    # Tennessee's complete county coverage displaces its state total entirely.
+    assert accounting["constraint_sum"] == 5616329.0
+
+
+# --- C. the New Jersey sensitivity, across every candidate --------------------------
+
+def test_check_c_the_sensitivity_covers_every_candidate(
+    evidence: dict[str, Any],
+) -> None:
+    per_candidate = evidence["new_jersey_sensitivity"]["per_candidate"]
+    assert set(per_candidate) == {
+        "poisson_glm", "boosted_poisson", "ridge_log_rate",
+        "baseline_population_share", "baseline_household_share",
+    }
+    for row in per_candidate.values():
+        assert set(row) == {"with_new_jersey", "without_new_jersey", "delta"}
+
+
+def test_check_c_the_claim_is_the_narrow_one(evidence: dict[str, Any]) -> None:
+    """Not 'NJ could not have influenced selection' - it was in the selecting aggregate.
+    The true claim is that this POST-SELECTION sensitivity was not used to alter it."""
+    sensitivity = evidence["new_jersey_sensitivity"]
+    assert sensitivity["used_to_alter_estimator_selection"] is False
+    assert "could therefore in principle have influenced candidate ranking" in (
+        sensitivity["interpretation"])
+    assert "no refit, no " in sensitivity["interpretation"]
+
+
+def test_check_c_the_selected_estimator_is_retained_whatever_the_table_shows(
+    evidence: dict[str, Any],
+) -> None:
+    sensitivity = evidence["new_jersey_sensitivity"]
+    validation = evidence["demand_model_validation"]
+    assert sensitivity["selected_under_the_pre_registered_rule"] == (
+        validation["selected_estimator"])
+    assert sensitivity["selected_estimator_changes_without_new_jersey"] is False
+    assert sensitivity["model_ranking_changes_without_new_jersey"] is False
+
+
+def test_check_c_an_ordering_change_is_described_precisely(
+    evidence: dict[str, Any],
+) -> None:
+    """A bare 'the ranking is not stable' would be true but useless when the only
+    movement is two baselines swapping by 0.00015."""
+    sensitivity = evidence["new_jersey_sensitivity"]
+    if sensitivity["ranking_changes_without_new_jersey"]:
+        assert sensitivity["selection_fragility"] != (
+            "the candidate ordering is stable to removing New Jersey")
+        assert ("BASELINES" in sensitivity["selection_fragility"]
+                or "WINNER" in sensitivity["selection_fragility"]
+                or "AMONG MODELS" in sensitivity["selection_fragility"])
