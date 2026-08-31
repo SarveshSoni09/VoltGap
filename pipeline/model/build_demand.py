@@ -125,9 +125,14 @@ class DemandSurface:
         for row in self.estimates:
             by_grain[row.evidence_grain] = by_grain.get(row.evidence_grain, 0) + 1
             by_tier[row.confidence_tier] = by_tier.get(row.confidence_tier, 0) + 1
+        from pipeline.sources.census_acs import ACS_YEAR
+
         return {
             "tracts": len(self.estimates),
             "estimator": self.estimator,
+            # The vintage the PRODUCTION surface was built from. Phase 5's backtests
+            # must not use it: D1 requires feature_vintage <= prediction_cutoff.
+            "feature_vintage": f"ACS {ACS_YEAR} 5-year",
             "training_states": list(self.training_states),
             "training_rows": self.training_rows,
             "national_bev_estimate": int(sum(r.estimate for r in self.estimates)),
@@ -177,10 +182,18 @@ def build_surface(
     bootstrap_replicates: int = 20,
 ) -> DemandSurface:
     """Fit, predict nationally, reconcile exactly, and score uncertainty."""
-    training = [row for panel in panels.values() if panel.is_independent
+    # The final production fit uses every state that is usable as TRAINING evidence,
+    # which includes Washington. Barring a state from the independent validation
+    # aggregate is a statement about its evaluation, not about the information its
+    # observations carry (pre-registration amendment, 2026-08-29).
+    training = [row for panel in panels.values() if panel.is_trainable
                 for row in panel.rows]
     if not training:
-        raise ValueError("no independent training rows; the surface cannot be fitted")
+        raise ValueError(
+            "no training rows at all; the surface cannot be fitted. Note this is a "
+            "different condition from having no INDEPENDENT states: a state barred "
+            "from the validation aggregate is still training evidence."
+        )
     model = fit(estimator_by_name(estimator_name), training)
     targets = prediction_rows(tract_table)
     raw = model.predict_counts(targets)

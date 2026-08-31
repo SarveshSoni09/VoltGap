@@ -789,8 +789,16 @@ all. Mean absolute error by uncertainty quintile:
 **The curve is not monotonic.** The top quintile is clearly worse than every other, which
 is the behaviour the score is supposed to have; the middle three are flat and slightly
 below the first. The pre-registration forbids retuning the weights in response, and they
-have not been retuned. A well-calibrated uncertainty score is a publishable result;
-so is a partly-calibrated one, and this is the latter.
+have not been retuned.
+
+> ~~A well-calibrated uncertainty score is a publishable result; so is a
+> partly-calibrated one, and this is the latter.~~  <!-- copy-lint: allow -->
+>
+> **Corrected 2026-08-29 on external review (see §14.7).** That sentence read as a
+> calibration claim and it is withdrawn. Higher uncertainty identifies the highest-error
+> quintile, but error is not monotonic across the remaining bins. The current uncertainty
+> score is therefore **not empirically calibrated**; this diagnostic only provides limited
+> evidence that the score identifies some high-error observations.
 
 ### 9.8 The supply-feature ablation
 
@@ -926,3 +934,309 @@ and subject to a decision on open question 1.**
 ## Corrections
 
 None. This report has not been amended since submission.
+
+---
+
+# 14. External Review Corrections — ACS 2024 Production Refresh (2026-08-29)
+
+**Nothing above this line has been rewritten.** Phase 3's history stands as submitted; one
+sentence in §9.7 is struck in place with a pointer here, matching the precedent set for the
+Live Integration Assurance Checkpoint's test counts. This section records a bounded
+correction pass authorised by external review after Phase 3 passed methodologically.
+
+Every number below reproduces with `python -m pipeline.model.run_phase3`, offline.
+
+## 14.1 What external review asked for
+
+1. Move the current production surface to **ACS 2024 5-year**, after verifying it, and
+   **re-run the pre-registered estimator selection** rather than preserving the previous
+   winner.
+2. Correct Washington's role: **validation exclusion does not imply training exclusion**.
+3. Record the reviewer's decision that **ZIP totals do not become Core reconciliation
+   constraints** (closing A-3.6).
+4. Keep **New Jersey review-flagged**, and add a bounded with/without sensitivity.
+5. Remove any wording that reads as a **calibration claim**.
+6. Preserve older ACS vintages so **Phase 5's D1 temporal integrity** survives.
+
+## 14.2 ACS 2024 verification, before anything was changed
+
+| Check | Result |
+|---|---|
+| Latest tract-level release | **ACS 2024 5-year**. ACS 2025 returns HTTP 404 |
+| All consumed variables present | **78/78** in the 2024 dictionary (28,475 variables against 2023's 28,299) |
+| Retrieval at tract / ZCTA / county | All HTTP 200, **identical column ordering** to 2023 |
+| Area counts | **250** Rhode Island tracts, **33,772** ZCTAs, **3,222** counties — *identical* to 2023 at every grain |
+| Group (table) changes | **none** |
+
+**Two label changes, both examined, neither affecting a consumed universe:**
+
+- **`B19013_001E`** moves from *2023* to *2024 inflation-adjusted dollars*, and 18
+  income-table concepts change for the same reason. The model refits entirely within one
+  vintage so it is internally consistent, but **the feature's units changed**: the fitted
+  coefficient is not comparable across vintages, and a before/after comparison of that
+  feature is not like-for-like. Recorded as assumption **A-3.8**.
+- **`B08301_010E`** drops the "(excluding taxicab)" parenthetical, because line **016 was
+  renamed "Taxicab" → "Taxi or ride-hailing services"** — a genuine universe expansion on
+  line 016. **Phase 3 does not consume line 016.** The table still has 21 lines with the
+  same hierarchy, and taxi remains a category *outside* the public-transportation subtree,
+  so `public_transit_share = B08301_010E / B08301_001E` has the same universe in both
+  vintages. Recorded as assumption **A-3.7**.
+
+## 14.3 Before and after
+
+| Quantity | ACS 2023 (as submitted) | ACS 2024 (corrected) | Delta |
+|---|---:|---:|---:|
+| **Feature vintage** | ACS 2023 5-year | **ACS 2024 5-year** | — |
+| **Estimator selected** | `poisson_glm` | **`poisson_glm`** | unchanged |
+| **Independent LOSO aggregate WAPE** (reconciled) | 0.331156 | **0.320309** | **−0.010847** |
+| `boosted_poisson` | 0.331954 | 0.329409 | −0.002545 |
+| `ridge_log_rate` | 0.378926 | 0.376324 | −0.002602 |
+| `baseline_population_share` | 0.709645 | 0.705842 | −0.003803 |
+| `baseline_household_share` | 0.711871 | 0.708315 | −0.003556 |
+| **Unreconciled aggregate WAPE** (`poisson_glm`) | 0.383513 | 0.380904 | −0.002609 |
+| `boosted_poisson` unreconciled | 0.400355 | 0.416467 | +0.016112 |
+| `ridge_log_rate` unreconciled | 0.424436 | 0.433045 | +0.008609 |
+| baselines unreconciled | 0.762355 / 0.765664 | 0.800568 / 0.802679 | +0.038 / +0.037 |
+| **Tracts** | 84,400 | **84,401** | +1 |
+| **National BEV estimate** | 5,755,687 | **5,755,689** | +2 |
+| **Reconciliation max residual** | 2.33e-10 | **2.33e-10** | unchanged |
+| **Unconstrained tracts** | 0 | **0** | unchanged |
+| **Mean uncertainty** | 0.204082 | **0.202687** | −0.001395 |
+| **B/C threshold** | 0.262238 | **0.260170** | −0.002068 |
+| **Evidence grain** | 1,769 / 4,204 / 78,427 | **1,769 / 4,204 / 78,428** | +1 state-total-only |
+| **Confidence tiers A/B/C** | 5,973 / 58,820 / 19,607 | **5,973 / 58,821 / 19,607** | +1 Tier B |
+| **Training states** | 14 | **15** | +1 (Washington) |
+| **Training rows** | 7,378 | **9,140** | +1,762 |
+| **Independent validation states** | 14 | **14** | unchanged |
+
+**Ablation, recomputed:**
+
+| Measure | ACS 2023 | ACS 2024 |
+|---|---|---|
+| In-sample WAPE, without / with supply features | 0.366382 / 0.366342 | **0.360885 / 0.360072** |
+| **LOSO WAPE `poisson_glm`, without / with** | 0.3517 / 0.4232 | **0.344865 / 0.416967** |
+| LOSO WAPE `ridge_log_rate`, without / with | 0.4056 / 0.4008 | 0.398673 / 0.396359 |
+
+The conclusion is unchanged and slightly sharper: supply features **degrade out-of-state
+transfer by 7.2 percentage points** while moving in-sample fit by 0.08 — they buy no fit
+and cost real transfer.
+
+## 14.4 Decomposing the improvement — it is mostly ACS 2024, but not entirely
+
+Two things changed at once, so attributing the whole gain to the vintage would be wrong.
+All four combinations, same pre-registered rule throughout:
+
+| ACS vintage | Washington in training | Training rows | `poisson_glm` | `boosted_poisson` | Selected |
+|---|---|---:|---:|---:|---|
+| 2023 | no | 7,378 | 0.331156 | 0.331954 | `poisson_glm` |
+| 2023 | **yes** | 9,145 | 0.328251 | **0.324946** | `poisson_glm` |
+| **2024** | no | 7,373 | 0.321982 | 0.328466 | `poisson_glm` |
+| **2024** | **yes** | 9,140 | **0.320310** | 0.328979 | `poisson_glm` |
+
+- **ACS 2024 alone** accounts for **−0.009174** of the −0.010847 total (about 85%).
+- **Washington in training alone** accounts for **−0.002905**.
+- They are not additive (−0.012079 against an observed −0.010847): mild interaction,
+  expected when both add information about the same relationship.
+
+**One row deserves attention.** In the `2023 + Washington trains` configuration,
+`boosted_poisson` (0.324946) is *numerically better* than `poisson_glm` (0.328251). The
+gap is 0.0033, inside the pre-registered 1-percentage-point band, so the tie-break selects
+the simpler model. **The selection is stable across all four configurations, but in one of
+them only the tie-break preserves it.** That is the rule doing exactly what it was written
+to do, and it is reported rather than glossed.
+
+## 14.5 Washington: training evidence yes, independent validation evidence no
+
+| | |
+|---|---|
+| **Training / development evidence** | **YES** — Washington is in every other state's LOSO training fold and in the final production fit |
+| **Independent validation evidence** | **NO** — excluded from the headline aggregate, status `non_independent_preprocessing_selection_state`, its own LOSO row is diagnostic only |
+
+`independent_validation_states` (14): CO, CT, ME, MN, MT, NC, NJ, NM, NY, OR, TN, TX, VA, VT
+`training_states` (15): the same fourteen **plus WA**
+
+**What was actually wrong.** The pre-registration's rules W1–W4 speak, in every clause, to
+*validation records*, *the headline aggregate*, and *figures quoting a Washington LOSO
+metric*. They never barred Washington from training. The **implementation** conflated the
+two by reusing a single `is_independent` flag for both training-set construction and
+aggregate membership. That was an over-restriction introduced by code, not a requirement of
+the pre-registration.
+
+**Why the distinction holds.** Washington's tuning influence is specific — it selected the
+HUD ZIP→tract crosswalk — so a Washington *result* cannot be quoted as independent evidence
+about a model whose preprocessing Washington chose. That reasoning does not reach an Oregon
+or Texas holdout, whose own observations played no part in the crosswalk decision. Washington
+is also the only tract-native registration source in the country, so discarding it as
+training evidence threw away the most granular observations available for no methodological
+gain.
+
+Recorded as **amendment W5–W8** appended to `docs/evidence/P3-0_phase3_preregistration.md`,
+authorised by external review, with the original pre-registration preserved unedited above
+it. Two separate fields now exist (`is_independent`, `is_trainable`), both are published,
+and a regression test asserts Washington is in **exactly one** of the two lists.
+
+## 14.6 New Jersey sensitivity — material, and it did not drive anything
+
+New Jersey remains **`flagged_for_review`**, not marked low-confidence, per corrected
+domain rule G9: a statistical anomaly alone is not corroborating evidence of a vintage,
+coverage, definition or source-quality failure.
+
+| Aggregate (`poisson_glm`, state-total-reconciled) | States | Observed BEV | Weighted WAPE |
+|---|---:|---:|---:|
+| **With New Jersey** (the headline) | 14 | 1,373,621 | **0.320309** |
+| **Without New Jersey** | 13 | 1,209,207 | **0.303913** |
+| **Delta** | | | **−0.016396** |
+
+**This is material and is stated as such:** excluding New Jersey improves the headline
+aggregate by **1.64 percentage points**, which is larger than the entire ACS 2023 → 2024
+gain. New Jersey is the second-worst independent state (WAPE 0.441, R² 0.618) and carries
+12% of the aggregate's EV weight.
+
+**It did not drive model selection, and structurally could not have.** The sensitivity is
+derived from scores that had *already been computed and already been used to select the
+estimator* — there is no refit and no re-ranking, and the estimator is an input to the
+calculation rather than an output of it. New Jersey remains in the headline aggregate, in
+the training set, and in the panel. Confidence tiers are untouched. Assumption **A-3.1**
+stays open for Phase 5.
+
+## 14.7 Uncertainty: a diagnostic, not a calibration result
+
+The sentence in §9.7 reading *"A well-calibrated uncertainty score is a publishable
+result; so is a partly-calibrated one, and this is the latter"* is **withdrawn**.  <!-- copy-lint: allow -->
+It read as a calibration claim and the evidence does not support one.
+
+**Approved interpretation, now used everywhere:**
+
+> Higher uncertainty identifies the highest-error quintile, but error is not monotonic
+> across the remaining bins. The current uncertainty score is therefore **not empirically
+> calibrated**; this diagnostic only provides limited evidence that the score identifies
+> some high-error observations.
+
+The artifact key is renamed `washington_uncertainty_error_diagnostic` and carries
+`is_empirical_calibration: false`. Recomputed on ACS 2024, Washington only, diagnostic:
+
+| Bin | n | Mean uncertainty | Mean absolute error |
+|---:|---:|---:|---:|
+| 0 | 354 | 0.0604 | 50.95 |
+| 1 | 354 | 0.0921 | 46.81 |
+| 2 | 354 | 0.1240 | 50.46 |
+| 3 | 354 | 0.1625 | 42.43 |
+| 4 | 353 | 0.2122 | **73.17** |
+
+**Weights were not retuned.** The equal declared weights stand, the five components stand,
+the weight-sensitivity report stands, and the limitation that component `c4` is
+extrapolated from Washington stands. A regression test scans every document and fails on a
+calibration overclaim.
+
+## 14.8 ZIP totals stay out of Core v1 — reviewer decision, A-3.6 closed
+
+> ZIP-grain observations remain valuable training and native-grain validation evidence, but
+> they will not become hard tract-level reconciliation constraints in Core v1. The
+> Washington transformation ladder demonstrates potential value, but one-state evidence is
+> insufficient to justify changing the national reconciliation model and evidence-grain
+> semantics at this stage.
+
+No ZIP-level IPF constraints; no `zip_anchored` values in the production surface; county
+totals where reliable and state totals everywhere else. The experiment stays in
+`docs/FUTURE_WORK.md`. **This is settled and no longer blocks Phase 4.** Open question 1 in
+§12 is answered and withdrawn.
+
+## 14.9 ACS vintage handling preserves Phase 5's temporal integrity
+
+| | |
+|---|---|
+| **Current production feature vintage** | ACS 2024 5-year |
+| **Historical validation feature vintages** | cutoff-appropriate ACS releases; ACS 2023 5-year is retained |
+
+Directive **D1** requires `feature_vintage <= prediction_cutoff`. The ACS 2024 refresh
+applies to the production cross-section **only**; Phase 5's rolling origins must continue
+to use the release contemporaneous with each cutoff.
+
+Older vintages are not overwritten, and that is structural rather than a convention: the
+cache key hashes the request URL, which carries the year, so each vintage occupies its own
+entry under the same source id. Both replay offline today, and two regression tests prove
+it — one that the older vintage still loads, and one that the two vintages return
+*genuinely different values*, so a cache silently serving one vintage for both could not
+pass vacuously.
+
+**A defect in this area was found and fixed during the correction pass.**
+`AcsSource` binds `ACS_YEAR` as a **default argument, evaluated once at definition time**,
+so monkeypatching `census_acs.ACS_YEAR` does not change which vintage loads — it silently
+returns the production vintage. My first attempt at the §14.4 decomposition did exactly
+that and produced four rows in which the 2023 and 2024 results were *byte-identical*, which
+is what exposed it. `load_area_tables` now takes an explicit `year` parameter. Left
+unfixed, this would have handed Phase 5 a D1 violation that looked like a passing test.
+Recorded as impact **I-14**.
+
+## 14.10 Per-state results, recomputed on ACS 2024
+
+`poisson_glm`, state-total-reconciled:
+
+| State | Native grain | Areas | Observed BEV | WAPE | MAE | R² | Constraint vintage | Independent |
+|---|---|---:|---:|---:|---:|---:|---|---|
+| VA | county | 129 | 131,976 | **0.153** | 156.1 | 0.979 | 2025 | yes |
+| OR | ZIP | 358 | 82,069 | 0.221 | 50.7 | 0.935 | 2024 | yes |
+| CT | ZIP | 278 | 45,750 | 0.223 | 36.7 | 0.887 | 2025 | yes |
+| CO | ZIP | 455 | 153,852 | 0.261 | 88.3 | 0.873 | 2025 | yes |
+| MN | ZIP | 690 | 61,279 | 0.273 | 24.2 | 0.915 | 2025 | yes |
+| TN | county | 95 | 53,029 | 0.274 | 152.9 | 0.936 | 2025 | yes |
+| NM | ZIP | 245 | 19,245 | 0.316 | 24.9 | 0.899 | 2025 | yes |
+| VT | ZIP | 250 | 12,526 | 0.324 | 16.2 | 0.863 | 2025 | yes |
+| TX | ZIP | 1,589 | 374,452 | 0.342 | 80.6 | 0.814 | 2025 | yes |
+| NC | ZIP | 693 | 59,032 | 0.342 | 29.2 | 0.861 | 2023 | yes |
+| ME | ZIP | 356 | 11,284 | 0.357 | 11.3 | 0.863 | 2025 | yes |
+| NY | ZIP | 1,614 | 197,940 | 0.411 | 50.5 | 0.538 | 2025 | yes |
+| NJ | ZIP | 570 | 164,414 | 0.441 | 127.2 | 0.618 | 2025 | yes |
+| MT | county | 51 | 6,773 | 0.535 | 71.0 | 0.609 | 2025 | yes |
+| **WA** | **tract** | 1,767 | 236,985 | 0.384 | 51.5 | 0.505 | 2025 | **NO — training evidence only** |
+
+R² is above 0.85 for eleven of the fourteen independent states, up from ten. New York
+improves markedly (0.353 → 0.538); Montana remains the weakest at 51 counties.
+
+The measured transformation ladder is essentially unchanged: `native_tract` 0.0000,
+`zip_anchored` 0.162088, `county_anchored` 0.236679, `state_total_only` 0.304071. The
+ordering CLAUDE.md §7.4 predicts still holds.
+
+## 14.11 Gate evidence for the correction pass
+
+`make gate PHASE=3`, run on the final tree:
+
+| Step | Result |
+|---|---|
+| 1. lint | ruff clean; `mypy --strict` clean over **99** source files |
+| 2. full test suite | **883 passed, 47 deselected** in 102.59s |
+| 3. coverage | **100% line and branch on every tier**: 4,077 statements, 988 branches, **zero missed** |
+| 4. prior gate suites (Phase 0, 1, 2) | pass; offline probe determinism byte-identical |
+| 5. Phase 3 acceptance criteria P3-A to P3-H | **20 passed** |
+| 6. D3 copy lint | clean over 141 files, 15 rules |
+| 7. semantic determinism | pass |
+| 8. one-command rebuild | canonical tables and every Phase 3 number rebuilt |
+| **Verdict** | **PASS** |
+
+Coverage by tier: `pipeline/model/` 1,619 statements / 364 branches; `pipeline/validation/`
+542 / 152; `pipeline/spatial/` 299 / 78; `pipeline/discovery/` 677 / 198;
+`pipeline/quality/` 287 / 64; `pipeline/schemas/` 52 / 2; `pipeline/sources/` 317 / 78;
+`pipeline/transform/` 100 / 14. All 100%.
+
+The suite grew from 861 to **883**: the nineteen checks in
+`tests/regression/test_phase3_corrections.py` covering the fourteen the external review
+named, plus three added while fixing what the pass uncovered.
+
+**378 warnings appear and are benign.** They are a single sklearn-internal notice
+(`sklearn.utils.parallel.delayed` used without `Parallel`, about thread-config
+propagation) emitted by `HistGradientBoostingRegressor` inside the ablation's folds. It is
+**not** a convergence warning and carries no information about model quality.
+
+## 14.12 What this correction pass did not change
+
+- **No threshold, metric or selection rule moved.** The 1-percentage-point tie-break, the
+  0.75 B/C quantile, the equal uncertainty weights, the 0.35 maximum acceptable TVD and
+  the three-or-fewer-usable-states plan-change trigger are all exactly as pre-registered.
+- **No acceptance criterion was weakened** to make the refreshed surface pass. The gate
+  failed twice during the pass — once on stale artifact keys, once on an uncovered branch
+  in the new sensitivity guard — and both were fixed rather than accommodated.
+- **D2 is unchanged and still enforced structurally.** 14 primary features, all reading
+  only declared ACS demographics and land area.
+- **Reconciliation is unchanged**: proportional, on partitions, residual 2.33e-10.
+- **The uncertainty weights were not retuned**, and the components are the same five.
+- **New Jersey was not downgraded.**

@@ -33,7 +33,17 @@ from dataclasses import dataclass
 from pipeline.discovery.cache import Fetcher
 from pipeline.sources.base import LossyStagingError, Source, StagedTable
 
-ACS_YEAR = 2023
+#: The **current production** feature vintage. ACS 2024 5-year is the latest tract-level
+#: release the API serves (2025 returns HTTP 404).
+ACS_YEAR = 2024
+
+#: Vintages retained in the cache for Phase 5's rolling-origin backtests. Directive D1
+#: requires ``feature_vintage <= prediction_cutoff``, so a 2020 or 2021 origin must use
+#: the contemporaneous ACS release and **must not** use the current production vintage.
+#: These are never overwritten: the cache key hashes the request URL, which carries the
+#: year, so each vintage occupies its own entry under the same source id.
+HISTORICAL_ACS_YEARS: tuple[int, ...] = (2023,)
+
 ACS_DATASET = "acs/acs5"
 ACS_BASE = "https://api.census.gov/data"
 

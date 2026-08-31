@@ -42,7 +42,9 @@ def test_p3_a_loso_runs_across_every_usable_state_with_all_three_metrics(
 ) -> None:
     validation = evidence["demand_model_validation"]
     assert validation["validation_term"] == "demand model validation"
-    assert len(validation["independent_states"]) == 14
+    assert len(validation["independent_validation_states"]) == 14
+    # Washington trains but does not validate: 15 training, 14 independent.
+    assert len(validation["training_states"]) == 15
     for row in validation["per_state"]:
         assert isinstance(row["wape"], float)
         assert isinstance(row["mae"], float)
@@ -91,7 +93,7 @@ def test_p3_b_washington_is_excluded_from_the_independent_aggregate(
     evidence: dict[str, Any],
 ) -> None:
     validation = evidence["demand_model_validation"]
-    assert "WA" not in validation["independent_states"]
+    assert "WA" not in validation["independent_validation_states"]
     assert validation["excluded_from_independent_aggregate"]["WA"] == (
         "non_independent_preprocessing_selection_state")
 
@@ -139,7 +141,9 @@ def test_p3_d_the_reconciliation_identity_holds_to_floating_point(
 # --- P3-E: uncertainty --------------------------------------------------------------
 
 def test_p3_e_a_calibration_curve_is_produced(evidence: dict[str, Any]) -> None:
-    curve = evidence["uncertainty_calibration_washington_only"]
+    diagnostic = evidence["washington_uncertainty_error_diagnostic"]
+    assert diagnostic["is_empirical_calibration"] is False
+    curve = diagnostic["curve"]
     assert len(curve) >= 2
     for row in curve:
         assert set(row) == {"bin", "n", "mean_uncertainty", "mean_absolute_error"}

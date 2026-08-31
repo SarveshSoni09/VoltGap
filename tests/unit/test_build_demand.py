@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+from dataclasses import replace
 from pathlib import Path
 
 import pytest
@@ -197,12 +198,27 @@ def test_a_degraded_source_raises_every_tract_s_uncertainty() -> None:
             > clean.estimates[0].uncertainty_components["source_degradation"])
 
 
-def test_a_surface_with_no_independent_training_rows_is_refused() -> None:
+def test_the_final_production_fit_includes_washington() -> None:
+    """Washington is the only tract-native source. Barring it from the independent
+    validation aggregate says nothing about the information its observations carry, so
+    the production fit uses it (pre-registration amendment W7, 2026-08-29)."""
     tables = {"tracts": tract_table()}
     built = panels(tables)
-    only_wa = {"WA": built["WA"]}
-    with pytest.raises(ValueError, match="no independent training rows"):
-        build_surface(tables["tracts"], only_wa, observations(), state_totals(),
+    assert built["WA"].is_independent is False
+    assert built["WA"].is_trainable is True
+    surface_with_wa = build_surface(
+        tables["tracts"], built, observations(), state_totals(), penalty(),
+        "baseline_household_share", bootstrap_replicates=3)
+    assert "WA" in surface_with_wa.training_states
+
+
+def test_a_surface_with_no_trainable_rows_at_all_is_refused() -> None:
+    tables = {"tracts": tract_table()}
+    built = panels(tables)
+    barred = {state: replace(panel, is_trainable=False)
+              for state, panel in built.items()}
+    with pytest.raises(ValueError, match="no training rows"):
+        build_surface(tables["tracts"], barred, observations(), state_totals(),
                       penalty(), "baseline_household_share",
                       bootstrap_replicates=3)
 

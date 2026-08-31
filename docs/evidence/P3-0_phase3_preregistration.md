@@ -255,3 +255,93 @@ forbids.
 - Replacing a measured `c4` value with a chosen one.
 - Moving the B/C threshold to change the tier mix.
 - Calling any ZIP- or county-derived tract value directly observed.
+
+---
+
+# Amendment 1 — 2026-08-29 — externally authorised
+
+**Authorised by external review of `docs/reports/PHASE_3_REPORT.md`.** The pre-registered
+text above is **unchanged and remains in force**; this section is appended so the original
+survives in history exactly as it was committed before any model was fitted.
+
+## A1.1 Washington: training eligibility and evaluation eligibility are separate questions
+
+**What §2 above actually fixed.** Rules W1–W4 speak, in every clause, to *validation
+records*, to *the headline aggregate*, and to *figures quoting a Washington LOSO metric*.
+They say Washington may not serve as **independent evaluation evidence**. They say nothing
+about whether Washington's observations may inform a model that is evaluated on some
+other state.
+
+**What the implementation did.** It reused a single `is_independent` flag for both
+questions, so Washington was dropped from every fold's *training set* as well as from the
+aggregate. That was an over-restriction introduced by the code, not a requirement of the
+pre-registration.
+
+**Why the distinction is sound.** Washington's tuning influence is specific: it chose the
+HUD ZIP→tract preprocessing method, so a Washington *result* cannot be quoted as
+independent evidence about a model whose preprocessing Washington selected. That reasoning
+does not extend to an Oregon or Texas holdout. Those states' observations were not used to
+pick the crosswalk, and their held-out evaluation is not made less independent by
+Washington's rows appearing in the training data alongside twelve other states'. Washington
+is also the **only tract-native sub-state registration source in the country**, so
+discarding it as training evidence throws away the single most granular observation set
+available for no methodological gain.
+
+**Amended rules, in force from this date:**
+
+| Rule | Statement |
+|---|---|
+| **W5** | Washington **is eligible as development/training evidence**. When another state is held out, Washington may appear in that fold's training data. |
+| **W6** | Washington **remains ineligible as independent evaluation evidence**. W1–W4 are unchanged: it stays out of the headline independent aggregate, its own LOSO row remains diagnostic only, and it is never described as independent demand model validation. |
+| **W7** | The final production fit uses **every state usable as training evidence, including Washington**. |
+| **W8** | The two eligibilities are **separate fields, reported separately**: `independent_validation_states` and `training_states` both appear in the published evidence artifact, and a regression test asserts Washington is in exactly one of them. |
+
+**What this does not change.** Estimator selection is still made on the independent
+aggregate only, which still excludes Washington. No threshold, metric or selection rule
+moves. The consequence recorded in §2 still stands: the independent aggregate contains no
+tract-native state, and is scored entirely at ZIP or county grain.
+
+## A1.2 ZIP totals do not become Core reconciliation constraints
+
+**Reviewer decision, closing assumption A-3.6.** The Washington transformation ladder
+showed that ZIP-anchored allocation places EV mass better than a state total alone
+(statewide tract TVD 0.1621 against 0.3049), and Phase 3 raised that as an open question.
+External review has decided:
+
+> ZIP-grain observations remain valuable training and native-grain validation evidence,
+> but they will not become hard tract-level reconciliation constraints in Core v1. The
+> Washington transformation ladder demonstrates potential value, but one-state evidence is
+> insufficient to justify changing the national reconciliation model and evidence-grain
+> semantics at this stage.
+
+Therefore, fixed: no ZIP-level IPF constraints; no `zip_anchored` values in the production
+surface; county totals where reliable and state totals everywhere else, per the existing
+specification; the experiment stays in `docs/FUTURE_WORK.md`. **This is a settled decision,
+not an open question, and it no longer blocks Phase 4.**
+
+## A1.3 The uncertainty score is not empirically calibrated
+
+The Washington uncertainty–error curve is a **diagnostic**, not a calibration result. The
+highest-uncertainty quintile does carry clearly larger error, but error is not monotonic
+across the remaining bins, and Washington is itself the non-independent state. Any wording
+that could be read as a calibration claim — including "partly calibrated" — is removed.  <!-- copy-lint: allow -->
+The approved interpretation is recorded in §A1.5 below.
+
+Weights are **not** retuned in response. The equal, declared weights stand, the five
+components stand, the weight-sensitivity report stands, and the limitation that component
+`c4` is extrapolated from Washington stands.
+
+## A1.4 The current production feature vintage is ACS 2024 5-year
+
+The production cross-section moves to the latest tract-level release. **This does not
+license historical backtests to use it.** Directive D1 requires
+`feature_vintage <= prediction_cutoff`, so Phase 5's rolling origins must continue to use
+the ACS release contemporaneous with each cutoff. The older vintages remain cached and are
+never overwritten.
+
+## A1.5 Approved wording for the uncertainty diagnostic
+
+> Higher uncertainty identifies the highest-error quintile, but error is not monotonic
+> across the remaining bins. The current uncertainty score is therefore **not empirically
+> calibrated**; this diagnostic only provides limited evidence that the score identifies
+> some high-error observations.

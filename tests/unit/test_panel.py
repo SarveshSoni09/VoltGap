@@ -158,13 +158,20 @@ def test_washington_is_the_only_non_independent_state() -> None:
     assert NON_INDEPENDENT_REASON == "non_independent_preprocessing_selection_state"
 
 
-def test_a_panel_reports_whether_it_may_enter_the_independent_aggregate() -> None:
+def test_a_panel_reports_its_two_eligibilities_separately() -> None:
+    """Barred from independent evaluation is NOT the same as barred from training.
+
+    Washington's tuning influence invalidates its own evaluation; it does not
+    contaminate another state's holdout merely by sitting in that fold's training set.
+    """
     wa = build_state_panel(
         observations([(T1, 5)], SourceGeography.TRACT, "WA"),
         {"tracts": table([T1], "tracts")},
     )
     assert wa.is_independent is False
-    assert wa.to_dict()["independent"] is False
+    assert wa.is_trainable is True
+    assert wa.to_dict()["independent_validation_evidence"] is False
+    assert wa.to_dict()["training_evidence"] is True
     vt = build_state_panel(
         observations([("05401", 5)], SourceGeography.USPS_ZIP),
         {"zcta": table(["05401"])}, {"05401": frozenset({"50"})},
