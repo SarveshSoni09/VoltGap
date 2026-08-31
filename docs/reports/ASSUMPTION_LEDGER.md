@@ -105,7 +105,7 @@ review, and A-0.5 moved forward to Phase 1. Phase 1's gate re-checks all open en
 | A-3.3 | Fitting at each state's own observed geography and predicting at tract grain does not introduce material aggregation bias. | A rate model fitted on ZCTA and county rows is applied to tracts. Share features aggregate as population-weighted means, which is what a coarser area's share *is*, but the relationship need not be scale-invariant. Washington is the only place this could be checked, and it is the non-independent state. | Phase 5 | OPEN |
 | A-3.4 | The AFDC state totals, rounded to the nearest 100, are precise enough to serve as exact reconciliation constraints. | Every reconciled tract estimate inherits a constraint good to about ±50 vehicles per state. At national scale that is ~±2,550 vehicles against 5,755,687. | Phase 4 | OPEN |
 | A-3.5 | Population density is an adequate stand-in for the urban/rural classification CLAUDE.md §7.3 names. | No keyless tract-level Census urban/rural product was retrieved this phase, so the feature ships as a continuous proxy. A classification would let the model treat rural areas as a distinct regime rather than an extreme of one. | Phase 4 | OPEN |
-| A-3.6 | The eleven ZIP-grain states' registration data are better used as training and validation evidence than as reconciliation constraints. | The measured ladder says ZIP-anchored allocation places EV mass better than a state total alone (statewide tract TVD 0.1621 against 0.3049), which is evidence *for* using them as constraints. Phase 3 declined on scope grounds under CLAUDE.md §19, not on merit. | Phase 4, or a reviewer decision | OPEN |
+| A-3.6 | The eleven ZIP-grain states' registration data are better used as training and validation evidence than as reconciliation constraints. | The measured ladder says ZIP-anchored allocation places EV mass better than a state total alone (statewide tract TVD 0.1621 against 0.3049), which is evidence *for* using them as constraints. Phase 3 declined on scope grounds under CLAUDE.md §19, not on merit. | — | **CLOSED 2026-08-29 by external review.** ZIP-grain observations remain valuable training and native-grain validation evidence, but they **will not become hard tract-level reconciliation constraints in Core v1**: one-state evidence is insufficient to justify changing the national reconciliation model and evidence-grain semantics at this stage. No ZIP-level IPF constraints; no `zip_anchored` values in the production surface; county totals where reliable and state totals everywhere else. The experiment stays in `docs/FUTURE_WORK.md`. **This no longer blocks Phase 4.** |
 
 ## Re-checked at the Phase 3 gate
 
@@ -119,3 +119,21 @@ review, and A-0.5 moved forward to Phase 1. Phase 1's gate re-checks all open en
 | A-2.1, A-2.2, A-2.3, A-2.4, A-2.5 | The Phase 2 supply and access assumptions | **UNTESTED this phase.** Phase 3 consumes no Phase 2 supply output except inside the labelled ablation, which is not part of the published surface | Phase 4 |
 | A-1.3, A-0.19 | A rule-based copy lint catches the claims that matter | **HOLDS so far.** 140 files clean, 15 rules | copy lint |
 | A-0.21 | Excluding volatile metadata from the semantic hash still detects every genuine change | HOLDS | `tests/integration/test_determinism.py` |
+
+---
+
+## Opened by the external-review correction pass (2026-08-29)
+
+| ID | Falsifiable statement | Depends on | Tested in | Status |
+|---|---|---|---|---|
+| A-3.7 | ACS 2024 5-year is a like-for-like replacement for ACS 2023 5-year across every variable Phase 3 consumes. | All 78 variables are present in the 2024 dictionary and returned by the API at tract, ZCTA and county grain, with identical area counts (250 Rhode Island tracts, 33,772 ZCTAs, 3,222 counties) and identical column ordering. Two label changes exist and neither affects a consumed universe: `B19013_001E` moves to 2024 inflation-adjusted dollars, and `B08301_010E` drops the "(excluding taxicab)" parenthetical because line 016 was renamed "Taxicab" → "Taxi or ride-hailing services". Phase 3 does not consume line 016. | Phase 4 | OPEN |
+| A-3.8 | Median household income expressed in 2024 dollars rather than 2023 dollars does not change the model's behaviour in any way that matters. | The model refits entirely within one vintage, so it is internally consistent, but the feature's **units changed**, which means the fitted coefficient is not comparable across vintages and a before/after comparison of that feature is not like-for-like. | Phase 4 | OPEN |
+| A-3.9 | Washington's presence in another state's training fold does not compromise that state's independence as evaluation evidence. | Washington's tuning influence is specific: it selected the HUD ZIP→tract preprocessing method. That invalidates a Washington *result*, not an Oregon or Texas holdout whose own observations played no part in the crosswalk choice. Recorded as amendment W5-W8 to the pre-registration and authorised by external review. | Phase 5 | OPEN |
+
+## Re-checked at the correction-pass gate
+
+| ID | Assumption | Status | Evidence |
+|---|---|---|---|
+| A-3.1 | New Jersey's observed total is materially incomplete rather than definitionally different | **STILL OPEN, and now quantified.** New Jersey stays `flagged_for_review`, not marked low-confidence, per corrected G9. A bounded with/without sensitivity on the headline aggregate is reported as a diagnostic that cannot feed back into selection | `test_check_10_new_jersey_sensitivity_is_reported_and_cannot_drive_selection` |
+| A-3.2 | The Washington-measured transformation ladder generalises nationally | **STILL OPEN.** Unchanged by the ACS refresh; the limitation that `c4` is extrapolated from one state is preserved | Phase 5 |
+| A-3.6 | ZIP-grain data are better used as evidence than as constraints | **CLOSED by external review** — see above | reviewer decision |

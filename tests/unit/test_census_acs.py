@@ -9,6 +9,7 @@ import pytest
 from pipeline.sources.base import LossyStagingError
 from pipeline.sources.census_acs import (
     ACS_VARIABLES,
+    ACS_YEAR,
     COUNTY,
     FEATURE_TABLES,
     MAX_VARIABLES_PER_REQUEST,
@@ -175,7 +176,7 @@ def test_the_staged_vintage_names_the_acs_release() -> None:
     body = response(["B01003_001E", "B19013_001E", "state", "county", "tract"],
                     [["1", "2", "53", "033", "000100"]])
     table = small_source().load(FakeFetcher([body]))
-    assert table.vintage.vintage == "ACS 2023 5-year"
+    assert table.vintage.vintage == f"ACS {ACS_YEAR} 5-year"
     assert table.source_row_count == len(table.rows)
 
 

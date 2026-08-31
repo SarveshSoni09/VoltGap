@@ -1,31 +1,31 @@
 {
   "allocation_penalty": {
-    "county_anchored": 0.236701,
+    "county_anchored": 0.236679,
     "native_tract": 0.0,
-    "state_total_only": 0.304932,
+    "state_total_only": 0.304071,
     "zip_anchored": 0.162088
   },
   "demand_model_validation": {
     "aggregate_weighted_wape": {
       "state_total_reconciled": {
-        "baseline_household_share": 0.711871,
-        "baseline_population_share": 0.709645,
-        "boosted_poisson": 0.331954,
-        "poisson_glm": 0.331156,
-        "ridge_log_rate": 0.378926
+        "baseline_household_share": 0.708315,
+        "baseline_population_share": 0.705842,
+        "boosted_poisson": 0.329409,
+        "poisson_glm": 0.320309,
+        "ridge_log_rate": 0.376324
       },
       "unreconciled": {
-        "baseline_household_share": 0.765664,
-        "baseline_population_share": 0.762355,
-        "boosted_poisson": 0.400355,
-        "poisson_glm": 0.383513,
-        "ridge_log_rate": 0.424436
+        "baseline_household_share": 0.802679,
+        "baseline_population_share": 0.800568,
+        "boosted_poisson": 0.416467,
+        "poisson_glm": 0.380904,
+        "ridge_log_rate": 0.433045
       }
     },
     "excluded_from_independent_aggregate": {
       "WA": "non_independent_preprocessing_selection_state"
     },
-    "independent_states": [
+    "independent_validation_states": [
       "CO",
       "CT",
       "ME",
@@ -43,36 +43,36 @@
     ],
     "per_state": [
       {
-        "areas_scored": 456,
+        "areas_scored": 455,
         "constraint_bev": null,
         "constraint_vintage": null,
         "estimator": "baseline_household_share",
         "evidence_grain": "usps_zip",
         "independent": true,
-        "mae": 210.601027,
+        "mae": 202.594011,
         "native_geography": "zcta",
-        "observed_bev": 153840,
-        "r_squared": 0.306555,
+        "observed_bev": 153852,
+        "r_squared": 0.360022,
         "reconciliation": "unreconciled",
         "state": "CO",
         "status": null,
-        "wape": 0.624246
+        "wape": 0.599149
       },
       {
-        "areas_scored": 456,
+        "areas_scored": 455,
         "constraint_bev": 162800,
         "constraint_vintage": "2025",
         "estimator": "baseline_household_share",
         "evidence_grain": "usps_zip",
         "independent": true,
-        "mae": 193.005672,
+        "mae": 191.739424,
         "native_geography": "zcta",
-        "observed_bev": 153840,
-        "r_squared": 0.598383,
+        "observed_bev": 153852,
+        "r_squared": 0.605967,
         "reconciliation": "state_total_reconciled",
         "state": "CO",
         "status": null,
-        "wape": 0.572092
+        "wape": 0.567048
       },
       {
         "areas_scored": 278,
@@ -81,14 +81,14 @@
         "estimator": "baseline_household_share",
         "evidence_grain": "usps_zip",
         "independent": true,
-        "mae": 100.379655,
+        "mae": 106.182125,
         "native_geography": "zcta",
-        "observed_bev": 45745,
-        "r_squared": 0.274162,
+        "observed_bev": 45750,
+        "r_squared": 0.236531,
         "reconciliation": "unreconciled",
         "state": "CT",
         "status": null,
-        "wape": 0.610024
+        "wape": 0.645216
       },
       {
         "areas_scored": 278,
@@ -97,78 +97,78 @@
         "estimator": "baseline_household_share",
         "evidence_grain": "usps_zip",
         "independent": true,
-        "mae": 103.043395,
+        "mae": 102.867409,
         "native_geography": "zcta",
-        "observed_bev": 45745,
-        "r_squared": 0.254864,
+        "observed_bev": 45750,
+        "r_squared": 0.259589,
         "reconciliation": "state_total_reconciled",
         "state": "CT",
         "status": null,
-        "wape": 0.626212
+        "wape": 0.625074
       },
       {
-        "areas_scored": 355,
+        "areas_scored": 356,
         "constraint_bev": null,
         "constraint_vintage": null,
         "estimator": "baseline_household_share",
         "evidence_grain": "usps_zip",
         "independent": true,
-        "mae": 31.118437,
+        "mae": 34.33002,
         "native_geography": "zcta",
-        "observed_bev": 11277,
-        "r_squared": 0.270864,
+        "observed_bev": 11284,
+        "r_squared": 0.1079,
         "reconciliation": "unreconciled",
         "state": "ME",
         "status": null,
-        "wape": 0.979608
+        "wape": 1.083081
       },
       {
-        "areas_scored": 355,
+        "areas_scored": 356,
         "constraint_bev": 11900,
         "constraint_vintage": "2025",
         "estimator": "baseline_household_share",
         "evidence_grain": "usps_zip",
         "independent": true,
-        "mae": 21.467429,
+        "mae": 21.332276,
         "native_geography": "zcta",
-        "observed_bev": 11277,
-        "r_squared": 0.548341,
+        "observed_bev": 11284,
+        "r_squared": 0.546585,
         "reconciliation": "state_total_reconciled",
         "state": "ME",
         "status": null,
-        "wape": 0.675795
+        "wape": 0.673014
       },
       {
-        "areas_scored": 689,
+        "areas_scored": 690,
         "constraint_bev": null,
         "constraint_vintage": null,
         "estimator": "baseline_household_share",
         "evidence_grain": "usps_zip",
         "independent": true,
-        "mae": 63.870043,
+        "mae": 67.574568,
         "native_geography": "zcta",
-        "observed_bev": 61211,
-        "r_squared": 0.609858,
+        "observed_bev": 61279,
+        "r_squared": 0.593636,
         "reconciliation": "unreconciled",
         "state": "MN",
         "status": null,
-        "wape": 0.718931
+        "wape": 0.760888
       },
       {
-        "areas_scored": 689,
+        "areas_scored": 690,
         "constraint_bev": 59800,
         "constraint_vintage": "2025",
         "estimator": "baseline_household_share",
         "evidence_grain": "usps_zip",
         "independent": true,
-        "mae": 58.542211,
+        "mae": 58.442559,
         "native_geography": "zcta",
-        "observed_bev": 61211,
-        "r_squared": 0.596486,
+        "observed_bev": 61279,
+        "r_squared": 0.598565,
         "reconciliation": "state_total_reconciled",
         "state": "MN",
         "status": null,
-        "wape": 0.65896
+        "wape": 0.658062
       },
       {
         "areas_scored": 51,
@@ -177,14 +177,14 @@
         "estimator": "baseline_household_share",
         "evidence_grain": "county",
         "independent": true,
-        "mae": 188.247739,
+        "mae": 208.88732,
         "native_geography": "county",
         "observed_bev": 6773,
-        "r_squared": -0.130887,
+        "r_squared": -0.439406,
         "reconciliation": "unreconciled",
         "state": "MT",
         "status": null,
-        "wape": 1.417486
+        "wape": 1.5729
       },
       {
         "areas_scored": 51,
@@ -193,14 +193,14 @@
         "estimator": "baseline_household_share",
         "evidence_grain": "county",
         "independent": true,
-        "mae": 80.987375,
+        "mae": 80.541335,
         "native_geography": "county",
         "observed_bev": 6773,
-        "r_squared": 0.618277,
+        "r_squared": 0.620131,
         "reconciliation": "state_total_reconciled",
         "state": "MT",
         "status": null,
-        "wape": 0.609827
+        "wape": 0.606468
       },
       {
         "areas_scored": 693,
@@ -209,14 +209,14 @@
         "estimator": "baseline_household_share",
         "evidence_grain": "usps_zip",
         "independent": true,
-        "mae": 142.406615,
+        "mae": 160.249352,
         "native_geography": "zcta",
         "observed_bev": 59032,
-        "r_squared": -0.296092,
+        "r_squared": -0.593505,
         "reconciliation": "unreconciled",
         "state": "NC",
         "status": null,
-        "wape": 1.671768
+        "wape": 1.881231
       },
       {
         "areas_scored": 693,
@@ -225,78 +225,78 @@
         "estimator": "baseline_household_share",
         "evidence_grain": "usps_zip",
         "independent": true,
-        "mae": 71.230558,
+        "mae": 71.01841,
         "native_geography": "zcta",
         "observed_bev": 59032,
-        "r_squared": 0.411911,
+        "r_squared": 0.416037,
         "reconciliation": "state_total_reconciled",
         "state": "NC",
         "status": null,
-        "wape": 0.836204
+        "wape": 0.833713
       },
       {
-        "areas_scored": 569,
+        "areas_scored": 570,
         "constraint_bev": null,
         "constraint_vintage": null,
         "estimator": "baseline_household_share",
         "evidence_grain": "usps_zip",
         "independent": true,
-        "mae": 176.260807,
+        "mae": 175.419571,
         "native_geography": "zcta",
-        "observed_bev": 164397,
-        "r_squared": 0.259621,
+        "observed_bev": 164414,
+        "r_squared": 0.292305,
         "reconciliation": "unreconciled",
         "state": "NJ",
         "status": null,
-        "wape": 0.610062
+        "wape": 0.608155
       },
       {
-        "areas_scored": 569,
+        "areas_scored": 570,
         "constraint_bev": 210000,
         "constraint_vintage": "2025",
         "estimator": "baseline_household_share",
         "evidence_grain": "usps_zip",
         "independent": true,
-        "mae": 220.080785,
+        "mae": 219.429002,
         "native_geography": "zcta",
-        "observed_bev": 164397,
-        "r_squared": 0.180712,
+        "observed_bev": 164414,
+        "r_squared": 0.184815,
         "reconciliation": "state_total_reconciled",
         "state": "NJ",
         "status": null,
-        "wape": 0.761729
+        "wape": 0.760729
       },
       {
-        "areas_scored": 246,
+        "areas_scored": 245,
         "constraint_bev": null,
         "constraint_vintage": null,
         "estimator": "baseline_household_share",
         "evidence_grain": "usps_zip",
         "independent": true,
-        "mae": 58.295136,
+        "mae": 63.893299,
         "native_geography": "zcta",
-        "observed_bev": 19246,
-        "r_squared": 0.606185,
+        "observed_bev": 19245,
+        "r_squared": 0.539723,
         "reconciliation": "unreconciled",
         "state": "NM",
         "status": null,
-        "wape": 0.745121
+        "wape": 0.813399
       },
       {
-        "areas_scored": 246,
+        "areas_scored": 245,
         "constraint_bev": 16600,
         "constraint_vintage": "2025",
         "estimator": "baseline_household_share",
         "evidence_grain": "usps_zip",
         "independent": true,
-        "mae": 47.622244,
+        "mae": 47.736296,
         "native_geography": "zcta",
-        "observed_bev": 19246,
-        "r_squared": 0.639443,
+        "observed_bev": 19245,
+        "r_squared": 0.640827,
         "reconciliation": "state_total_reconciled",
         "state": "NM",
         "status": null,
-        "wape": 0.608702
+        "wape": 0.607711
       },
       {
         "areas_scored": 1614,
@@ -305,14 +305,14 @@
         "estimator": "baseline_household_share",
         "evidence_grain": "usps_zip",
         "independent": true,
-        "mae": 104.804721,
+        "mae": 113.037541,
         "native_geography": "zcta",
-        "observed_bev": 197934,
-        "r_squared": 0.024547,
+        "observed_bev": 197940,
+        "r_squared": -0.115566,
         "reconciliation": "unreconciled",
         "state": "NY",
         "status": null,
-        "wape": 0.854602
+        "wape": 0.921707
       },
       {
         "areas_scored": 1614,
@@ -321,46 +321,46 @@
         "estimator": "baseline_household_share",
         "evidence_grain": "usps_zip",
         "independent": true,
-        "mae": 90.128995,
+        "mae": 89.930483,
         "native_geography": "zcta",
-        "observed_bev": 197934,
-        "r_squared": 0.234616,
+        "observed_bev": 197940,
+        "r_squared": 0.236354,
         "reconciliation": "state_total_reconciled",
         "state": "NY",
         "status": null,
-        "wape": 0.734933
+        "wape": 0.733292
       },
       {
-        "areas_scored": 359,
+        "areas_scored": 358,
         "constraint_bev": null,
         "constraint_vintage": null,
         "estimator": "baseline_household_share",
         "evidence_grain": "usps_zip",
         "independent": true,
-        "mae": 128.21,
+        "mae": 126.293794,
         "native_geography": "zcta",
-        "observed_bev": 82070,
-        "r_squared": 0.448531,
+        "observed_bev": 82069,
+        "r_squared": 0.486604,
         "reconciliation": "unreconciled",
         "state": "OR",
         "status": null,
-        "wape": 0.560831
+        "wape": 0.550917
       },
       {
-        "areas_scored": 359,
+        "areas_scored": 358,
         "constraint_bev": 78400,
         "constraint_vintage": "2024",
         "estimator": "baseline_household_share",
         "evidence_grain": "usps_zip",
         "independent": true,
-        "mae": 126.252577,
+        "mae": 126.306964,
         "native_geography": "zcta",
-        "observed_bev": 82070,
-        "r_squared": 0.568072,
+        "observed_bev": 82069,
+        "r_squared": 0.571093,
         "reconciliation": "state_total_reconciled",
         "state": "OR",
         "status": null,
-        "wape": 0.552268
+        "wape": 0.550974
       },
       {
         "areas_scored": 95,
@@ -369,14 +369,14 @@
         "estimator": "baseline_household_share",
         "evidence_grain": "county",
         "independent": true,
-        "mae": 564.986377,
+        "mae": 657.382519,
         "native_geography": "county",
         "observed_bev": 53029,
-        "r_squared": 0.542966,
+        "r_squared": 0.427162,
         "reconciliation": "unreconciled",
         "state": "TN",
         "status": null,
-        "wape": 1.012158
+        "wape": 1.177683
       },
       {
         "areas_scored": 95,
@@ -385,46 +385,46 @@
         "estimator": "baseline_household_share",
         "evidence_grain": "county",
         "independent": true,
-        "mae": 326.078036,
+        "mae": 323.576344,
         "native_geography": "county",
         "observed_bev": 53029,
-        "r_squared": 0.683989,
+        "r_squared": 0.68596,
         "reconciliation": "state_total_reconciled",
         "state": "TN",
         "status": null,
-        "wape": 0.58416
+        "wape": 0.579678
       },
       {
-        "areas_scored": 1593,
+        "areas_scored": 1589,
         "constraint_bev": null,
         "constraint_vintage": null,
         "estimator": "baseline_household_share",
         "evidence_grain": "usps_zip",
         "independent": true,
-        "mae": 181.832073,
+        "mae": 189.977206,
         "native_geography": "zcta",
-        "observed_bev": 374464,
-        "r_squared": 0.361041,
+        "observed_bev": 374452,
+        "r_squared": 0.390025,
         "reconciliation": "unreconciled",
         "state": "TX",
         "status": null,
-        "wape": 0.773528
+        "wape": 0.806175
       },
       {
-        "areas_scored": 1593,
+        "areas_scored": 1589,
         "constraint_bev": 387400,
         "constraint_vintage": "2025",
         "estimator": "baseline_household_share",
         "evidence_grain": "usps_zip",
         "independent": true,
-        "mae": 190.728979,
+        "mae": 189.208835,
         "native_geography": "zcta",
-        "observed_bev": 374464,
-        "r_squared": 0.38,
+        "observed_bev": 374452,
+        "r_squared": 0.388971,
         "reconciliation": "state_total_reconciled",
         "state": "TX",
         "status": null,
-        "wape": 0.811376
+        "wape": 0.802914
       },
       {
         "areas_scored": 129,
@@ -433,14 +433,14 @@
         "estimator": "baseline_household_share",
         "evidence_grain": "county",
         "independent": true,
-        "mae": 659.772294,
+        "mae": 672.09883,
         "native_geography": "county",
         "observed_bev": 131976,
-        "r_squared": 0.550533,
+        "r_squared": 0.587968,
         "reconciliation": "unreconciled",
         "state": "VA",
         "status": null,
-        "wape": 0.644895
+        "wape": 0.656943
       },
       {
         "areas_scored": 129,
@@ -449,46 +449,46 @@
         "estimator": "baseline_household_share",
         "evidence_grain": "county",
         "independent": true,
-        "mae": 706.255974,
+        "mae": 707.838288,
         "native_geography": "county",
         "observed_bev": 131976,
-        "r_squared": 0.646451,
+        "r_squared": 0.644016,
         "reconciliation": "state_total_reconciled",
         "state": "VA",
         "status": null,
-        "wape": 0.69033
+        "wape": 0.691877
       },
       {
-        "areas_scored": 251,
+        "areas_scored": 250,
         "constraint_bev": null,
         "constraint_vintage": null,
         "estimator": "baseline_household_share",
         "evidence_grain": "usps_zip",
         "independent": true,
-        "mae": 24.367011,
+        "mae": 23.999171,
         "native_geography": "zcta",
-        "observed_bev": 12528,
-        "r_squared": 0.655111,
+        "observed_bev": 12526,
+        "r_squared": 0.689635,
         "reconciliation": "unreconciled",
         "state": "VT",
         "status": null,
-        "wape": 0.488196
+        "wape": 0.478987
       },
       {
-        "areas_scored": 251,
+        "areas_scored": 250,
         "constraint_bev": 11900,
         "constraint_vintage": "2025",
         "estimator": "baseline_household_share",
         "evidence_grain": "usps_zip",
         "independent": true,
-        "mae": 23.961051,
+        "mae": 24.140049,
         "native_geography": "zcta",
-        "observed_bev": 12528,
-        "r_squared": 0.75477,
+        "observed_bev": 12526,
+        "r_squared": 0.751816,
         "reconciliation": "state_total_reconciled",
         "state": "VT",
         "status": null,
-        "wape": 0.480063
+        "wape": 0.481799
       },
       {
         "areas_scored": 1767,
@@ -497,14 +497,14 @@
         "estimator": "baseline_household_share",
         "evidence_grain": "tract",
         "independent": false,
-        "mae": 89.417332,
+        "mae": 89.362827,
         "native_geography": "tracts",
         "observed_bev": 236985,
-        "r_squared": -0.249345,
+        "r_squared": -0.247994,
         "reconciliation": "unreconciled",
         "state": "WA",
         "status": "non_independent_preprocessing_selection_state",
-        "wape": 0.666711
+        "wape": 0.666304
       },
       {
         "areas_scored": 1767,
@@ -513,46 +513,46 @@
         "estimator": "baseline_household_share",
         "evidence_grain": "tract",
         "independent": false,
-        "mae": 85.504417,
+        "mae": 85.306237,
         "native_geography": "tracts",
         "observed_bev": 236985,
-        "r_squared": 0.143698,
+        "r_squared": 0.146157,
         "reconciliation": "state_total_reconciled",
         "state": "WA",
         "status": "non_independent_preprocessing_selection_state",
-        "wape": 0.637535
+        "wape": 0.636058
       },
       {
-        "areas_scored": 456,
+        "areas_scored": 455,
         "constraint_bev": null,
         "constraint_vintage": null,
         "estimator": "baseline_population_share",
         "evidence_grain": "usps_zip",
         "independent": true,
-        "mae": 217.903535,
+        "mae": 210.30336,
         "native_geography": "zcta",
-        "observed_bev": 153840,
-        "r_squared": 0.294769,
+        "observed_bev": 153852,
+        "r_squared": 0.347782,
         "reconciliation": "unreconciled",
         "state": "CO",
         "status": null,
-        "wape": 0.645892
+        "wape": 0.621949
       },
       {
-        "areas_scored": 456,
+        "areas_scored": 455,
         "constraint_bev": 162800,
         "constraint_vintage": "2025",
         "estimator": "baseline_population_share",
         "evidence_grain": "usps_zip",
         "independent": true,
-        "mae": 191.88874,
+        "mae": 189.902587,
         "native_geography": "zcta",
-        "observed_bev": 153840,
-        "r_squared": 0.605687,
+        "observed_bev": 153852,
+        "r_squared": 0.614797,
         "reconciliation": "state_total_reconciled",
         "state": "CO",
         "status": null,
-        "wape": 0.568781
+        "wape": 0.561616
       },
       {
         "areas_scored": 278,
@@ -561,14 +561,14 @@
         "estimator": "baseline_population_share",
         "evidence_grain": "usps_zip",
         "independent": true,
-        "mae": 95.729787,
+        "mae": 100.895014,
         "native_geography": "zcta",
-        "observed_bev": 45745,
-        "r_squared": 0.335025,
+        "observed_bev": 45750,
+        "r_squared": 0.304115,
         "reconciliation": "unreconciled",
         "state": "CT",
         "status": null,
-        "wape": 0.581766
+        "wape": 0.613089
       },
       {
         "areas_scored": 278,
@@ -577,78 +577,78 @@
         "estimator": "baseline_population_share",
         "evidence_grain": "usps_zip",
         "independent": true,
-        "mae": 99.475486,
+        "mae": 99.718076,
         "native_geography": "zcta",
-        "observed_bev": 45745,
-        "r_squared": 0.311048,
+        "observed_bev": 45750,
+        "r_squared": 0.312297,
         "reconciliation": "state_total_reconciled",
         "state": "CT",
         "status": null,
-        "wape": 0.604529
+        "wape": 0.605937
       },
       {
-        "areas_scored": 355,
+        "areas_scored": 356,
         "constraint_bev": null,
         "constraint_vintage": null,
         "estimator": "baseline_population_share",
         "evidence_grain": "usps_zip",
         "independent": true,
-        "mae": 28.064227,
+        "mae": 30.364157,
         "native_geography": "zcta",
-        "observed_bev": 11277,
-        "r_squared": 0.408796,
+        "observed_bev": 11284,
+        "r_squared": 0.305276,
         "reconciliation": "unreconciled",
         "state": "ME",
         "status": null,
-        "wape": 0.883462
+        "wape": 0.957962
       },
       {
-        "areas_scored": 355,
+        "areas_scored": 356,
         "constraint_bev": 11900,
         "constraint_vintage": "2025",
         "estimator": "baseline_population_share",
         "evidence_grain": "usps_zip",
         "independent": true,
-        "mae": 21.707046,
+        "mae": 21.631923,
         "native_geography": "zcta",
-        "observed_bev": 11277,
-        "r_squared": 0.551713,
+        "observed_bev": 11284,
+        "r_squared": 0.551479,
         "reconciliation": "state_total_reconciled",
         "state": "ME",
         "status": null,
-        "wape": 0.683338
+        "wape": 0.682468
       },
       {
-        "areas_scored": 689,
+        "areas_scored": 690,
         "constraint_bev": null,
         "constraint_vintage": null,
         "estimator": "baseline_population_share",
         "evidence_grain": "usps_zip",
         "independent": true,
-        "mae": 63.33487,
+        "mae": 66.666693,
         "native_geography": "zcta",
-        "observed_bev": 61211,
-        "r_squared": 0.611471,
+        "observed_bev": 61279,
+        "r_squared": 0.602984,
         "reconciliation": "unreconciled",
         "state": "MN",
         "status": null,
-        "wape": 0.712907
+        "wape": 0.750665
       },
       {
-        "areas_scored": 689,
+        "areas_scored": 690,
         "constraint_bev": 59800,
         "constraint_vintage": "2025",
         "estimator": "baseline_population_share",
         "evidence_grain": "usps_zip",
         "independent": true,
-        "mae": 59.340301,
+        "mae": 59.158996,
         "native_geography": "zcta",
-        "observed_bev": 61211,
-        "r_squared": 0.596963,
+        "observed_bev": 61279,
+        "r_squared": 0.600314,
         "reconciliation": "state_total_reconciled",
         "state": "MN",
         "status": null,
-        "wape": 0.667943
+        "wape": 0.666129
       },
       {
         "areas_scored": 51,
@@ -657,14 +657,14 @@
         "estimator": "baseline_population_share",
         "evidence_grain": "county",
         "independent": true,
-        "mae": 174.102121,
+        "mae": 193.851428,
         "native_geography": "county",
         "observed_bev": 6773,
-        "r_squared": 0.090604,
+        "r_squared": -0.157579,
         "reconciliation": "unreconciled",
         "state": "MT",
         "status": null,
-        "wape": 1.310971
+        "wape": 1.459682
       },
       {
         "areas_scored": 51,
@@ -673,14 +673,14 @@
         "estimator": "baseline_population_share",
         "evidence_grain": "county",
         "independent": true,
-        "mae": 82.545398,
+        "mae": 82.118121,
         "native_geography": "county",
         "observed_bev": 6773,
-        "r_squared": 0.623931,
+        "r_squared": 0.628322,
         "reconciliation": "state_total_reconciled",
         "state": "MT",
         "status": null,
-        "wape": 0.621558
+        "wape": 0.618341
       },
       {
         "areas_scored": 693,
@@ -689,14 +689,14 @@
         "estimator": "baseline_population_share",
         "evidence_grain": "usps_zip",
         "independent": true,
-        "mae": 134.174849,
+        "mae": 150.263911,
         "native_geography": "zcta",
         "observed_bev": 59032,
-        "r_squared": -0.169516,
+        "r_squared": -0.425177,
         "reconciliation": "unreconciled",
         "state": "NC",
         "status": null,
-        "wape": 1.575132
+        "wape": 1.764007
       },
       {
         "areas_scored": 693,
@@ -705,78 +705,78 @@
         "estimator": "baseline_population_share",
         "evidence_grain": "usps_zip",
         "independent": true,
-        "mae": 71.271445,
+        "mae": 71.042038,
         "native_geography": "zcta",
         "observed_bev": 59032,
-        "r_squared": 0.434643,
+        "r_squared": 0.440911,
         "reconciliation": "state_total_reconciled",
         "state": "NC",
         "status": null,
-        "wape": 0.836684
+        "wape": 0.833991
       },
       {
-        "areas_scored": 569,
+        "areas_scored": 570,
         "constraint_bev": null,
         "constraint_vintage": null,
         "estimator": "baseline_population_share",
         "evidence_grain": "usps_zip",
         "independent": true,
-        "mae": 173.764251,
+        "mae": 173.559755,
         "native_geography": "zcta",
-        "observed_bev": 164397,
-        "r_squared": 0.280094,
+        "observed_bev": 164414,
+        "r_squared": 0.312482,
         "reconciliation": "unreconciled",
         "state": "NJ",
         "status": null,
-        "wape": 0.601421
+        "wape": 0.601707
       },
       {
-        "areas_scored": 569,
+        "areas_scored": 570,
         "constraint_bev": 210000,
         "constraint_vintage": "2025",
         "estimator": "baseline_population_share",
         "evidence_grain": "usps_zip",
         "independent": true,
-        "mae": 213.91772,
+        "mae": 213.160053,
         "native_geography": "zcta",
-        "observed_bev": 164397,
-        "r_squared": 0.185534,
+        "observed_bev": 164414,
+        "r_squared": 0.187786,
         "reconciliation": "state_total_reconciled",
         "state": "NJ",
         "status": null,
-        "wape": 0.740398
+        "wape": 0.738996
       },
       {
-        "areas_scored": 246,
+        "areas_scored": 245,
         "constraint_bev": null,
         "constraint_vintage": null,
         "estimator": "baseline_population_share",
         "evidence_grain": "usps_zip",
         "independent": true,
-        "mae": 62.291002,
+        "mae": 67.387906,
         "native_geography": "zcta",
-        "observed_bev": 19246,
-        "r_squared": 0.542882,
+        "observed_bev": 19245,
+        "r_squared": 0.483672,
         "reconciliation": "unreconciled",
         "state": "NM",
         "status": null,
-        "wape": 0.796196
+        "wape": 0.857887
       },
       {
-        "areas_scored": 246,
+        "areas_scored": 245,
         "constraint_bev": 16600,
         "constraint_vintage": "2025",
         "estimator": "baseline_population_share",
         "evidence_grain": "usps_zip",
         "independent": true,
-        "mae": 52.49997,
+        "mae": 52.467349,
         "native_geography": "zcta",
-        "observed_bev": 19246,
-        "r_squared": 0.583747,
+        "observed_bev": 19245,
+        "r_squared": 0.586277,
         "reconciliation": "state_total_reconciled",
         "state": "NM",
         "status": null,
-        "wape": 0.671048
+        "wape": 0.66794
       },
       {
         "areas_scored": 1614,
@@ -785,14 +785,14 @@
         "estimator": "baseline_population_share",
         "evidence_grain": "usps_zip",
         "independent": true,
-        "mae": 98.621728,
+        "mae": 106.444738,
         "native_geography": "zcta",
-        "observed_bev": 197934,
-        "r_squared": 0.110485,
+        "observed_bev": 197940,
+        "r_squared": -0.012751,
         "reconciliation": "unreconciled",
         "state": "NY",
         "status": null,
-        "wape": 0.804185
+        "wape": 0.867949
       },
       {
         "areas_scored": 1614,
@@ -801,46 +801,46 @@
         "estimator": "baseline_population_share",
         "evidence_grain": "usps_zip",
         "independent": true,
-        "mae": 84.957504,
+        "mae": 84.564708,
         "native_geography": "zcta",
-        "observed_bev": 197934,
-        "r_squared": 0.296537,
+        "observed_bev": 197940,
+        "r_squared": 0.301851,
         "reconciliation": "state_total_reconciled",
         "state": "NY",
         "status": null,
-        "wape": 0.692763
+        "wape": 0.689539
       },
       {
-        "areas_scored": 359,
+        "areas_scored": 358,
         "constraint_bev": null,
         "constraint_vintage": null,
         "estimator": "baseline_population_share",
         "evidence_grain": "usps_zip",
         "independent": true,
-        "mae": 132.467133,
+        "mae": 130.578337,
         "native_geography": "zcta",
-        "observed_bev": 82070,
-        "r_squared": 0.425414,
+        "observed_bev": 82069,
+        "r_squared": 0.461103,
         "reconciliation": "unreconciled",
         "state": "OR",
         "status": null,
-        "wape": 0.579453
+        "wape": 0.569607
       },
       {
-        "areas_scored": 359,
+        "areas_scored": 358,
         "constraint_bev": 78400,
         "constraint_vintage": "2024",
         "estimator": "baseline_population_share",
         "evidence_grain": "usps_zip",
         "independent": true,
-        "mae": 133.241457,
+        "mae": 133.902203,
         "native_geography": "zcta",
-        "observed_bev": 82070,
-        "r_squared": 0.561076,
+        "observed_bev": 82069,
+        "r_squared": 0.559677,
         "reconciliation": "state_total_reconciled",
         "state": "OR",
         "status": null,
-        "wape": 0.58284
+        "wape": 0.584106
       },
       {
         "areas_scored": 95,
@@ -849,14 +849,14 @@
         "estimator": "baseline_population_share",
         "evidence_grain": "county",
         "independent": true,
-        "mae": 528.721642,
+        "mae": 614.248975,
         "native_geography": "county",
         "observed_bev": 53029,
-        "r_squared": 0.592682,
+        "r_squared": 0.506773,
         "reconciliation": "unreconciled",
         "state": "TN",
         "status": null,
-        "wape": 0.94719
+        "wape": 1.10041
       },
       {
         "areas_scored": 95,
@@ -865,46 +865,46 @@
         "estimator": "baseline_population_share",
         "evidence_grain": "county",
         "independent": true,
-        "mae": 331.814303,
+        "mae": 330.646811,
         "native_geography": "county",
         "observed_bev": 53029,
-        "r_squared": 0.681746,
+        "r_squared": 0.683965,
         "reconciliation": "state_total_reconciled",
         "state": "TN",
         "status": null,
-        "wape": 0.594436
+        "wape": 0.592345
       },
       {
-        "areas_scored": 1593,
+        "areas_scored": 1589,
         "constraint_bev": null,
         "constraint_vintage": null,
         "estimator": "baseline_population_share",
         "evidence_grain": "usps_zip",
         "independent": true,
-        "mae": 192.618512,
+        "mae": 203.600989,
         "native_geography": "zcta",
-        "observed_bev": 374464,
-        "r_squared": 0.362536,
+        "observed_bev": 374452,
+        "r_squared": 0.380511,
         "reconciliation": "unreconciled",
         "state": "TX",
         "status": null,
-        "wape": 0.819415
+        "wape": 0.863988
       },
       {
-        "areas_scored": 1593,
+        "areas_scored": 1589,
         "constraint_bev": 387400,
         "constraint_vintage": "2025",
         "estimator": "baseline_population_share",
         "evidence_grain": "usps_zip",
         "independent": true,
-        "mae": 196.414763,
+        "mae": 195.132668,
         "native_geography": "zcta",
-        "observed_bev": 374464,
-        "r_squared": 0.367297,
+        "observed_bev": 374452,
+        "r_squared": 0.37584,
         "reconciliation": "state_total_reconciled",
         "state": "TX",
         "status": null,
-        "wape": 0.835564
+        "wape": 0.828052
       },
       {
         "areas_scored": 129,
@@ -913,14 +913,14 @@
         "estimator": "baseline_population_share",
         "evidence_grain": "county",
         "independent": true,
-        "mae": 630.473725,
+        "mae": 644.146047,
         "native_geography": "county",
         "observed_bev": 131976,
-        "r_squared": 0.586833,
+        "r_squared": 0.628959,
         "reconciliation": "unreconciled",
         "state": "VA",
         "status": null,
-        "wape": 0.616257
+        "wape": 0.629621
       },
       {
         "areas_scored": 129,
@@ -929,46 +929,46 @@
         "estimator": "baseline_population_share",
         "evidence_grain": "county",
         "independent": true,
-        "mae": 676.520314,
+        "mae": 675.678061,
         "native_geography": "county",
         "observed_bev": 131976,
-        "r_squared": 0.687236,
+        "r_squared": 0.687346,
         "reconciliation": "state_total_reconciled",
         "state": "VA",
         "status": null,
-        "wape": 0.661265
+        "wape": 0.660442
       },
       {
-        "areas_scored": 251,
+        "areas_scored": 250,
         "constraint_bev": null,
         "constraint_vintage": null,
         "estimator": "baseline_population_share",
         "evidence_grain": "usps_zip",
         "independent": true,
-        "mae": 25.274954,
+        "mae": 24.609677,
         "native_geography": "zcta",
-        "observed_bev": 12528,
-        "r_squared": 0.600075,
+        "observed_bev": 12526,
+        "r_squared": 0.640226,
         "reconciliation": "unreconciled",
         "state": "VT",
         "status": null,
-        "wape": 0.506387
+        "wape": 0.491172
       },
       {
-        "areas_scored": 251,
+        "areas_scored": 250,
         "constraint_bev": 11900,
         "constraint_vintage": "2025",
         "estimator": "baseline_population_share",
         "evidence_grain": "usps_zip",
         "independent": true,
-        "mae": 24.277484,
+        "mae": 24.287395,
         "native_geography": "zcta",
-        "observed_bev": 12528,
-        "r_squared": 0.742318,
+        "observed_bev": 12526,
+        "r_squared": 0.743624,
         "reconciliation": "state_total_reconciled",
         "state": "VT",
         "status": null,
-        "wape": 0.486402
+        "wape": 0.48474
       },
       {
         "areas_scored": 1767,
@@ -977,14 +977,14 @@
         "estimator": "baseline_population_share",
         "evidence_grain": "tract",
         "independent": false,
-        "mae": 90.595071,
+        "mae": 90.473957,
         "native_geography": "tracts",
         "observed_bev": 236985,
-        "r_squared": -0.257087,
+        "r_squared": -0.25527,
         "reconciliation": "unreconciled",
         "state": "WA",
         "status": "non_independent_preprocessing_selection_state",
-        "wape": 0.675492
+        "wape": 0.674589
       },
       {
         "areas_scored": 1767,
@@ -993,46 +993,46 @@
         "estimator": "baseline_population_share",
         "evidence_grain": "tract",
         "independent": false,
-        "mae": 86.603736,
+        "mae": 86.37114,
         "native_geography": "tracts",
         "observed_bev": 236985,
-        "r_squared": 0.149075,
+        "r_squared": 0.151695,
         "reconciliation": "state_total_reconciled",
         "state": "WA",
         "status": "non_independent_preprocessing_selection_state",
-        "wape": 0.645732
+        "wape": 0.643998
       },
       {
-        "areas_scored": 456,
+        "areas_scored": 455,
         "constraint_bev": null,
         "constraint_vintage": null,
         "estimator": "ridge_log_rate",
         "evidence_grain": "usps_zip",
         "independent": true,
-        "mae": 127.56916,
+        "mae": 110.505294,
         "native_geography": "zcta",
-        "observed_bev": 153840,
-        "r_squared": 0.721613,
+        "observed_bev": 153852,
+        "r_squared": 0.78133,
         "reconciliation": "unreconciled",
         "state": "CO",
         "status": null,
-        "wape": 0.37813
+        "wape": 0.326807
       },
       {
-        "areas_scored": 456,
+        "areas_scored": 455,
         "constraint_bev": 162800,
         "constraint_vintage": "2025",
         "estimator": "ridge_log_rate",
         "evidence_grain": "usps_zip",
         "independent": true,
-        "mae": 92.785417,
+        "mae": 92.934682,
         "native_geography": "zcta",
-        "observed_bev": 153840,
-        "r_squared": 0.883679,
+        "observed_bev": 153852,
+        "r_squared": 0.887191,
         "reconciliation": "state_total_reconciled",
         "state": "CO",
         "status": null,
-        "wape": 0.275027
+        "wape": 0.274844
       },
       {
         "areas_scored": 278,
@@ -1041,14 +1041,14 @@
         "estimator": "ridge_log_rate",
         "evidence_grain": "usps_zip",
         "independent": true,
-        "mae": 60.309019,
+        "mae": 71.583456,
         "native_geography": "zcta",
-        "observed_bev": 45745,
-        "r_squared": 0.803898,
+        "observed_bev": 45750,
+        "r_squared": 0.712991,
         "reconciliation": "unreconciled",
         "state": "CT",
         "status": null,
-        "wape": 0.366508
+        "wape": 0.434977
       },
       {
         "areas_scored": 278,
@@ -1057,78 +1057,78 @@
         "estimator": "ridge_log_rate",
         "evidence_grain": "usps_zip",
         "independent": true,
-        "mae": 39.643131,
+        "mae": 39.74249,
         "native_geography": "zcta",
-        "observed_bev": 45745,
-        "r_squared": 0.917414,
+        "observed_bev": 45750,
+        "r_squared": 0.915295,
         "reconciliation": "state_total_reconciled",
         "state": "CT",
         "status": null,
-        "wape": 0.240918
+        "wape": 0.241495
       },
       {
-        "areas_scored": 355,
+        "areas_scored": 356,
         "constraint_bev": null,
         "constraint_vintage": null,
         "estimator": "ridge_log_rate",
         "evidence_grain": "usps_zip",
         "independent": true,
-        "mae": 13.68549,
+        "mae": 15.264432,
         "native_geography": "zcta",
-        "observed_bev": 11277,
-        "r_squared": 0.840938,
+        "observed_bev": 11284,
+        "r_squared": 0.761933,
         "reconciliation": "unreconciled",
         "state": "ME",
         "status": null,
-        "wape": 0.430819
+        "wape": 0.481579
       },
       {
-        "areas_scored": 355,
+        "areas_scored": 356,
         "constraint_bev": 11900,
         "constraint_vintage": "2025",
         "estimator": "ridge_log_rate",
         "evidence_grain": "usps_zip",
         "independent": true,
-        "mae": 13.041912,
+        "mae": 14.172697,
         "native_geography": "zcta",
-        "observed_bev": 11277,
-        "r_squared": 0.85586,
+        "observed_bev": 11284,
+        "r_squared": 0.800958,
         "reconciliation": "state_total_reconciled",
         "state": "ME",
         "status": null,
-        "wape": 0.410559
+        "wape": 0.447136
       },
       {
-        "areas_scored": 689,
+        "areas_scored": 690,
         "constraint_bev": null,
         "constraint_vintage": null,
         "estimator": "ridge_log_rate",
         "evidence_grain": "usps_zip",
         "independent": true,
-        "mae": 32.261756,
+        "mae": 35.240174,
         "native_geography": "zcta",
-        "observed_bev": 61211,
-        "r_squared": 0.884377,
+        "observed_bev": 61279,
+        "r_squared": 0.857313,
         "reconciliation": "unreconciled",
         "state": "MN",
         "status": null,
-        "wape": 0.363143
+        "wape": 0.396803
       },
       {
-        "areas_scored": 689,
+        "areas_scored": 690,
         "constraint_bev": 59800,
         "constraint_vintage": "2025",
         "estimator": "ridge_log_rate",
         "evidence_grain": "usps_zip",
         "independent": true,
-        "mae": 23.982339,
+        "mae": 24.494199,
         "native_geography": "zcta",
-        "observed_bev": 61211,
-        "r_squared": 0.922117,
+        "observed_bev": 61279,
+        "r_squared": 0.92184,
         "reconciliation": "state_total_reconciled",
         "state": "MN",
         "status": null,
-        "wape": 0.269949
+        "wape": 0.275804
       },
       {
         "areas_scored": 51,
@@ -1137,14 +1137,14 @@
         "estimator": "ridge_log_rate",
         "evidence_grain": "county",
         "independent": true,
-        "mae": 102.035491,
+        "mae": 105.961787,
         "native_geography": "county",
         "observed_bev": 6773,
-        "r_squared": 0.506018,
+        "r_squared": 0.49963,
         "reconciliation": "unreconciled",
         "state": "MT",
         "status": null,
-        "wape": 0.768317
+        "wape": 0.797881
       },
       {
         "areas_scored": 51,
@@ -1153,14 +1153,14 @@
         "estimator": "ridge_log_rate",
         "evidence_grain": "county",
         "independent": true,
-        "mae": 70.372993,
+        "mae": 68.670668,
         "native_geography": "county",
         "observed_bev": 6773,
-        "r_squared": 0.638039,
+        "r_squared": 0.662441,
         "reconciliation": "state_total_reconciled",
         "state": "MT",
         "status": null,
-        "wape": 0.529901
+        "wape": 0.517083
       },
       {
         "areas_scored": 693,
@@ -1169,14 +1169,14 @@
         "estimator": "ridge_log_rate",
         "evidence_grain": "usps_zip",
         "independent": true,
-        "mae": 106.636765,
+        "mae": 115.462537,
         "native_geography": "zcta",
         "observed_bev": 59032,
-        "r_squared": -0.441974,
+        "r_squared": -0.752607,
         "reconciliation": "unreconciled",
         "state": "NC",
         "status": null,
-        "wape": 1.251851
+        "wape": 1.35546
       },
       {
         "areas_scored": 693,
@@ -1185,78 +1185,78 @@
         "estimator": "ridge_log_rate",
         "evidence_grain": "usps_zip",
         "independent": true,
-        "mae": 34.740518,
+        "mae": 34.863585,
         "native_geography": "zcta",
         "observed_bev": 59032,
-        "r_squared": 0.798422,
+        "r_squared": 0.794051,
         "reconciliation": "state_total_reconciled",
         "state": "NC",
         "status": null,
-        "wape": 0.407833
+        "wape": 0.409277
       },
       {
-        "areas_scored": 569,
+        "areas_scored": 570,
         "constraint_bev": null,
         "constraint_vintage": null,
         "estimator": "ridge_log_rate",
         "evidence_grain": "usps_zip",
         "independent": true,
-        "mae": 102.641263,
+        "mae": 108.745723,
         "native_geography": "zcta",
-        "observed_bev": 164397,
-        "r_squared": 0.701577,
+        "observed_bev": 164414,
+        "r_squared": 0.65926,
         "reconciliation": "unreconciled",
         "state": "NJ",
         "status": null,
-        "wape": 0.355255
+        "wape": 0.377006
       },
       {
-        "areas_scored": 569,
+        "areas_scored": 570,
         "constraint_bev": 210000,
         "constraint_vintage": "2025",
         "estimator": "ridge_log_rate",
         "evidence_grain": "usps_zip",
         "independent": true,
-        "mae": 134.670058,
+        "mae": 135.83821,
         "native_geography": "zcta",
-        "observed_bev": 164397,
-        "r_squared": 0.570252,
+        "observed_bev": 164414,
+        "r_squared": 0.533317,
         "reconciliation": "state_total_reconciled",
         "state": "NJ",
         "status": null,
-        "wape": 0.466111
+        "wape": 0.470932
       },
       {
-        "areas_scored": 246,
+        "areas_scored": 245,
         "constraint_bev": null,
         "constraint_vintage": null,
         "estimator": "ridge_log_rate",
         "evidence_grain": "usps_zip",
         "independent": true,
-        "mae": 29.103933,
+        "mae": 28.477701,
         "native_geography": "zcta",
-        "observed_bev": 19246,
-        "r_squared": 0.888466,
+        "observed_bev": 19245,
+        "r_squared": 0.897412,
         "reconciliation": "unreconciled",
         "state": "NM",
         "status": null,
-        "wape": 0.372003
+        "wape": 0.362538
       },
       {
-        "areas_scored": 246,
+        "areas_scored": 245,
         "constraint_bev": 16600,
         "constraint_vintage": "2025",
         "estimator": "ridge_log_rate",
         "evidence_grain": "usps_zip",
         "independent": true,
-        "mae": 28.038639,
+        "mae": 28.492959,
         "native_geography": "zcta",
-        "observed_bev": 19246,
-        "r_squared": 0.900954,
+        "observed_bev": 19245,
+        "r_squared": 0.897248,
         "reconciliation": "state_total_reconciled",
         "state": "NM",
         "status": null,
-        "wape": 0.358386
+        "wape": 0.362732
       },
       {
         "areas_scored": 1614,
@@ -1265,14 +1265,14 @@
         "estimator": "ridge_log_rate",
         "evidence_grain": "usps_zip",
         "independent": true,
-        "mae": 73.156636,
+        "mae": 75.392615,
         "native_geography": "zcta",
-        "observed_bev": 197934,
-        "r_squared": -0.088748,
+        "observed_bev": 197940,
+        "r_squared": -0.099261,
         "reconciliation": "unreconciled",
         "state": "NY",
         "status": null,
-        "wape": 0.596536
+        "wape": 0.61475
       },
       {
         "areas_scored": 1614,
@@ -1281,46 +1281,46 @@
         "estimator": "ridge_log_rate",
         "evidence_grain": "usps_zip",
         "independent": true,
-        "mae": 72.830208,
+        "mae": 73.737131,
         "native_geography": "zcta",
-        "observed_bev": 197934,
-        "r_squared": -0.077546,
+        "observed_bev": 197940,
+        "r_squared": -0.04776,
         "reconciliation": "state_total_reconciled",
         "state": "NY",
         "status": null,
-        "wape": 0.593874
+        "wape": 0.601252
       },
       {
-        "areas_scored": 359,
+        "areas_scored": 358,
         "constraint_bev": null,
         "constraint_vintage": null,
         "estimator": "ridge_log_rate",
         "evidence_grain": "usps_zip",
         "independent": true,
-        "mae": 75.039213,
+        "mae": 63.820353,
         "native_geography": "zcta",
-        "observed_bev": 82070,
-        "r_squared": 0.816793,
+        "observed_bev": 82069,
+        "r_squared": 0.861067,
         "reconciliation": "unreconciled",
         "state": "OR",
         "status": null,
-        "wape": 0.328245
+        "wape": 0.278396
       },
       {
-        "areas_scored": 359,
+        "areas_scored": 358,
         "constraint_bev": 78400,
         "constraint_vintage": "2024",
         "estimator": "ridge_log_rate",
         "evidence_grain": "usps_zip",
         "independent": true,
-        "mae": 53.865943,
+        "mae": 55.639419,
         "native_geography": "zcta",
-        "observed_bev": 82070,
-        "r_squared": 0.923242,
+        "observed_bev": 82069,
+        "r_squared": 0.921513,
         "reconciliation": "state_total_reconciled",
         "state": "OR",
         "status": null,
-        "wape": 0.235627
+        "wape": 0.242709
       },
       {
         "areas_scored": 95,
@@ -1329,14 +1329,14 @@
         "estimator": "ridge_log_rate",
         "evidence_grain": "county",
         "independent": true,
-        "mae": 168.338881,
+        "mae": 175.837405,
         "native_geography": "county",
         "observed_bev": 53029,
-        "r_squared": 0.899264,
+        "r_squared": 0.903856,
         "reconciliation": "unreconciled",
         "state": "TN",
         "status": null,
-        "wape": 0.301574
+        "wape": 0.315008
       },
       {
         "areas_scored": 95,
@@ -1345,46 +1345,46 @@
         "estimator": "ridge_log_rate",
         "evidence_grain": "county",
         "independent": true,
-        "mae": 162.926174,
+        "mae": 162.267567,
         "native_geography": "county",
         "observed_bev": 53029,
-        "r_squared": 0.903133,
+        "r_squared": 0.911476,
         "reconciliation": "state_total_reconciled",
         "state": "TN",
         "status": null,
-        "wape": 0.291878
+        "wape": 0.290698
       },
       {
-        "areas_scored": 1593,
+        "areas_scored": 1589,
         "constraint_bev": null,
         "constraint_vintage": null,
         "estimator": "ridge_log_rate",
         "evidence_grain": "usps_zip",
         "independent": true,
-        "mae": 88.994818,
+        "mae": 89.117104,
         "native_geography": "zcta",
-        "observed_bev": 374464,
-        "r_squared": 0.73125,
+        "observed_bev": 374452,
+        "r_squared": 0.773839,
         "reconciliation": "unreconciled",
         "state": "TX",
         "status": null,
-        "wape": 0.378591
+        "wape": 0.378172
       },
       {
-        "areas_scored": 1593,
+        "areas_scored": 1589,
         "constraint_bev": 387400,
         "constraint_vintage": "2025",
         "estimator": "ridge_log_rate",
         "evidence_grain": "usps_zip",
         "independent": true,
-        "mae": 95.078355,
+        "mae": 91.678606,
         "native_geography": "zcta",
-        "observed_bev": 374464,
-        "r_squared": 0.76734,
+        "observed_bev": 374452,
+        "r_squared": 0.78218,
         "reconciliation": "state_total_reconciled",
         "state": "TX",
         "status": null,
-        "wape": 0.404471
+        "wape": 0.389041
       },
       {
         "areas_scored": 129,
@@ -1393,14 +1393,14 @@
         "estimator": "ridge_log_rate",
         "evidence_grain": "county",
         "independent": true,
-        "mae": 212.654881,
+        "mae": 244.071679,
         "native_geography": "county",
         "observed_bev": 131976,
-        "r_squared": 0.972527,
+        "r_squared": 0.971993,
         "reconciliation": "unreconciled",
         "state": "VA",
         "status": null,
-        "wape": 0.20786
+        "wape": 0.238568
       },
       {
         "areas_scored": 129,
@@ -1409,46 +1409,46 @@
         "estimator": "ridge_log_rate",
         "evidence_grain": "county",
         "independent": true,
-        "mae": 203.823123,
+        "mae": 190.853922,
         "native_geography": "county",
         "observed_bev": 131976,
-        "r_squared": 0.967087,
+        "r_squared": 0.974588,
         "reconciliation": "state_total_reconciled",
         "state": "VA",
         "status": null,
-        "wape": 0.199227
+        "wape": 0.18655
       },
       {
-        "areas_scored": 251,
+        "areas_scored": 250,
         "constraint_bev": null,
         "constraint_vintage": null,
         "estimator": "ridge_log_rate",
         "evidence_grain": "usps_zip",
         "independent": true,
-        "mae": 24.203873,
+        "mae": 24.798939,
         "native_geography": "zcta",
-        "observed_bev": 12528,
-        "r_squared": 0.687777,
+        "observed_bev": 12526,
+        "r_squared": 0.677608,
         "reconciliation": "unreconciled",
         "state": "VT",
         "status": null,
-        "wape": 0.484928
+        "wape": 0.494949
       },
       {
-        "areas_scored": 251,
+        "areas_scored": 250,
         "constraint_bev": 11900,
         "constraint_vintage": "2025",
         "estimator": "ridge_log_rate",
         "evidence_grain": "usps_zip",
         "independent": true,
-        "mae": 18.618568,
+        "mae": 19.727938,
         "native_geography": "zcta",
-        "observed_bev": 12528,
-        "r_squared": 0.847316,
+        "observed_bev": 12526,
+        "r_squared": 0.818931,
         "reconciliation": "state_total_reconciled",
         "state": "VT",
         "status": null,
-        "wape": 0.373025
+        "wape": 0.39374
       },
       {
         "areas_scored": 1767,
@@ -1457,14 +1457,14 @@
         "estimator": "ridge_log_rate",
         "evidence_grain": "tract",
         "independent": false,
-        "mae": 58.714908,
+        "mae": 58.556665,
         "native_geography": "tracts",
         "observed_bev": 236985,
-        "r_squared": 0.445686,
+        "r_squared": 0.451838,
         "reconciliation": "unreconciled",
         "state": "WA",
         "status": "non_independent_preprocessing_selection_state",
-        "wape": 0.437788
+        "wape": 0.436608
       },
       {
         "areas_scored": 1767,
@@ -1473,46 +1473,46 @@
         "estimator": "ridge_log_rate",
         "evidence_grain": "tract",
         "independent": false,
-        "mae": 47.947573,
+        "mae": 47.821535,
         "native_geography": "tracts",
         "observed_bev": 236985,
-        "r_squared": 0.652282,
+        "r_squared": 0.655794,
         "reconciliation": "state_total_reconciled",
         "state": "WA",
         "status": "non_independent_preprocessing_selection_state",
-        "wape": 0.357505
+        "wape": 0.356565
       },
       {
-        "areas_scored": 456,
+        "areas_scored": 455,
         "constraint_bev": null,
         "constraint_vintage": null,
         "estimator": "poisson_glm",
         "evidence_grain": "usps_zip",
         "independent": true,
-        "mae": 119.796563,
+        "mae": 103.012759,
         "native_geography": "zcta",
-        "observed_bev": 153840,
-        "r_squared": 0.766627,
+        "observed_bev": 153852,
+        "r_squared": 0.818597,
         "reconciliation": "unreconciled",
         "state": "CO",
         "status": null,
-        "wape": 0.355091
+        "wape": 0.304649
       },
       {
-        "areas_scored": 456,
+        "areas_scored": 455,
         "constraint_bev": 162800,
         "constraint_vintage": "2025",
         "estimator": "poisson_glm",
         "evidence_grain": "usps_zip",
         "independent": true,
-        "mae": 87.08915,
+        "mae": 88.318274,
         "native_geography": "zcta",
-        "observed_bev": 153840,
-        "r_squared": 0.871517,
+        "observed_bev": 153852,
+        "r_squared": 0.8729,
         "reconciliation": "state_total_reconciled",
         "state": "CO",
         "status": null,
-        "wape": 0.258143
+        "wape": 0.261191
       },
       {
         "areas_scored": 278,
@@ -1521,14 +1521,14 @@
         "estimator": "poisson_glm",
         "evidence_grain": "usps_zip",
         "independent": true,
-        "mae": 51.389527,
+        "mae": 62.905276,
         "native_geography": "zcta",
-        "observed_bev": 45745,
-        "r_squared": 0.794863,
+        "observed_bev": 45750,
+        "r_squared": 0.672283,
         "reconciliation": "unreconciled",
         "state": "CT",
         "status": null,
-        "wape": 0.312303
+        "wape": 0.382244
       },
       {
         "areas_scored": 278,
@@ -1537,78 +1537,78 @@
         "estimator": "poisson_glm",
         "evidence_grain": "usps_zip",
         "independent": true,
-        "mae": 34.856604,
+        "mae": 36.717599,
         "native_geography": "zcta",
-        "observed_bev": 45745,
-        "r_squared": 0.899975,
+        "observed_bev": 45750,
+        "r_squared": 0.887481,
         "reconciliation": "state_total_reconciled",
         "state": "CT",
         "status": null,
-        "wape": 0.211829
+        "wape": 0.223115
       },
       {
-        "areas_scored": 355,
+        "areas_scored": 356,
         "constraint_bev": null,
         "constraint_vintage": null,
         "estimator": "poisson_glm",
         "evidence_grain": "usps_zip",
         "independent": true,
-        "mae": 11.823702,
+        "mae": 12.14434,
         "native_geography": "zcta",
-        "observed_bev": 11277,
-        "r_squared": 0.863771,
+        "observed_bev": 11284,
+        "r_squared": 0.847504,
         "reconciliation": "unreconciled",
         "state": "ME",
         "status": null,
-        "wape": 0.37221
+        "wape": 0.383143
       },
       {
-        "areas_scored": 355,
+        "areas_scored": 356,
         "constraint_bev": 11900,
         "constraint_vintage": "2025",
         "estimator": "poisson_glm",
         "evidence_grain": "usps_zip",
         "independent": true,
-        "mae": 11.206452,
+        "mae": 11.325445,
         "native_geography": "zcta",
-        "observed_bev": 11277,
-        "r_squared": 0.875103,
+        "observed_bev": 11284,
+        "r_squared": 0.862744,
         "reconciliation": "state_total_reconciled",
         "state": "ME",
         "status": null,
-        "wape": 0.352779
+        "wape": 0.357308
       },
       {
-        "areas_scored": 689,
+        "areas_scored": 690,
         "constraint_bev": null,
         "constraint_vintage": null,
         "estimator": "poisson_glm",
         "evidence_grain": "usps_zip",
         "independent": true,
-        "mae": 33.158455,
+        "mae": 34.338175,
         "native_geography": "zcta",
-        "observed_bev": 61211,
-        "r_squared": 0.844983,
+        "observed_bev": 61279,
+        "r_squared": 0.847863,
         "reconciliation": "unreconciled",
         "state": "MN",
         "status": null,
-        "wape": 0.373236
+        "wape": 0.386647
       },
       {
-        "areas_scored": 689,
+        "areas_scored": 690,
         "constraint_bev": 59800,
         "constraint_vintage": "2025",
         "estimator": "poisson_glm",
         "evidence_grain": "usps_zip",
         "independent": true,
-        "mae": 24.315313,
+        "mae": 24.229781,
         "native_geography": "zcta",
-        "observed_bev": 61211,
-        "r_squared": 0.907315,
+        "observed_bev": 61279,
+        "r_squared": 0.915448,
         "reconciliation": "state_total_reconciled",
         "state": "MN",
         "status": null,
-        "wape": 0.273697
+        "wape": 0.272827
       },
       {
         "areas_scored": 51,
@@ -1617,14 +1617,14 @@
         "estimator": "poisson_glm",
         "evidence_grain": "county",
         "independent": true,
-        "mae": 92.523233,
+        "mae": 95.972281,
         "native_geography": "county",
         "observed_bev": 6773,
-        "r_squared": 0.507018,
+        "r_squared": 0.518107,
         "reconciliation": "unreconciled",
         "state": "MT",
         "status": null,
-        "wape": 0.696691
+        "wape": 0.722661
       },
       {
         "areas_scored": 51,
@@ -1633,14 +1633,14 @@
         "estimator": "poisson_glm",
         "evidence_grain": "county",
         "independent": true,
-        "mae": 72.373158,
+        "mae": 71.041355,
         "native_geography": "county",
         "observed_bev": 6773,
-        "r_squared": 0.582183,
+        "r_squared": 0.608547,
         "reconciliation": "state_total_reconciled",
         "state": "MT",
         "status": null,
-        "wape": 0.544963
+        "wape": 0.534934
       },
       {
         "areas_scored": 693,
@@ -1649,14 +1649,14 @@
         "estimator": "poisson_glm",
         "evidence_grain": "usps_zip",
         "independent": true,
-        "mae": 101.02559,
+        "mae": 112.945897,
         "native_geography": "zcta",
         "observed_bev": 59032,
-        "r_squared": -0.496111,
+        "r_squared": -0.778803,
         "reconciliation": "unreconciled",
         "state": "NC",
         "status": null,
-        "wape": 1.185979
+        "wape": 1.325917
       },
       {
         "areas_scored": 693,
@@ -1665,78 +1665,78 @@
         "estimator": "poisson_glm",
         "evidence_grain": "usps_zip",
         "independent": true,
-        "mae": 29.148677,
+        "mae": 29.154294,
         "native_geography": "zcta",
         "observed_bev": 59032,
-        "r_squared": 0.852658,
+        "r_squared": 0.861034,
         "reconciliation": "state_total_reconciled",
         "state": "NC",
         "status": null,
-        "wape": 0.342188
+        "wape": 0.342254
       },
       {
-        "areas_scored": 569,
+        "areas_scored": 570,
         "constraint_bev": null,
         "constraint_vintage": null,
         "estimator": "poisson_glm",
         "evidence_grain": "usps_zip",
         "independent": true,
-        "mae": 93.897177,
+        "mae": 98.192006,
         "native_geography": "zcta",
-        "observed_bev": 164397,
-        "r_squared": 0.74638,
+        "observed_bev": 164414,
+        "r_squared": 0.731374,
         "reconciliation": "unreconciled",
         "state": "NJ",
         "status": null,
-        "wape": 0.324991
+        "wape": 0.340418
       },
       {
-        "areas_scored": 569,
+        "areas_scored": 570,
         "constraint_bev": 210000,
         "constraint_vintage": "2025",
         "estimator": "poisson_glm",
         "evidence_grain": "usps_zip",
         "independent": true,
-        "mae": 124.545876,
+        "mae": 127.174485,
         "native_geography": "zcta",
-        "observed_bev": 164397,
-        "r_squared": 0.622081,
+        "observed_bev": 164414,
+        "r_squared": 0.618354,
         "reconciliation": "state_total_reconciled",
         "state": "NJ",
         "status": null,
-        "wape": 0.43107
+        "wape": 0.440896
       },
       {
-        "areas_scored": 246,
+        "areas_scored": 245,
         "constraint_bev": null,
         "constraint_vintage": null,
         "estimator": "poisson_glm",
         "evidence_grain": "usps_zip",
         "independent": true,
-        "mae": 29.802299,
+        "mae": 27.32892,
         "native_geography": "zcta",
-        "observed_bev": 19246,
-        "r_squared": 0.838986,
+        "observed_bev": 19245,
+        "r_squared": 0.867191,
         "reconciliation": "unreconciled",
         "state": "NM",
         "status": null,
-        "wape": 0.380929
+        "wape": 0.347913
       },
       {
-        "areas_scored": 246,
+        "areas_scored": 245,
         "constraint_bev": 16600,
         "constraint_vintage": "2025",
         "estimator": "poisson_glm",
         "evidence_grain": "usps_zip",
         "independent": true,
-        "mae": 24.454492,
+        "mae": 24.85591,
         "native_geography": "zcta",
-        "observed_bev": 19246,
-        "r_squared": 0.901089,
+        "observed_bev": 19245,
+        "r_squared": 0.89852,
         "reconciliation": "state_total_reconciled",
         "state": "NM",
         "status": null,
-        "wape": 0.312574
+        "wape": 0.31643
       },
       {
         "areas_scored": 1614,
@@ -1745,14 +1745,14 @@
         "estimator": "poisson_glm",
         "evidence_grain": "usps_zip",
         "independent": true,
-        "mae": 54.011177,
+        "mae": 49.316272,
         "native_geography": "zcta",
-        "observed_bev": 197934,
-        "r_squared": 0.390364,
+        "observed_bev": 197940,
+        "r_squared": 0.557173,
         "reconciliation": "unreconciled",
         "state": "NY",
         "status": null,
-        "wape": 0.44042
+        "wape": 0.402124
       },
       {
         "areas_scored": 1614,
@@ -1761,46 +1761,46 @@
         "estimator": "poisson_glm",
         "evidence_grain": "usps_zip",
         "independent": true,
-        "mae": 55.2512,
+        "mae": 50.457763,
         "native_geography": "zcta",
-        "observed_bev": 197934,
-        "r_squared": 0.352648,
+        "observed_bev": 197940,
+        "r_squared": 0.53775,
         "reconciliation": "state_total_reconciled",
         "state": "NY",
         "status": null,
-        "wape": 0.450531
+        "wape": 0.411432
       },
       {
-        "areas_scored": 359,
+        "areas_scored": 358,
         "constraint_bev": null,
         "constraint_vintage": null,
         "estimator": "poisson_glm",
         "evidence_grain": "usps_zip",
         "independent": true,
-        "mae": 83.066018,
+        "mae": 74.548397,
         "native_geography": "zcta",
-        "observed_bev": 82070,
-        "r_squared": 0.802912,
+        "observed_bev": 82069,
+        "r_squared": 0.838862,
         "reconciliation": "unreconciled",
         "state": "OR",
         "status": null,
-        "wape": 0.363357
+        "wape": 0.325194
       },
       {
-        "areas_scored": 359,
+        "areas_scored": 358,
         "constraint_bev": 78400,
         "constraint_vintage": "2024",
         "estimator": "poisson_glm",
         "evidence_grain": "usps_zip",
         "independent": true,
-        "mae": 50.738176,
+        "mae": 50.677189,
         "native_geography": "zcta",
-        "observed_bev": 82070,
-        "r_squared": 0.926006,
+        "observed_bev": 82069,
+        "r_squared": 0.935081,
         "reconciliation": "state_total_reconciled",
         "state": "OR",
         "status": null,
-        "wape": 0.221945
+        "wape": 0.221063
       },
       {
         "areas_scored": 95,
@@ -1809,14 +1809,14 @@
         "estimator": "poisson_glm",
         "evidence_grain": "county",
         "independent": true,
-        "mae": 143.666666,
+        "mae": 156.624073,
         "native_geography": "county",
         "observed_bev": 53029,
-        "r_squared": 0.931153,
+        "r_squared": 0.937942,
         "reconciliation": "unreconciled",
         "state": "TN",
         "status": null,
-        "wape": 0.257375
+        "wape": 0.280588
       },
       {
         "areas_scored": 95,
@@ -1825,46 +1825,46 @@
         "estimator": "poisson_glm",
         "evidence_grain": "county",
         "independent": true,
-        "mae": 147.523742,
+        "mae": 152.924259,
         "native_geography": "county",
         "observed_bev": 53029,
-        "r_squared": 0.933736,
+        "r_squared": 0.936343,
         "reconciliation": "state_total_reconciled",
         "state": "TN",
         "status": null,
-        "wape": 0.264285
+        "wape": 0.27396
       },
       {
-        "areas_scored": 1593,
+        "areas_scored": 1589,
         "constraint_bev": null,
         "constraint_vintage": null,
         "estimator": "poisson_glm",
         "evidence_grain": "usps_zip",
         "independent": true,
-        "mae": 79.075454,
+        "mae": 77.865331,
         "native_geography": "zcta",
-        "observed_bev": 374464,
-        "r_squared": 0.774891,
+        "observed_bev": 374452,
+        "r_squared": 0.810115,
         "reconciliation": "unreconciled",
         "state": "TX",
         "status": null,
-        "wape": 0.336393
+        "wape": 0.330424
       },
       {
-        "areas_scored": 1593,
+        "areas_scored": 1589,
         "constraint_bev": 387400,
         "constraint_vintage": "2025",
         "estimator": "poisson_glm",
         "evidence_grain": "usps_zip",
         "independent": true,
-        "mae": 85.746225,
+        "mae": 80.638533,
         "native_geography": "zcta",
-        "observed_bev": 374464,
-        "r_squared": 0.795124,
+        "observed_bev": 374452,
+        "r_squared": 0.81371,
         "reconciliation": "state_total_reconciled",
         "state": "TX",
         "status": null,
-        "wape": 0.364771
+        "wape": 0.342192
       },
       {
         "areas_scored": 129,
@@ -1873,14 +1873,14 @@
         "estimator": "poisson_glm",
         "evidence_grain": "county",
         "independent": true,
-        "mae": 252.930966,
+        "mae": 262.873584,
         "native_geography": "county",
         "observed_bev": 131976,
-        "r_squared": 0.936514,
+        "r_squared": 0.931466,
         "reconciliation": "unreconciled",
         "state": "VA",
         "status": null,
-        "wape": 0.247227
+        "wape": 0.256946
       },
       {
         "areas_scored": 129,
@@ -1889,46 +1889,46 @@
         "estimator": "poisson_glm",
         "evidence_grain": "county",
         "independent": true,
-        "mae": 170.789868,
+        "mae": 156.069082,
         "native_geography": "county",
         "observed_bev": 131976,
-        "r_squared": 0.971218,
+        "r_squared": 0.978757,
         "reconciliation": "state_total_reconciled",
         "state": "VA",
         "status": null,
-        "wape": 0.166939
+        "wape": 0.15255
       },
       {
-        "areas_scored": 251,
+        "areas_scored": 250,
         "constraint_bev": null,
         "constraint_vintage": null,
         "estimator": "poisson_glm",
         "evidence_grain": "usps_zip",
         "independent": true,
-        "mae": 24.223837,
+        "mae": 24.836871,
         "native_geography": "zcta",
-        "observed_bev": 12528,
-        "r_squared": 0.689342,
+        "observed_bev": 12526,
+        "r_squared": 0.675906,
         "reconciliation": "unreconciled",
         "state": "VT",
         "status": null,
-        "wape": 0.485328
+        "wape": 0.495706
       },
       {
-        "areas_scored": 251,
+        "areas_scored": 250,
         "constraint_bev": 11900,
         "constraint_vintage": "2025",
         "estimator": "poisson_glm",
         "evidence_grain": "usps_zip",
         "independent": true,
-        "mae": 15.583717,
+        "mae": 16.232691,
         "native_geography": "zcta",
-        "observed_bev": 12528,
-        "r_squared": 0.876177,
+        "observed_bev": 12526,
+        "r_squared": 0.863115,
         "reconciliation": "state_total_reconciled",
         "state": "VT",
         "status": null,
-        "wape": 0.312222
+        "wape": 0.32398
       },
       {
         "areas_scored": 1767,
@@ -1937,14 +1937,14 @@
         "estimator": "poisson_glm",
         "evidence_grain": "tract",
         "independent": false,
-        "mae": 57.713805,
+        "mae": 58.183648,
         "native_geography": "tracts",
         "observed_bev": 236985,
-        "r_squared": 0.485667,
+        "r_squared": 0.478443,
         "reconciliation": "unreconciled",
         "state": "WA",
         "status": "non_independent_preprocessing_selection_state",
-        "wape": 0.430324
+        "wape": 0.433827
       },
       {
         "areas_scored": 1767,
@@ -1953,46 +1953,46 @@
         "estimator": "poisson_glm",
         "evidence_grain": "tract",
         "independent": false,
-        "mae": 51.119669,
+        "mae": 51.491651,
         "native_geography": "tracts",
         "observed_bev": 236985,
-        "r_squared": 0.501204,
+        "r_squared": 0.50535,
         "reconciliation": "state_total_reconciled",
         "state": "WA",
         "status": "non_independent_preprocessing_selection_state",
-        "wape": 0.381157
+        "wape": 0.38393
       },
       {
-        "areas_scored": 456,
+        "areas_scored": 455,
         "constraint_bev": null,
         "constraint_vintage": null,
         "estimator": "boosted_poisson",
         "evidence_grain": "usps_zip",
         "independent": true,
-        "mae": 112.889547,
+        "mae": 99.045067,
         "native_geography": "zcta",
-        "observed_bev": 153840,
-        "r_squared": 0.789879,
+        "observed_bev": 153852,
+        "r_squared": 0.829998,
         "reconciliation": "unreconciled",
         "state": "CO",
         "status": null,
-        "wape": 0.334618
+        "wape": 0.292915
       },
       {
-        "areas_scored": 456,
+        "areas_scored": 455,
         "constraint_bev": 162800,
         "constraint_vintage": "2025",
         "estimator": "boosted_poisson",
         "evidence_grain": "usps_zip",
         "independent": true,
-        "mae": 87.082881,
+        "mae": 90.478621,
         "native_geography": "zcta",
-        "observed_bev": 153840,
-        "r_squared": 0.879792,
+        "observed_bev": 153852,
+        "r_squared": 0.885626,
         "reconciliation": "state_total_reconciled",
         "state": "CO",
         "status": null,
-        "wape": 0.258124
+        "wape": 0.26758
       },
       {
         "areas_scored": 278,
@@ -2001,14 +2001,14 @@
         "estimator": "boosted_poisson",
         "evidence_grain": "usps_zip",
         "independent": true,
-        "mae": 61.501913,
+        "mae": 75.229464,
         "native_geography": "zcta",
-        "observed_bev": 45745,
-        "r_squared": 0.746827,
+        "observed_bev": 45750,
+        "r_squared": 0.537315,
         "reconciliation": "unreconciled",
         "state": "CT",
         "status": null,
-        "wape": 0.373757
+        "wape": 0.457132
       },
       {
         "areas_scored": 278,
@@ -2017,78 +2017,78 @@
         "estimator": "boosted_poisson",
         "evidence_grain": "usps_zip",
         "independent": true,
-        "mae": 36.910521,
+        "mae": 37.365917,
         "native_geography": "zcta",
-        "observed_bev": 45745,
-        "r_squared": 0.904346,
+        "observed_bev": 45750,
+        "r_squared": 0.89048,
         "reconciliation": "state_total_reconciled",
         "state": "CT",
         "status": null,
-        "wape": 0.224311
+        "wape": 0.227054
       },
       {
-        "areas_scored": 355,
+        "areas_scored": 356,
         "constraint_bev": null,
         "constraint_vintage": null,
         "estimator": "boosted_poisson",
         "evidence_grain": "usps_zip",
         "independent": true,
-        "mae": 14.142723,
+        "mae": 14.889162,
         "native_geography": "zcta",
-        "observed_bev": 11277,
-        "r_squared": 0.740117,
+        "observed_bev": 11284,
+        "r_squared": 0.696646,
         "reconciliation": "unreconciled",
         "state": "ME",
         "status": null,
-        "wape": 0.445213
+        "wape": 0.46974
       },
       {
-        "areas_scored": 355,
+        "areas_scored": 356,
         "constraint_bev": 11900,
         "constraint_vintage": "2025",
         "estimator": "boosted_poisson",
         "evidence_grain": "usps_zip",
         "independent": true,
-        "mae": 11.329982,
+        "mae": 11.392315,
         "native_geography": "zcta",
-        "observed_bev": 11277,
-        "r_squared": 0.839892,
+        "observed_bev": 11284,
+        "r_squared": 0.831973,
         "reconciliation": "state_total_reconciled",
         "state": "ME",
         "status": null,
-        "wape": 0.356668
+        "wape": 0.359417
       },
       {
-        "areas_scored": 689,
+        "areas_scored": 690,
         "constraint_bev": null,
         "constraint_vintage": null,
         "estimator": "boosted_poisson",
         "evidence_grain": "usps_zip",
         "independent": true,
-        "mae": 38.549925,
+        "mae": 42.087615,
         "native_geography": "zcta",
-        "observed_bev": 61211,
-        "r_squared": 0.777425,
+        "observed_bev": 61279,
+        "r_squared": 0.729906,
         "reconciliation": "unreconciled",
         "state": "MN",
         "status": null,
-        "wape": 0.433924
+        "wape": 0.473905
       },
       {
-        "areas_scored": 689,
+        "areas_scored": 690,
         "constraint_bev": 59800,
         "constraint_vintage": "2025",
         "estimator": "boosted_poisson",
         "evidence_grain": "usps_zip",
         "independent": true,
-        "mae": 21.018192,
+        "mae": 20.670788,
         "native_geography": "zcta",
-        "observed_bev": 61211,
-        "r_squared": 0.924897,
+        "observed_bev": 61279,
+        "r_squared": 0.934355,
         "reconciliation": "state_total_reconciled",
         "state": "MN",
         "status": null,
-        "wape": 0.236584
+        "wape": 0.232753
       },
       {
         "areas_scored": 51,
@@ -2097,14 +2097,14 @@
         "estimator": "boosted_poisson",
         "evidence_grain": "county",
         "independent": true,
-        "mae": 95.834158,
+        "mae": 98.337874,
         "native_geography": "county",
         "observed_bev": 6773,
-        "r_squared": 0.366139,
+        "r_squared": 0.397148,
         "reconciliation": "unreconciled",
         "state": "MT",
         "status": null,
-        "wape": 0.721621
+        "wape": 0.740474
       },
       {
         "areas_scored": 51,
@@ -2113,14 +2113,14 @@
         "estimator": "boosted_poisson",
         "evidence_grain": "county",
         "independent": true,
-        "mae": 78.282069,
+        "mae": 72.493585,
         "native_geography": "county",
         "observed_bev": 6773,
-        "r_squared": 0.512298,
+        "r_squared": 0.567001,
         "reconciliation": "state_total_reconciled",
         "state": "MT",
         "status": null,
-        "wape": 0.589456
+        "wape": 0.545869
       },
       {
         "areas_scored": 693,
@@ -2129,14 +2129,14 @@
         "estimator": "boosted_poisson",
         "evidence_grain": "usps_zip",
         "independent": true,
-        "mae": 104.894936,
+        "mae": 116.372474,
         "native_geography": "zcta",
         "observed_bev": 59032,
-        "r_squared": -0.841828,
+        "r_squared": -1.101919,
         "reconciliation": "unreconciled",
         "state": "NC",
         "status": null,
-        "wape": 1.231403
+        "wape": 1.366143
       },
       {
         "areas_scored": 693,
@@ -2145,78 +2145,78 @@
         "estimator": "boosted_poisson",
         "evidence_grain": "usps_zip",
         "independent": true,
-        "mae": 28.555398,
+        "mae": 28.399687,
         "native_geography": "zcta",
         "observed_bev": 59032,
-        "r_squared": 0.842846,
+        "r_squared": 0.846731,
         "reconciliation": "state_total_reconciled",
         "state": "NC",
         "status": null,
-        "wape": 0.335223
+        "wape": 0.333395
       },
       {
-        "areas_scored": 569,
+        "areas_scored": 570,
         "constraint_bev": null,
         "constraint_vintage": null,
         "estimator": "boosted_poisson",
         "evidence_grain": "usps_zip",
         "independent": true,
-        "mae": 97.469543,
+        "mae": 102.713417,
         "native_geography": "zcta",
-        "observed_bev": 164397,
-        "r_squared": 0.768864,
+        "observed_bev": 164414,
+        "r_squared": 0.786716,
         "reconciliation": "unreconciled",
         "state": "NJ",
         "status": null,
-        "wape": 0.337355
+        "wape": 0.356093
       },
       {
-        "areas_scored": 569,
+        "areas_scored": 570,
         "constraint_bev": 210000,
         "constraint_vintage": "2025",
         "estimator": "boosted_poisson",
         "evidence_grain": "usps_zip",
         "independent": true,
-        "mae": 131.521826,
+        "mae": 130.280198,
         "native_geography": "zcta",
-        "observed_bev": 164397,
-        "r_squared": 0.694238,
+        "observed_bev": 164414,
+        "r_squared": 0.715413,
         "reconciliation": "state_total_reconciled",
         "state": "NJ",
         "status": null,
-        "wape": 0.455215
+        "wape": 0.451663
       },
       {
-        "areas_scored": 246,
+        "areas_scored": 245,
         "constraint_bev": null,
         "constraint_vintage": null,
         "estimator": "boosted_poisson",
         "evidence_grain": "usps_zip",
         "independent": true,
-        "mae": 28.2278,
+        "mae": 26.600271,
         "native_geography": "zcta",
-        "observed_bev": 19246,
-        "r_squared": 0.867427,
+        "observed_bev": 19245,
+        "r_squared": 0.894056,
         "reconciliation": "unreconciled",
         "state": "NM",
         "status": null,
-        "wape": 0.360804
+        "wape": 0.338637
       },
       {
-        "areas_scored": 246,
+        "areas_scored": 245,
         "constraint_bev": 16600,
         "constraint_vintage": "2025",
         "estimator": "boosted_poisson",
         "evidence_grain": "usps_zip",
         "independent": true,
-        "mae": 23.327162,
+        "mae": 23.46362,
         "native_geography": "zcta",
-        "observed_bev": 19246,
-        "r_squared": 0.919122,
+        "observed_bev": 19245,
+        "r_squared": 0.92463,
         "reconciliation": "state_total_reconciled",
         "state": "NM",
         "status": null,
-        "wape": 0.298165
+        "wape": 0.298705
       },
       {
         "areas_scored": 1614,
@@ -2225,14 +2225,14 @@
         "estimator": "boosted_poisson",
         "evidence_grain": "usps_zip",
         "independent": true,
-        "mae": 69.663854,
+        "mae": 77.460922,
         "native_geography": "zcta",
-        "observed_bev": 197934,
-        "r_squared": 0.314218,
+        "observed_bev": 197940,
+        "r_squared": 0.166589,
         "reconciliation": "unreconciled",
         "state": "NY",
         "status": null,
-        "wape": 0.568055
+        "wape": 0.631615
       },
       {
         "areas_scored": 1614,
@@ -2241,46 +2241,46 @@
         "estimator": "boosted_poisson",
         "evidence_grain": "usps_zip",
         "independent": true,
-        "mae": 60.336995,
+        "mae": 59.912479,
         "native_geography": "zcta",
-        "observed_bev": 197934,
-        "r_squared": 0.482246,
+        "observed_bev": 197940,
+        "r_squared": 0.48039,
         "reconciliation": "state_total_reconciled",
         "state": "NY",
         "status": null,
-        "wape": 0.492002
+        "wape": 0.488526
       },
       {
-        "areas_scored": 359,
+        "areas_scored": 358,
         "constraint_bev": null,
         "constraint_vintage": null,
         "estimator": "boosted_poisson",
         "evidence_grain": "usps_zip",
         "independent": true,
-        "mae": 77.608472,
+        "mae": 64.684291,
         "native_geography": "zcta",
-        "observed_bev": 82070,
-        "r_squared": 0.847688,
+        "observed_bev": 82069,
+        "r_squared": 0.88702,
         "reconciliation": "unreconciled",
         "state": "OR",
         "status": null,
-        "wape": 0.339484
+        "wape": 0.282165
       },
       {
-        "areas_scored": 359,
+        "areas_scored": 358,
         "constraint_bev": 78400,
         "constraint_vintage": "2024",
         "estimator": "boosted_poisson",
         "evidence_grain": "usps_zip",
         "independent": true,
-        "mae": 46.07672,
+        "mae": 50.083812,
         "native_geography": "zcta",
-        "observed_bev": 82070,
-        "r_squared": 0.939967,
+        "observed_bev": 82069,
+        "r_squared": 0.934957,
         "reconciliation": "state_total_reconciled",
         "state": "OR",
         "status": null,
-        "wape": 0.201554
+        "wape": 0.218475
       },
       {
         "areas_scored": 95,
@@ -2289,14 +2289,14 @@
         "estimator": "boosted_poisson",
         "evidence_grain": "county",
         "independent": true,
-        "mae": 122.807584,
+        "mae": 151.581398,
         "native_geography": "county",
         "observed_bev": 53029,
-        "r_squared": 0.929702,
+        "r_squared": 0.898818,
         "reconciliation": "unreconciled",
         "state": "TN",
         "status": null,
-        "wape": 0.220006
+        "wape": 0.271554
       },
       {
         "areas_scored": 95,
@@ -2305,46 +2305,46 @@
         "estimator": "boosted_poisson",
         "evidence_grain": "county",
         "independent": true,
-        "mae": 128.079286,
+        "mae": 150.553468,
         "native_geography": "county",
         "observed_bev": 53029,
-        "r_squared": 0.927937,
+        "r_squared": 0.885451,
         "reconciliation": "state_total_reconciled",
         "state": "TN",
         "status": null,
-        "wape": 0.229451
+        "wape": 0.269712
       },
       {
-        "areas_scored": 1593,
+        "areas_scored": 1589,
         "constraint_bev": null,
         "constraint_vintage": null,
         "estimator": "boosted_poisson",
         "evidence_grain": "usps_zip",
         "independent": true,
-        "mae": 82.602457,
+        "mae": 75.416419,
         "native_geography": "zcta",
-        "observed_bev": 374464,
-        "r_squared": 0.7229,
+        "observed_bev": 374452,
+        "r_squared": 0.787515,
         "reconciliation": "unreconciled",
         "state": "TX",
         "status": null,
-        "wape": 0.351398
+        "wape": 0.320032
       },
       {
-        "areas_scored": 1593,
+        "areas_scored": 1589,
         "constraint_bev": 387400,
         "constraint_vintage": "2025",
         "estimator": "boosted_poisson",
         "evidence_grain": "usps_zip",
         "independent": true,
-        "mae": 86.624217,
+        "mae": 80.258827,
         "native_geography": "zcta",
-        "observed_bev": 374464,
-        "r_squared": 0.768371,
+        "observed_bev": 374452,
+        "r_squared": 0.79186,
         "reconciliation": "state_total_reconciled",
         "state": "TX",
         "status": null,
-        "wape": 0.368506
+        "wape": 0.340581
       },
       {
         "areas_scored": 129,
@@ -2353,14 +2353,14 @@
         "estimator": "boosted_poisson",
         "evidence_grain": "county",
         "independent": true,
-        "mae": 158.846135,
+        "mae": 257.107111,
         "native_geography": "county",
         "observed_bev": 131976,
-        "r_squared": 0.983258,
+        "r_squared": 0.899612,
         "reconciliation": "unreconciled",
         "state": "VA",
         "status": null,
-        "wape": 0.155264
+        "wape": 0.251309
       },
       {
         "areas_scored": 129,
@@ -2369,46 +2369,46 @@
         "estimator": "boosted_poisson",
         "evidence_grain": "county",
         "independent": true,
-        "mae": 118.83604,
+        "mae": 146.816618,
         "native_geography": "county",
         "observed_bev": 131976,
-        "r_squared": 0.990958,
+        "r_squared": 0.980898,
         "reconciliation": "state_total_reconciled",
         "state": "VA",
         "status": null,
-        "wape": 0.116156
+        "wape": 0.143506
       },
       {
-        "areas_scored": 251,
+        "areas_scored": 250,
         "constraint_bev": null,
         "constraint_vintage": null,
         "estimator": "boosted_poisson",
         "evidence_grain": "usps_zip",
         "independent": true,
-        "mae": 22.763206,
+        "mae": 21.759068,
         "native_geography": "zcta",
-        "observed_bev": 12528,
-        "r_squared": 0.709839,
+        "observed_bev": 12526,
+        "r_squared": 0.748008,
         "reconciliation": "unreconciled",
         "state": "VT",
         "status": null,
-        "wape": 0.456064
+        "wape": 0.434278
       },
       {
-        "areas_scored": 251,
+        "areas_scored": 250,
         "constraint_bev": 11900,
         "constraint_vintage": "2025",
         "estimator": "boosted_poisson",
         "evidence_grain": "usps_zip",
         "independent": true,
-        "mae": 14.743108,
+        "mae": 15.281778,
         "native_geography": "zcta",
-        "observed_bev": 12528,
-        "r_squared": 0.896535,
+        "observed_bev": 12526,
+        "r_squared": 0.900821,
         "reconciliation": "state_total_reconciled",
         "state": "VT",
         "status": null,
-        "wape": 0.29538
+        "wape": 0.305001
       },
       {
         "areas_scored": 1767,
@@ -2417,14 +2417,14 @@
         "estimator": "boosted_poisson",
         "evidence_grain": "tract",
         "independent": false,
-        "mae": 56.715426,
+        "mae": 59.082437,
         "native_geography": "tracts",
         "observed_bev": 236985,
-        "r_squared": 0.513286,
+        "r_squared": 0.471813,
         "reconciliation": "unreconciled",
         "state": "WA",
         "status": "non_independent_preprocessing_selection_state",
-        "wape": 0.42288
+        "wape": 0.440529
       },
       {
         "areas_scored": 1767,
@@ -2433,14 +2433,14 @@
         "estimator": "boosted_poisson",
         "evidence_grain": "tract",
         "independent": false,
-        "mae": 43.042149,
+        "mae": 43.846431,
         "native_geography": "tracts",
         "observed_bev": 236985,
-        "r_squared": 0.710817,
+        "r_squared": 0.701684,
         "reconciliation": "state_total_reconciled",
         "state": "WA",
         "status": "non_independent_preprocessing_selection_state",
-        "wape": 0.320929
+        "wape": 0.326926
       }
     ],
     "protocol": "leave-one-state-out at each state's native observed granularity",
@@ -2448,27 +2448,6 @@
     "selection_rule": "lowest EV-weighted WAPE across the independent states in the state_total_reconciled mode; ties inside 1% of WAPE go to the simpler model. Pre-registered before any candidate was run.",
     "states_with_no_rows_to_score": [],
     "states_without_a_published_total": [],
-    "validation_term": "demand model validation"
-  },
-  "national_surface": {
-    "bc_threshold": 0.262238,
-    "estimator": "poisson_glm",
-    "mean_uncertainty": 0.204082,
-    "national_bev_estimate": 5755687,
-    "reconciliation_max_residual": 2.3283064365386963e-10,
-    "reconciliation_method": "proportional",
-    "tracts": 84400,
-    "tracts_by_confidence_tier": {
-      "A": 5973,
-      "B": 58820,
-      "C": 19607
-    },
-    "tracts_by_evidence_grain": {
-      "county_anchored": 4204,
-      "native_tract": 1769,
-      "state_total_only": 78427
-    },
-    "training_rows": 7378,
     "training_states": [
       "CO",
       "CT",
@@ -2483,17 +2462,96 @@
       "TN",
       "TX",
       "VA",
-      "VT"
+      "VT",
+      "WA"
+    ],
+    "validation_term": "demand model validation",
+    "washington_role": {
+      "independent_validation_evidence": false,
+      "training_development_evidence": true,
+      "why": "Washington selected the HUD ZIP-to-tract method, so its own evaluation is tuning-influenced. That invalidates Washington as independent evaluation evidence; it does not disqualify it as training evidence for another state's holdout."
+    }
+  },
+  "feature_vintage": {
+    "current_production": "ACS 2024 5-year",
+    "historical_retained_for_phase_5": [
+      "ACS 2023 5-year"
+    ],
+    "note": "Directive D1 requires feature_vintage <= prediction_cutoff. The production surface uses the latest release; Phase 5's rolling origins must use the ACS release contemporaneous with each cutoff, which is why the older vintages stay cached and are never overwritten."
+  },
+  "national_surface": {
+    "bc_threshold": 0.26017,
+    "estimator": "poisson_glm",
+    "feature_vintage": "ACS 2024 5-year",
+    "mean_uncertainty": 0.202687,
+    "national_bev_estimate": 5755689,
+    "reconciliation_max_residual": 2.3283064365386963e-10,
+    "reconciliation_method": "proportional",
+    "tracts": 84401,
+    "tracts_by_confidence_tier": {
+      "A": 5973,
+      "B": 58821,
+      "C": 19607
+    },
+    "tracts_by_evidence_grain": {
+      "county_anchored": 4204,
+      "native_tract": 1769,
+      "state_total_only": 78428
+    },
+    "training_rows": 9140,
+    "training_states": [
+      "CO",
+      "CT",
+      "ME",
+      "MN",
+      "MT",
+      "NC",
+      "NJ",
+      "NM",
+      "NY",
+      "OR",
+      "TN",
+      "TX",
+      "VA",
+      "VT",
+      "WA"
     ],
     "unconstrained_tracts": 0,
     "weight_sensitivity": {
-      "allocation_error": 0.008278,
-      "out_of_distribution": 0.026902,
-      "prediction_interval": -0.012317,
-      "reconciliation_movement": -0.00431,
-      "source_degradation": -0.018553
+      "allocation_error": 0.008332,
+      "out_of_distribution": 0.027028,
+      "prediction_interval": -0.012841,
+      "reconciliation_movement": -0.004093,
+      "source_degradation": -0.018426
     },
     "weights_are_calibrated": false
+  },
+  "new_jersey_sensitivity": {
+    "affected_confidence_tiers": false,
+    "affected_estimator_selection": false,
+    "delta_weighted_wape": -0.016396,
+    "new_jersey_status": "flagged_for_review",
+    "not_marked_low_confidence_because": "corrected domain rule G9 requires corroborating evidence of a vintage, coverage, definition or source-quality problem; a statistical anomaly alone is not enough",
+    "with_new_jersey": {
+      "diagnostic_only": true,
+      "estimator": "poisson_glm",
+      "excluded_states": [],
+      "observed_bev": 1373621,
+      "reconciliation": "state_total_reconciled",
+      "states_aggregated": 14,
+      "weighted_wape": 0.320309
+    },
+    "without_new_jersey": {
+      "diagnostic_only": true,
+      "estimator": "poisson_glm",
+      "excluded_states": [
+        "NJ"
+      ],
+      "observed_bev": 1209207,
+      "reconciliation": "state_total_reconciled",
+      "states_aggregated": 13,
+      "weighted_wape": 0.303913
+    }
   },
   "observed_sources": {
     "CO": {
@@ -2872,104 +2930,108 @@
   },
   "panels": {
     "CO": {
-      "areas": 456,
-      "independent": true,
+      "areas": 455,
+      "independent_validation_evidence": true,
       "join_accounting": {
         "balances": true,
         "excluded_by_reason": {
-          "area_has_no_households": 165,
+          "area_has_no_households": 153,
           "zip_has_no_like_numbered_zcta": 68,
           "zip_outside_the_registering_state": 468
         },
-        "excluded_total": 701,
+        "excluded_total": 689,
         "exclusion_descriptions": {
           "area_has_no_households": "the area reports zero occupied housing units, so it carries no exposure and cannot support a rate",
           "zip_has_no_like_numbered_zcta": "the USPS ZIP Code has no like-numbered ZCTA, so it has no areal equivalent and no census features; typically a point or PO-Box-only ZIP",
           "zip_outside_the_registering_state": "the ZIP Code lies wholly outside the state whose DMV reported it - an out-of-state mailing address. The vehicles are real and belong in the state total, but they cannot be attributed to any in-state area, and joining them to a like-numbered ZCTA elsewhere would import that area's households as exposure"
         },
-        "included": 153840,
+        "included": 153852,
         "retrieved": 154541
       },
-      "observed_bev": 153840,
+      "observed_bev": 153852,
       "source_geography": "usps_zip",
       "state": "CO",
+      "training_evidence": true,
       "vintage_label": "DMV Snapshot (03/07/2026)"
     },
     "CT": {
       "areas": 278,
-      "independent": true,
+      "independent_validation_evidence": true,
       "join_accounting": {
         "balances": true,
         "excluded_by_reason": {
-          "area_has_no_households": 16,
+          "area_has_no_households": 11,
           "zip_has_no_like_numbered_zcta": 110,
           "zip_outside_the_registering_state": 1316
         },
-        "excluded_total": 1442,
+        "excluded_total": 1437,
         "exclusion_descriptions": {
           "area_has_no_households": "the area reports zero occupied housing units, so it carries no exposure and cannot support a rate",
           "zip_has_no_like_numbered_zcta": "the USPS ZIP Code has no like-numbered ZCTA, so it has no areal equivalent and no census features; typically a point or PO-Box-only ZIP",
           "zip_outside_the_registering_state": "the ZIP Code lies wholly outside the state whose DMV reported it - an out-of-state mailing address. The vehicles are real and belong in the state total, but they cannot be attributed to any in-state area, and joining them to a like-numbered ZCTA elsewhere would import that area's households as exposure"
         },
-        "included": 45745,
+        "included": 45750,
         "retrieved": 47187
       },
-      "observed_bev": 45745,
+      "observed_bev": 45750,
       "source_geography": "usps_zip",
       "state": "CT",
+      "training_evidence": true,
       "vintage_label": "DMV Snapshot (12/31/2025)"
     },
     "ME": {
-      "areas": 355,
-      "independent": true,
+      "areas": 356,
+      "independent_validation_evidence": true,
       "join_accounting": {
         "balances": true,
         "excluded_by_reason": {
-          "area_has_no_households": 22,
+          "area_has_no_households": 15,
           "zip_has_no_like_numbered_zcta": 171,
           "zip_outside_the_registering_state": 127
         },
-        "excluded_total": 320,
+        "excluded_total": 313,
         "exclusion_descriptions": {
           "area_has_no_households": "the area reports zero occupied housing units, so it carries no exposure and cannot support a rate",
           "zip_has_no_like_numbered_zcta": "the USPS ZIP Code has no like-numbered ZCTA, so it has no areal equivalent and no census features; typically a point or PO-Box-only ZIP",
           "zip_outside_the_registering_state": "the ZIP Code lies wholly outside the state whose DMV reported it - an out-of-state mailing address. The vehicles are real and belong in the state total, but they cannot be attributed to any in-state area, and joining them to a like-numbered ZCTA elsewhere would import that area's households as exposure"
         },
-        "included": 11277,
+        "included": 11284,
         "retrieved": 11597
       },
-      "observed_bev": 11277,
+      "observed_bev": 11284,
       "source_geography": "usps_zip",
       "state": "ME",
+      "training_evidence": true,
       "vintage_label": "DMV Snapshot (1/1/2026)"
     },
     "MN": {
-      "areas": 689,
-      "independent": true,
+      "areas": 690,
+      "independent_validation_evidence": true,
       "join_accounting": {
         "balances": true,
         "excluded_by_reason": {
-          "area_has_no_households": 96,
+          "area_has_no_households": 28,
           "zip_has_no_like_numbered_zcta": 22,
           "zip_outside_the_registering_state": 405
         },
-        "excluded_total": 523,
+        "excluded_total": 455,
         "exclusion_descriptions": {
           "area_has_no_households": "the area reports zero occupied housing units, so it carries no exposure and cannot support a rate",
           "zip_has_no_like_numbered_zcta": "the USPS ZIP Code has no like-numbered ZCTA, so it has no areal equivalent and no census features; typically a point or PO-Box-only ZIP",
           "zip_outside_the_registering_state": "the ZIP Code lies wholly outside the state whose DMV reported it - an out-of-state mailing address. The vehicles are real and belong in the state total, but they cannot be attributed to any in-state area, and joining them to a like-numbered ZCTA elsewhere would import that area's households as exposure"
         },
-        "included": 61211,
+        "included": 61279,
         "retrieved": 61734
       },
-      "observed_bev": 61211,
+      "observed_bev": 61279,
       "source_geography": "usps_zip",
       "state": "MN",
+      "training_evidence": true,
       "vintage_label": "DMV Snapshot (01/01/2026)"
     },
     "MT": {
       "areas": 51,
-      "independent": true,
+      "independent_validation_evidence": true,
       "join_accounting": {
         "balances": true,
         "excluded_by_reason": {},
@@ -2981,11 +3043,12 @@
       "observed_bev": 6773,
       "source_geography": "county",
       "state": "MT",
+      "training_evidence": true,
       "vintage_label": "DMV Snapshot (01/08/2026)"
     },
     "NC": {
       "areas": 693,
-      "independent": true,
+      "independent_validation_evidence": true,
       "join_accounting": {
         "balances": true,
         "excluded_by_reason": {
@@ -3005,105 +3068,110 @@
       "observed_bev": 59032,
       "source_geography": "usps_zip",
       "state": "NC",
+      "training_evidence": true,
       "vintage_label": "DMV Snapshot (6/1/2024)"
     },
     "NJ": {
-      "areas": 569,
-      "independent": true,
+      "areas": 570,
+      "independent_validation_evidence": true,
+      "join_accounting": {
+        "balances": true,
+        "excluded_by_reason": {
+          "area_has_no_households": 4,
+          "zip_has_no_like_numbered_zcta": 120
+        },
+        "excluded_total": 124,
+        "exclusion_descriptions": {
+          "area_has_no_households": "the area reports zero occupied housing units, so it carries no exposure and cannot support a rate",
+          "zip_has_no_like_numbered_zcta": "the USPS ZIP Code has no like-numbered ZCTA, so it has no areal equivalent and no census features; typically a point or PO-Box-only ZIP"
+        },
+        "included": 164414,
+        "retrieved": 164538
+      },
+      "observed_bev": 164414,
+      "source_geography": "usps_zip",
+      "state": "NJ",
+      "training_evidence": true,
+      "vintage_label": "DMV Snapshot (12/31/2025)"
+    },
+    "NM": {
+      "areas": 245,
+      "independent_validation_evidence": true,
       "join_accounting": {
         "balances": true,
         "excluded_by_reason": {
           "area_has_no_households": 21,
-          "zip_has_no_like_numbered_zcta": 120
-        },
-        "excluded_total": 141,
-        "exclusion_descriptions": {
-          "area_has_no_households": "the area reports zero occupied housing units, so it carries no exposure and cannot support a rate",
-          "zip_has_no_like_numbered_zcta": "the USPS ZIP Code has no like-numbered ZCTA, so it has no areal equivalent and no census features; typically a point or PO-Box-only ZIP"
-        },
-        "included": 164397,
-        "retrieved": 164538
-      },
-      "observed_bev": 164397,
-      "source_geography": "usps_zip",
-      "state": "NJ",
-      "vintage_label": "DMV Snapshot (12/31/2025)"
-    },
-    "NM": {
-      "areas": 246,
-      "independent": true,
-      "join_accounting": {
-        "balances": true,
-        "excluded_by_reason": {
-          "area_has_no_households": 20,
           "zip_has_no_like_numbered_zcta": 108
         },
-        "excluded_total": 128,
+        "excluded_total": 129,
         "exclusion_descriptions": {
           "area_has_no_households": "the area reports zero occupied housing units, so it carries no exposure and cannot support a rate",
           "zip_has_no_like_numbered_zcta": "the USPS ZIP Code has no like-numbered ZCTA, so it has no areal equivalent and no census features; typically a point or PO-Box-only ZIP"
         },
-        "included": 19246,
+        "included": 19245,
         "retrieved": 19374
       },
-      "observed_bev": 19246,
+      "observed_bev": 19245,
       "source_geography": "usps_zip",
       "state": "NM",
+      "training_evidence": true,
       "vintage_label": "DMV Snapshot (07/01/2026)"
     },
     "NY": {
       "areas": 1614,
-      "independent": true,
+      "independent_validation_evidence": true,
       "join_accounting": {
         "balances": true,
         "excluded_by_reason": {
-          "area_has_no_households": 214,
+          "area_has_no_households": 208,
           "no_acs_area_for_geoid": 438,
           "zip_has_no_like_numbered_zcta": 266,
           "zip_outside_the_registering_state": 6922
         },
-        "excluded_total": 7840,
+        "excluded_total": 7834,
         "exclusion_descriptions": {
           "area_has_no_households": "the area reports zero occupied housing units, so it carries no exposure and cannot support a rate",
           "no_acs_area_for_geoid": "no ACS zcta record exists for this GEOID in the 2023 5-year release",
           "zip_has_no_like_numbered_zcta": "the USPS ZIP Code has no like-numbered ZCTA, so it has no areal equivalent and no census features; typically a point or PO-Box-only ZIP",
           "zip_outside_the_registering_state": "the ZIP Code lies wholly outside the state whose DMV reported it - an out-of-state mailing address. The vehicles are real and belong in the state total, but they cannot be attributed to any in-state area, and joining them to a like-numbered ZCTA elsewhere would import that area's households as exposure"
         },
-        "included": 197934,
+        "included": 197940,
         "retrieved": 205774
       },
-      "observed_bev": 197934,
+      "observed_bev": 197940,
       "source_geography": "usps_zip",
       "state": "NY",
+      "training_evidence": true,
       "vintage_label": "DMV Snapshot (03/10/2026)"
     },
     "OR": {
-      "areas": 359,
-      "independent": true,
+      "areas": 358,
+      "independent_validation_evidence": true,
       "join_accounting": {
         "balances": true,
         "excluded_by_reason": {
-          "area_has_no_households": 9,
+          "area_has_no_households": 10,
           "zip_has_no_like_numbered_zcta": 40,
           "zip_outside_the_registering_state": 1253
         },
-        "excluded_total": 1302,
+        "excluded_total": 1303,
         "exclusion_descriptions": {
           "area_has_no_households": "the area reports zero occupied housing units, so it carries no exposure and cannot support a rate",
           "zip_has_no_like_numbered_zcta": "the USPS ZIP Code has no like-numbered ZCTA, so it has no areal equivalent and no census features; typically a point or PO-Box-only ZIP",
           "zip_outside_the_registering_state": "the ZIP Code lies wholly outside the state whose DMV reported it - an out-of-state mailing address. The vehicles are real and belong in the state total, but they cannot be attributed to any in-state area, and joining them to a like-numbered ZCTA elsewhere would import that area's households as exposure"
         },
-        "included": 82070,
+        "included": 82069,
         "retrieved": 83372
       },
-      "observed_bev": 82070,
+      "observed_bev": 82069,
       "source_geography": "usps_zip",
       "state": "OR",
+      "training_evidence": true,
       "vintage_label": "DMV Snapshot (1/31/2025)"
     },
     "TN": {
       "areas": 95,
-      "independent": true,
+      "independent_validation_evidence": true,
       "join_accounting": {
         "balances": true,
         "excluded_by_reason": {},
@@ -3115,35 +3183,37 @@
       "observed_bev": 53029,
       "source_geography": "county",
       "state": "TN",
+      "training_evidence": true,
       "vintage_label": "DMV Snapshot (12/31/2025)"
     },
     "TX": {
-      "areas": 1593,
-      "independent": true,
+      "areas": 1589,
+      "independent_validation_evidence": true,
       "join_accounting": {
         "balances": true,
         "excluded_by_reason": {
-          "area_has_no_households": 2567,
+          "area_has_no_households": 2579,
           "zip_has_no_like_numbered_zcta": 15405,
           "zip_outside_the_registering_state": 1
         },
-        "excluded_total": 17973,
+        "excluded_total": 17985,
         "exclusion_descriptions": {
           "area_has_no_households": "the area reports zero occupied housing units, so it carries no exposure and cannot support a rate",
           "zip_has_no_like_numbered_zcta": "the USPS ZIP Code has no like-numbered ZCTA, so it has no areal equivalent and no census features; typically a point or PO-Box-only ZIP",
           "zip_outside_the_registering_state": "the ZIP Code lies wholly outside the state whose DMV reported it - an out-of-state mailing address. The vehicles are real and belong in the state total, but they cannot be attributed to any in-state area, and joining them to a like-numbered ZCTA elsewhere would import that area's households as exposure"
         },
-        "included": 374464,
+        "included": 374452,
         "retrieved": 392437
       },
-      "observed_bev": 374464,
+      "observed_bev": 374452,
       "source_geography": "usps_zip",
       "state": "TX",
+      "training_evidence": true,
       "vintage_label": "DMV Snapshot (3/1/2026)"
     },
     "VA": {
       "areas": 129,
-      "independent": true,
+      "independent_validation_evidence": true,
       "join_accounting": {
         "balances": true,
         "excluded_by_reason": {},
@@ -3155,35 +3225,37 @@
       "observed_bev": 131976,
       "source_geography": "county",
       "state": "VA",
+      "training_evidence": true,
       "vintage_label": "DMV Snapshot (12/31/2025)"
     },
     "VT": {
-      "areas": 251,
-      "independent": true,
+      "areas": 250,
+      "independent_validation_evidence": true,
       "join_accounting": {
         "balances": true,
         "excluded_by_reason": {
-          "area_has_no_households": 40,
+          "area_has_no_households": 42,
           "zip_has_no_like_numbered_zcta": 124,
           "zip_outside_the_registering_state": 225
         },
-        "excluded_total": 389,
+        "excluded_total": 391,
         "exclusion_descriptions": {
           "area_has_no_households": "the area reports zero occupied housing units, so it carries no exposure and cannot support a rate",
           "zip_has_no_like_numbered_zcta": "the USPS ZIP Code has no like-numbered ZCTA, so it has no areal equivalent and no census features; typically a point or PO-Box-only ZIP",
           "zip_outside_the_registering_state": "the ZIP Code lies wholly outside the state whose DMV reported it - an out-of-state mailing address. The vehicles are real and belong in the state total, but they cannot be attributed to any in-state area, and joining them to a like-numbered ZCTA elsewhere would import that area's households as exposure"
         },
-        "included": 12528,
+        "included": 12526,
         "retrieved": 12917
       },
-      "observed_bev": 12528,
+      "observed_bev": 12526,
       "source_geography": "usps_zip",
       "state": "VT",
+      "training_evidence": true,
       "vintage_label": "DMV Snapshot (01/03/2026)"
     },
     "WA": {
       "areas": 1767,
-      "independent": false,
+      "independent_validation_evidence": false,
       "join_accounting": {
         "balances": true,
         "excluded_by_reason": {
@@ -3199,6 +3271,7 @@
       "observed_bev": 236985,
       "source_geography": "tract",
       "state": "WA",
+      "training_evidence": true,
       "vintage_label": "current snapshot"
     }
   },
@@ -3209,27 +3282,27 @@
     "WARNING": "SUPPLY-FEATURE ABLATION ONLY. These features are forbidden in the primary demand model by directive D2: existing infrastructure is an OUTCOME of prior investment decisions, so using it to predict demand and then siting from that demand launders historical deployment patterns into 'need'. This result is not used for anything and must never be quoted as the model's performance.",
     "aggregate_weighted_wape_with_supply_features": {
       "state_total_reconciled": {
-        "poisson_glm": 0.42317,
-        "ridge_log_rate": 0.400848
+        "poisson_glm": 0.416967,
+        "ridge_log_rate": 0.396359
       },
       "unreconciled": {
-        "poisson_glm": 70.714564,
-        "ridge_log_rate": 0.457432
+        "poisson_glm": 886983436.36173,
+        "ridge_log_rate": 0.453048
       }
     },
     "aggregate_weighted_wape_without_supply_features": {
       "state_total_reconciled": {
-        "poisson_glm": 0.351694,
-        "ridge_log_rate": 0.405567
+        "poisson_glm": 0.344865,
+        "ridge_log_rate": 0.398673
       },
       "unreconciled": {
-        "poisson_glm": 0.408785,
-        "ridge_log_rate": 0.463529
+        "poisson_glm": 0.405201,
+        "ridge_log_rate": 0.455487
       }
     },
     "in_sample_wape": {
-      "with_supply_features": 0.366342,
-      "without_supply_features": 0.366382
+      "with_supply_features": 0.360072,
+      "without_supply_features": 0.360885
     },
     "scope": "the eleven ZIP-grain states, which is where AFDC ZIPs join directly",
     "supply_features_added": [
@@ -3253,7 +3326,7 @@
       "grain": "zip_anchored",
       "groups": 438,
       "method": "household_share",
-      "statewide_tract_tvd": 0.209962,
+      "statewide_tract_tvd": 0.209286,
       "unplaced_evs": 606
     },
     {
@@ -3269,7 +3342,7 @@
       "grain": "county_anchored",
       "groups": 39,
       "method": "household_share",
-      "statewide_tract_tvd": 0.236701,
+      "statewide_tract_tvd": 0.236679,
       "unplaced_evs": 0
     },
     {
@@ -3277,40 +3350,45 @@
       "grain": "state_total_only",
       "groups": 1,
       "method": "household_share",
-      "statewide_tract_tvd": 0.304932,
+      "statewide_tract_tvd": 0.304071,
       "unplaced_evs": 0
     }
   ],
-  "uncertainty_calibration_washington_only": [
-    {
-      "bin": 0.0,
-      "mean_absolute_error": 54.035872580967975,
-      "mean_uncertainty": 0.07570216463577274,
-      "n": 354.0
-    },
-    {
-      "bin": 1.0,
-      "mean_absolute_error": 57.68608672462623,
-      "mean_uncertainty": 0.11055394089645303,
-      "n": 354.0
-    },
-    {
-      "bin": 2.0,
-      "mean_absolute_error": 50.955921999874256,
-      "mean_uncertainty": 0.14431013328498193,
-      "n": 354.0
-    },
-    {
-      "bin": 3.0,
-      "mean_absolute_error": 50.71957596946936,
-      "mean_uncertainty": 0.17999998508738738,
-      "n": 354.0
-    },
-    {
-      "bin": 4.0,
-      "mean_absolute_error": 74.91952860474676,
-      "mean_uncertainty": 0.22741264537784409,
-      "n": 353.0
-    }
-  ]
+  "washington_uncertainty_error_diagnostic": {
+    "curve": [
+      {
+        "bin": 0.0,
+        "mean_absolute_error": 50.946316724186865,
+        "mean_uncertainty": 0.06042252770519119,
+        "n": 354.0
+      },
+      {
+        "bin": 1.0,
+        "mean_absolute_error": 46.808702009282406,
+        "mean_uncertainty": 0.09213738012707336,
+        "n": 354.0
+      },
+      {
+        "bin": 2.0,
+        "mean_absolute_error": 50.46163729834734,
+        "mean_uncertainty": 0.12397170716071053,
+        "n": 354.0
+      },
+      {
+        "bin": 3.0,
+        "mean_absolute_error": 42.43074996330018,
+        "mean_uncertainty": 0.16249339295014006,
+        "n": 354.0
+      },
+      {
+        "bin": 4.0,
+        "mean_absolute_error": 73.1733170166983,
+        "mean_uncertainty": 0.21218791350372274,
+        "n": 353.0
+      }
+    ],
+    "interpretation": "Higher uncertainty identifies the highest-error quintile, but error is not monotonic across the remaining bins. The current uncertainty score is therefore NOT empirically calibrated; this diagnostic only provides limited evidence that the score identifies some high-error observations.",
+    "is_empirical_calibration": false,
+    "why_washington_only": "Washington is the only source reporting registrations at tract grain, so it is the only place a tract-level error can be computed. It is also the non-independent preprocessing-selection state."
+  }
 }

@@ -260,3 +260,32 @@ def test_a_state_whose_join_left_no_rows_is_recorded_not_crashed_on() -> None:
     assert result.unscorable_states == ("VA",)
     assert result.to_dict()["states_with_no_rows_to_score"] == ["VA"]
     assert all(s.state != "VA" for s in result.scores)
+
+
+def test_the_sensitivity_refuses_to_aggregate_over_nothing() -> None:
+    """Excluding every independent state would leave a headline number with no states
+    behind it, which is worse than no number at all."""
+    from pipeline.validation.demand_model import aggregate_excluding
+
+    panels = {state: panel(state) for state in STATES}
+    result = run_loso(panels, totals_for(panels), estimators=[ConstantRateBaseline()])
+    with pytest.raises(ValidationError, match="leaves no independent state"):
+        aggregate_excluding(result, "baseline_household_share",
+                            STATE_TOTAL_RECONCILED, STATES)
+
+
+def test_the_sensitivity_is_computed_from_already_selected_scores() -> None:
+    """It takes the estimator as an ARGUMENT and never refits, so it is structurally
+    incapable of feeding back into estimator selection."""
+    from pipeline.validation.demand_model import aggregate_excluding
+
+    panels = {state: panel(state) for state in STATES}
+    result = run_loso(panels, totals_for(panels), estimators=[ConstantRateBaseline()])
+    everything = aggregate_excluding(result, "baseline_household_share",
+                                     STATE_TOTAL_RECONCILED, ())
+    without_one = aggregate_excluding(result, "baseline_household_share",
+                                      STATE_TOTAL_RECONCILED, ("VT",))
+    assert everything["states_aggregated"] == len(STATES)
+    assert without_one["states_aggregated"] == len(STATES) - 1
+    assert without_one["excluded_states"] == ["VT"]
+    assert everything["diagnostic_only"] is True

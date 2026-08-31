@@ -13,6 +13,43 @@ results are invalid), **S2 Degrading** (usable but weaker than claimed), **S3 Co
 
 None.
 
+### I-14 — the ACS vintage could not be selected by patching its constant
+
+| Field | Value |
+|---|---|
+| Opened | 2026-08-29, during the external-review correction pass |
+| Affected phase | 3 (`pipeline/sources/census_acs.py`, `pipeline/model/panel.py`), and **Phase 5 had it survived** |
+| Severity | **S2 Degrading** — nothing published was wrong, but it would have handed Phase 5 a D1 violation that looked like a passing test |
+| Status | **RESOLVED 2026-08-29** |
+
+**Assumed.** That setting `census_acs.ACS_YEAR` selects which ACS vintage loads, so a
+caller wanting a historical vintage could patch the module attribute.
+
+**Actually true.** `AcsSource.__init__` binds `year: int = ACS_YEAR` as a **default
+argument, evaluated once at class-definition time**. Patching the module attribute
+afterwards has no effect: the source silently keeps loading the **production** vintage.
+
+**How it surfaced.** The first attempt at decomposing the ACS 2023 → 2024 improvement
+(Phase 3 report §14.4) patched the constant and produced four rows in which the 2023 and
+2024 results were **byte-identical** — `poisson=0.321982` in both. Identical results across
+two different vintages is not a plausible measurement, and that is what exposed it.
+
+**Why it matters beyond this phase.** Directive D1 requires
+`feature_vintage <= prediction_cutoff`. Phase 5's rolling origins at 2020, 2021 and 2022
+must load the contemporaneous ACS release. Had Phase 5 selected a vintage the way the
+decomposition first did, every origin would silently have been fed **current** features —
+textbook temporal leakage — and the leakage guard would not have caught it, because the
+features would have carried the vintage stamp the caller *asked* for while holding the data
+it did not.
+
+**Response.** `load_area_tables` takes an explicit `year` parameter, documented with the
+reason it is a parameter rather than a patched constant. Two regression tests: one that the
+historical vintage still replays, and one that the two vintages return **genuinely different
+values**, so a loader ignoring its year argument cannot pass vacuously.
+
+**Nothing published was wrong.** Every Phase 3 number, before and after the refresh, was
+produced through the normal path with the correct vintage.
+
 ### Risks closed by Phase 3
 
 Two open risks recorded in `docs/reports/LIVE_INTEGRATION_AUDIT.md` §I are closed. That

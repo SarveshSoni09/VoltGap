@@ -32,9 +32,11 @@ from pipeline.model.observed import (
 )
 from pipeline.model.panel import build_panels, load_area_tables
 from pipeline.model.uncertainty import AllocationPenalty, complexity_multipliers
+from pipeline.sources.census_acs import ACS_YEAR, HISTORICAL_ACS_YEARS
 from pipeline.validation.demand_model import (
     STATE_TOTAL_RECONCILED,
     LosoResult,
+    aggregate_excluding,
     calibration_curve,
     nearest_vintage,
     run_loso,
@@ -101,12 +103,14 @@ def constraint_totals(observations: dict[str, Any]) -> dict[str, Any]:
 
 def uncertainty_calibration(surface: DemandSurface, loso: LosoResult,
                             observations: dict[str, Any]) -> list[dict[str, float]]:
-    """Does a higher uncertainty score go with larger error where truth is known?
+    """The Washington uncertainty-error diagnostic. **Not a calibration result.**
 
     Washington is the only place a tract-level error can be computed at all, and it is
-    the non-independent state, so this curve is **diagnostic, not validation**. It is
-    reported with that limitation attached rather than omitted: a calibration check that
-    can only be run in one state is still worth more than none.
+    also the non-independent state, so this is a diagnostic and nothing more. Higher
+    uncertainty identifies the highest-error quintile, but error is not monotonic across
+    the remaining bins, so the score is **not empirically calibrated**. The curve is
+    reported with that limitation attached rather than omitted, and the weights are never
+    retuned in response to it - doing so would destroy the only thing the check was for.
     """
     observed_tracts = {
         count.geography_id: float(count.bev_count)
@@ -198,6 +202,37 @@ def _in_sample_wape(primary: dict[str, Any],
     return {k: round(v, 6) for k, v in out.items()}
 
 
+def _new_jersey_sensitivity(loso: LosoResult) -> dict[str, Any]:
+    """The independent aggregate with and without New Jersey. **Diagnostic only.**
+
+    New Jersey's observed total is 21.65% below the comparable AFDC figure and its latest
+    snapshot carries one distinct registration date, but corrected domain rule G9 forbids
+    marking a state low-confidence on statistical unusualness alone. It therefore stays
+    `flagged_for_review` and stays in the panel. This quantifies what it is doing to the
+    headline number, computed from scores that were already used to select the estimator
+    so it cannot feed back into that choice.
+    """
+    estimator, mode = loso.selected_estimator, loso.selection_mode
+    with_nj = aggregate_excluding(loso, estimator, mode, ())
+    without_nj = aggregate_excluding(loso, estimator, mode, ("NJ",))
+    before, after = with_nj["weighted_wape"], without_nj["weighted_wape"]
+    assert isinstance(before, float) and isinstance(after, float)
+    delta = after - before
+    return {
+        "new_jersey_status": "flagged_for_review",
+        "not_marked_low_confidence_because": (
+            "corrected domain rule G9 requires corroborating evidence of a vintage, "
+            "coverage, definition or source-quality problem; a statistical anomaly "
+            "alone is not enough"
+        ),
+        "with_new_jersey": with_nj,
+        "without_new_jersey": without_nj,
+        "delta_weighted_wape": round(delta, 6),
+        "affected_estimator_selection": False,
+        "affected_confidence_tiers": False,
+    }
+
+
 def run(states: Sequence[str] = ALL_STATE_FIPS,
         bootstrap_replicates: int = 20,
         supply_snapshot: Path | None = None,
@@ -236,13 +271,39 @@ def run(states: Sequence[str] = ALL_STATE_FIPS,
         "allocation_penalty": {
             k: round(v, 6) for k, v in sorted(penalty.statewide_tvd.items())
         },
+        "feature_vintage": {
+            "current_production": f"ACS {ACS_YEAR} 5-year",
+            "historical_retained_for_phase_5": [
+                f"ACS {y} 5-year" for y in HISTORICAL_ACS_YEARS
+            ],
+            "note": (
+                "Directive D1 requires feature_vintage <= prediction_cutoff. The "
+                "production surface uses the latest release; Phase 5's rolling origins "
+                "must use the ACS release contemporaneous with each cutoff, which is "
+                "why the older vintages stay cached and are never overwritten."
+            ),
+        },
         "national_surface": surface.summary(),
         "supply_feature_ablation": supply_feature_ablation(
             dict(panels), dict(load_state_totals()), supply_snapshot
         ),
-        "uncertainty_calibration_washington_only": uncertainty_calibration(
-            surface, loso, observations
-        ),
+        "washington_uncertainty_error_diagnostic": {
+            "is_empirical_calibration": False,
+            "interpretation": (
+                "Higher uncertainty identifies the highest-error quintile, but error is "
+                "not monotonic across the remaining bins. The current uncertainty score "
+                "is therefore NOT empirically calibrated; this diagnostic only provides "
+                "limited evidence that the score identifies some high-error "
+                "observations."
+            ),
+            "why_washington_only": (
+                "Washington is the only source reporting registrations at tract grain, "
+                "so it is the only place a tract-level error can be computed. It is "
+                "also the non-independent preprocessing-selection state."
+            ),
+            "curve": uncertainty_calibration(surface, loso, observations),
+        },
+        "new_jersey_sensitivity": _new_jersey_sensitivity(loso),
         "selection_mode": STATE_TOTAL_RECONCILED,
     }
 

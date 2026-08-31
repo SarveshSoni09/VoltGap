@@ -36,7 +36,13 @@ from pipeline.model.features import (
     load_land_area_km2,
 )
 from pipeline.model.observed import STATE_FIPS, StateObservations
-from pipeline.sources.census_acs import COUNTY, TRACT, ZCTA, AcsSource
+from pipeline.sources.census_acs import (
+    ACS_YEAR,
+    COUNTY,
+    TRACT,
+    ZCTA,
+    AcsSource,
+)
 from pipeline.spatial.crosswalk import zcta_state_index
 from pipeline.spatial.geography import SourceGeography
 from pipeline.validation.scope import ExclusionLedger
@@ -101,21 +107,33 @@ def state_resolver(geography: str) -> Callable[[str], str]:
 def load_area_tables(
     fetcher: Fetcher | None = None,
     states: Sequence[str] = (),
+    year: int | None = None,
 ) -> dict[str, AreaTable]:
-    """ACS features at every summary level the panel needs.
+    """ACS features at every summary level the panel needs, for one ACS vintage.
 
     Tract features are fetched per state because the API serves tracts one state at a
     time; ZCTA and county come back nationally in a single request each.
+
+    ``year`` defaults to the **current production** vintage. It is an explicit parameter
+    rather than a module-level default read at call time because
+    :class:`~pipeline.sources.census_acs.AcsSource` binds ``ACS_YEAR`` as a default
+    argument at definition time, so patching the module attribute does **not** change
+    which vintage is loaded. Phase 5 needs cutoff-appropriate vintages under directive
+    D1, and it must be able to ask for one by name rather than by mutating a constant.
     """
     source = fetcher or ReplayFetcher(PATHS.cache)
+    vintage = ACS_YEAR if year is None else year
     tables: dict[str, AreaTable] = {
-        "zcta": build_area_table(AcsSource(ZCTA).load(source).rows, "zcta"),
-        "county": build_area_table(AcsSource(COUNTY).load(source).rows, "county"),
+        "zcta": build_area_table(
+            AcsSource(ZCTA, year=vintage).load(source).rows, "zcta"),
+        "county": build_area_table(
+            AcsSource(COUNTY, year=vintage).load(source).rows, "county"),
     }
     tract_rows: list[Mapping[str, str]] = []
     for state in states:
-        tract_rows.extend(AcsSource(TRACT, STATE_FIPS.get(state, state))
-                          .load(source).rows)
+        tract_rows.extend(
+            AcsSource(TRACT, STATE_FIPS.get(state, state), year=vintage)
+            .load(source).rows)
     if tract_rows:
         tables["tracts"] = build_area_table(tract_rows, "tracts")
     return tables
@@ -131,6 +149,7 @@ class StatePanel:
     rows: tuple[ModelRow, ...]
     ledger: ExclusionLedger
     is_independent: bool
+    is_trainable: bool = True
 
     @property
     def observed_total(self) -> float:
@@ -143,15 +162,25 @@ class StatePanel:
             "vintage_label": self.vintage_label,
             "areas": len(self.rows),
             "observed_bev": int(self.observed_total),
-            "independent": self.is_independent,
+            "independent_validation_evidence": self.is_independent,
+            "training_evidence": self.is_trainable,
             "join_accounting": self.ledger.to_dict(),
         }
 
 
 #: Washington selected the HUD crosswalk over land-area weighting, so any Washington
 #: validation result is tuning-influenced. Pre-registration §2, rules W1-W4.
+#:
+#: **This governs evaluation, not training.** A state listed here is barred from the
+#: independent leave-one-state-out aggregate and from being described as independent
+#: demand model validation. It remains eligible as development/training evidence, which
+#: is a separate field (:attr:`StatePanel.is_trainable`).
 NON_INDEPENDENT_STATES: frozenset[str] = frozenset({"WA"})
 NON_INDEPENDENT_REASON = "non_independent_preprocessing_selection_state"
+
+#: States barred from TRAINING. Empty: no state has been shown to contaminate another
+#: state's holdout merely by being in its training set.
+NON_TRAINABLE_STATES: frozenset[str] = frozenset()
 
 
 def build_state_panel(
@@ -237,6 +266,14 @@ def build_state_panel(
         rows=tuple(rows),
         ledger=ledger,
         is_independent=observations.state not in NON_INDEPENDENT_STATES,
+        # Eligibility to TRAIN is a different question from eligibility to serve as
+        # INDEPENDENT EVALUATION EVIDENCE, and conflating them was an implementation
+        # over-restriction rather than anything the pre-registration required. Rules
+        # W1-W4 speak only to validation records and the headline aggregate.
+        # Washington's tuning influence invalidates its own evaluation; it does not
+        # contaminate an Oregon or Texas holdout merely by sitting in their training
+        # set. See the 2026-08-29 amendment to the Phase 3 pre-registration.
+        is_trainable=True,
     )
 
 

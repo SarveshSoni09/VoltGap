@@ -71,7 +71,8 @@ def test_the_driver_produces_every_published_section(tmp_path: Path) -> None:
     for section in ("observed_sources", "panels", "demand_model_validation",
                     "transformation_ladder", "allocation_penalty",
                     "national_surface",
-                    "uncertainty_calibration_washington_only"):
+                    "washington_uncertainty_error_diagnostic",
+                    "new_jersey_sensitivity", "feature_vintage"):
         assert section in payload, section
     validation = payload["demand_model_validation"]
     assert isinstance(validation, dict)
@@ -96,7 +97,10 @@ def test_the_calibration_curve_is_marked_washington_only(tmp_path: Path) -> None
     payload = run(states=("50", "53"), bootstrap_replicates=2,
                  supply_snapshot=tiny_supply(tmp_path),
                  estimators=[ConstantRateBaseline()])
-    curve = payload["uncertainty_calibration_washington_only"]
+    diagnostic = payload["washington_uncertainty_error_diagnostic"]
+    assert diagnostic["is_empirical_calibration"] is False
+    assert "NOT empirically calibrated" in diagnostic["interpretation"]
+    curve = diagnostic["curve"]
     assert isinstance(curve, list)
     assert all(set(row) == {"bin", "n", "mean_uncertainty", "mean_absolute_error"}
                for row in curve)

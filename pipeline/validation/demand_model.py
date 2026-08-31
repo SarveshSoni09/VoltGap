@@ -11,11 +11,16 @@ tract values are never used as observed tract labels: that would score the cross
 against itself. The rule was fixed in ``docs/evidence/P3-0_phase3_preregistration.md``
 §3 before any state had been scored.
 
-**Washington is excluded from the independent aggregate.** It selected the HUD crosswalk
-over land-area weighting, so any Washington result here is tuning-influenced. It is still
-run and still reported, in its own row, carrying the status
-``non_independent_preprocessing_selection_state`` (pre-registration §2, rules W1-W4). The
-cost is accepted explicitly: no tract-native state remains in the independent aggregate.
+**Washington is excluded from the independent aggregate, but not from training.** It
+selected the HUD crosswalk over land-area weighting, so any Washington *result* here is
+tuning-influenced, and it is barred from the headline aggregate and reported in its own
+row carrying ``non_independent_preprocessing_selection_state`` (pre-registration §2,
+rules W1-W4). Those rules govern **evaluation evidence**. Washington's tuning influence
+invalidates its own evaluation; it does not contaminate an Oregon or Texas holdout merely
+by sitting in that fold's training set, and Washington is the only tract-native
+registration source available. So it **is** included when another state is held out. The
+two eligibilities are separate fields and are reported separately: see the 2026-08-29
+amendment to the pre-registration.
 
 **Two reconciliation modes are reported, and the difference between them is the point.**
 
@@ -211,6 +216,7 @@ class LosoResult:
     selected_estimator: str
     selection_mode: str
     independent_states: tuple[str, ...]
+    training_states: tuple[str, ...]
     excluded_states: Mapping[str, str]
     states_without_a_published_total: tuple[str, ...] = ()
     unscorable_states: tuple[str, ...] = ()
@@ -219,7 +225,18 @@ class LosoResult:
         return {
             "validation_term": "demand model validation",
             "protocol": "leave-one-state-out at each state's native observed granularity",
-            "independent_states": list(self.independent_states),
+            "independent_validation_states": list(self.independent_states),
+            "training_states": list(self.training_states),
+            "washington_role": {
+                "independent_validation_evidence": False,
+                "training_development_evidence": "WA" in self.training_states,
+                "why": (
+                    "Washington selected the HUD ZIP-to-tract method, so its own "
+                    "evaluation is tuning-influenced. That invalidates Washington as "
+                    "independent evaluation evidence; it does not disqualify it as "
+                    "training evidence for another state's holdout."
+                ),
+            },
             "excluded_from_independent_aggregate": dict(self.excluded_states),
             "states_without_a_published_total": list(
                 self.states_without_a_published_total
@@ -248,6 +265,36 @@ def weighted_wape(scores: Sequence[StateScore]) -> float:
     return error / total
 
 
+def aggregate_excluding(
+    result: LosoResult, estimator: str, mode: str, exclude: Sequence[str] = ()
+) -> dict[str, object]:
+    """Recompute the independent aggregate with some states left out. **Diagnostic only.**
+
+    Derived from scores that have **already been computed and already been used to select
+    the estimator**, so it is structurally incapable of influencing selection: there is no
+    refit, no re-ranking, and the estimator is an argument rather than an outcome. That is
+    the point. A sensitivity analysis that could feed back into model choice would be
+    post-hoc exclusion wearing a diagnostic's clothes.
+    """
+    dropped = set(exclude)
+    kept = [s for s in result.scores
+            if s.estimator == estimator and s.mode == mode and s.independent
+            and s.state not in dropped]
+    if not kept:
+        raise ValidationError(
+            f"excluding {sorted(dropped)} leaves no independent state to aggregate over"
+        )
+    return {
+        "estimator": estimator,
+        "reconciliation": mode,
+        "excluded_states": sorted(dropped),
+        "states_aggregated": len(kept),
+        "weighted_wape": round(weighted_wape(kept), 6),
+        "observed_bev": int(sum(s.observed_total for s in kept)),
+        "diagnostic_only": True,
+    }
+
+
 def select_estimator(
     aggregates: Mapping[str, float], estimators: Sequence[Estimator]
 ) -> str:
@@ -270,6 +317,7 @@ def run_loso(
     """Leave-one-state-out across every independent state, for every candidate."""
     candidates = list(estimators) if estimators is not None else candidate_estimators()
     independent = tuple(sorted(s for s, p in panels.items() if p.is_independent))
+    trainable = tuple(sorted(s for s, p in panels.items() if p.is_trainable and p.rows))
     if len(independent) <= 3:
         raise ValidationError(
             f"only {len(independent)} genuinely usable independent state(s) remain "
@@ -293,7 +341,7 @@ def run_loso(
                 continue
             training = [
                 row for state, other in panels.items()
-                if state != held and other.is_independent
+                if state != held and other.is_trainable
                 for row in other.rows
             ]
             series = state_totals.get(STATE_FIPS[held], [])
@@ -327,6 +375,7 @@ def run_loso(
         selected_estimator=select_estimator(aggregates[selection_mode], candidates),
         selection_mode=selection_mode,
         independent_states=independent,
+        training_states=trainable,
         excluded_states={
             state: "non_independent_preprocessing_selection_state"
             for state, panel in sorted(panels.items()) if not panel.is_independent
