@@ -107,11 +107,78 @@ def test_the_calibration_curve_is_marked_washington_only(tmp_path: Path) -> None
 
 
 def test_calibration_needs_washington_rows_to_report_anything() -> None:
-    from pipeline.model.build_demand import DemandSurface
+    from pipeline.model.build_demand import ConstraintAccounting, DemandSurface
     from pipeline.model.reconcile import ProportionalReconciler
 
-    empty = DemandSurface((), "e", (), 0,
+    empty = DemandSurface(ConstraintAccounting(0.0, 0.0, 0.0, 0.0, {}), (), "e", (), 0,
                           ProportionalReconciler().reconcile(
                               __import__("numpy").zeros(0), []),
                           {}, 0.0)
     assert uncertainty_calibration(empty, None, {}) == []  # type: ignore[arg-type]
+
+
+# --- the fragility description ------------------------------------------------------
+
+def test_fragility_names_a_changed_winner() -> None:
+    from pipeline.model.run_phase3 import _fragility
+
+    text = _fragility(["a", "b"], ["b", "a"], ["a", "b"], ["b", "a"])
+    assert "WINNER changes" in text and "a -> b" in text
+    assert "retained regardless" in text
+
+
+def test_fragility_names_a_changed_model_ordering_under_an_unchanged_winner() -> None:
+    from pipeline.model.run_phase3 import _fragility
+
+    text = _fragility(["a", "b", "c"], ["a", "c", "b"], ["a", "b", "c"], ["a", "c", "b"])
+    assert "AMONG MODELS" in text
+
+
+def test_fragility_says_so_when_only_the_baselines_swap() -> None:
+    """A bare 'not stable' would be true and useless when two floors trade places."""
+    from pipeline.model.run_phase3 import _fragility
+
+    text = _fragility(["m", "base_x", "base_y"], ["m", "base_y", "base_x"],
+                      ["m"], ["m"])
+    assert "BASELINES" in text
+    assert "floor to clear" in text
+
+
+def test_fragility_reports_a_stable_ordering() -> None:
+    from pipeline.model.run_phase3 import _fragility
+
+    assert _fragility(["a", "b"], ["a", "b"], ["a"], ["a"]) == (
+        "the candidate ordering is stable to removing New Jersey")
+
+
+# --- the tract-set reconciliation ---------------------------------------------------
+
+def test_the_tract_set_reconciliation_names_what_entered_and_what_left(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """A tract count that changes between vintages must be named tract by tract."""
+    from pipeline.model.panel import build_area_table
+    from pipeline.model.run_phase3 import tract_set_reconciliation
+    from tests.unit.test_panel import acs_row
+
+    def table(geoids: list[str]) -> dict[str, object]:
+        return {
+            "tracts": build_area_table([acs_row(g) for g in geoids], "tracts",
+                                       dict.fromkeys(geoids, 5.0)),
+            "zcta": build_area_table([acs_row("98101")], "zcta", {"98101": 5.0}),
+            "county": build_area_table([acs_row("53033")], "county", {"53033": 5.0}),
+        }
+
+    previous = table(["53033000100", "53033000200"])
+    production = table(["53033000100", "53033000300"])
+    monkeypatch.setattr("pipeline.model.run_phase3.load_area_tables",
+                        lambda states, year: previous)
+    recon = tract_set_reconciliation(production, ("53",))
+    assert recon["tracts_previous"] == 2
+    assert recon["tracts_current"] == 2
+    assert recon["intersection"] == 1
+    assert [row["geoid"] for row in recon["entered"]] == ["53033000300"]
+    assert [row["geoid"] for row in recon["left"]] == ["53033000200"]
+    assert recon["entered"][0]["state_fips"] == "53"
+    assert recon["entered"][0]["county_fips"] == "53033"
+    assert recon["left"][0]["households"] == 100.0

@@ -2480,11 +2480,20 @@
     "note": "Directive D1 requires feature_vintage <= prediction_cutoff. The production surface uses the latest release; Phase 5's rolling origins must use the ACS release contemporaneous with each cutoff, which is why the older vintages stay cached and are never overwritten."
   },
   "national_surface": {
-    "bc_threshold": 0.26017,
+    "bc_threshold": 0.260165,
     "estimator": "poisson_glm",
     "feature_vintage": "ACS 2024 5-year",
-    "mean_uncertainty": 0.202687,
-    "national_bev_estimate": 5755689,
+    "mean_uncertainty": 0.202676,
+    "national_accounting": {
+      "balances": true,
+      "constraint_groups": 325,
+      "constraint_sum": 5616329.0,
+      "imbalance": 1e-09,
+      "national_published": 5616940.032784,
+      "observed_substitution_delta": 611.032784,
+      "unconstrained_sum": 0.0
+    },
+    "national_bev_estimate": 5616940,
     "reconciliation_max_residual": 2.3283064365386963e-10,
     "reconciliation_method": "proportional",
     "tracts": 84401,
@@ -2518,40 +2527,69 @@
     ],
     "unconstrained_tracts": 0,
     "weight_sensitivity": {
-      "allocation_error": 0.008332,
-      "out_of_distribution": 0.027028,
-      "prediction_interval": -0.012841,
-      "reconciliation_movement": -0.004093,
-      "source_degradation": -0.018426
+      "allocation_error": 0.008333,
+      "out_of_distribution": 0.027029,
+      "prediction_interval": -0.01284,
+      "reconciliation_movement": -0.004097,
+      "source_degradation": -0.018425
     },
     "weights_are_calibrated": false
   },
   "new_jersey_sensitivity": {
     "affected_confidence_tiers": false,
-    "affected_estimator_selection": false,
     "delta_weighted_wape": -0.016396,
+    "interpretation": "New Jersey WAS included in the aggregate that selected the estimator and could therefore in principle have influenced candidate ranking. The precise claim is narrower: this post-selection sensitivity was not used to alter estimator selection. It reuses already-generated LOSO scores - no refit, no reselection - and the estimator chosen under the original pre-registered rule is retained regardless of what this table shows.",
+    "model_ranking_changes_without_new_jersey": false,
     "new_jersey_status": "flagged_for_review",
     "not_marked_low_confidence_because": "corrected domain rule G9 requires corroborating evidence of a vintage, coverage, definition or source-quality problem; a statistical anomaly alone is not enough",
-    "with_new_jersey": {
-      "diagnostic_only": true,
-      "estimator": "poisson_glm",
-      "excluded_states": [],
-      "observed_bev": 1373621,
-      "reconciliation": "state_total_reconciled",
-      "states_aggregated": 14,
-      "weighted_wape": 0.320309
+    "per_candidate": {
+      "baseline_household_share": {
+        "delta": -0.007127,
+        "with_new_jersey": 0.708315,
+        "without_new_jersey": 0.701188
+      },
+      "baseline_population_share": {
+        "delta": -0.004507,
+        "with_new_jersey": 0.705842,
+        "without_new_jersey": 0.701335
+      },
+      "boosted_poisson": {
+        "delta": -0.016623,
+        "with_new_jersey": 0.329409,
+        "without_new_jersey": 0.312786
+      },
+      "poisson_glm": {
+        "delta": -0.016396,
+        "with_new_jersey": 0.320309,
+        "without_new_jersey": 0.303913
+      },
+      "ridge_log_rate": {
+        "delta": -0.012863,
+        "with_new_jersey": 0.376324,
+        "without_new_jersey": 0.363461
+      }
     },
-    "without_new_jersey": {
-      "diagnostic_only": true,
-      "estimator": "poisson_glm",
-      "excluded_states": [
-        "NJ"
-      ],
-      "observed_bev": 1209207,
-      "reconciliation": "state_total_reconciled",
-      "states_aggregated": 13,
-      "weighted_wape": 0.303913
-    }
+    "ranking_changes_without_new_jersey": true,
+    "ranking_with_new_jersey": [
+      "poisson_glm",
+      "boosted_poisson",
+      "ridge_log_rate",
+      "baseline_population_share",
+      "baseline_household_share"
+    ],
+    "ranking_without_new_jersey": [
+      "poisson_glm",
+      "boosted_poisson",
+      "ridge_log_rate",
+      "baseline_household_share",
+      "baseline_population_share"
+    ],
+    "selected_estimator_changes_without_new_jersey": false,
+    "selected_under_the_pre_registered_rule": "poisson_glm",
+    "selection_fragility": "the winner and the model ordering are both unchanged; only the two BASELINES swap places, which does not bear on selection since a baseline is a floor to clear rather than a candidate that can win",
+    "used_to_alter_estimator_selection": false,
+    "with_new_jersey": 0.320309,
+    "without_new_jersey": 0.303913
   },
   "observed_sources": {
     "CO": {
@@ -3312,6 +3350,28 @@
     ]
   },
   "target_definition": "battery-electric (BEV) registrations. AFDC publishes Electric (EV) and Plug-In Hybrid Electric (PHEV) separately and the delivered seed totals match the BEV column; counting PHEVs would make tract estimates irreconcilable with the only state constraint available.",
+  "tract_set_reconciliation": {
+    "comparison": "ACS 2023 5-year against ACS 2024 5-year",
+    "county_current": 3222,
+    "county_previous": 3222,
+    "entered": [
+      {
+        "county_fips": "36111",
+        "geoid": "36111954401",
+        "households": 690.0,
+        "population": 6088.0,
+        "state_fips": "36"
+      }
+    ],
+    "entered_count": 1,
+    "intersection": 84400,
+    "left": [],
+    "left_count": 0,
+    "tracts_current": 84401,
+    "tracts_previous": 84400,
+    "zcta_current": 33772,
+    "zcta_previous": 33772
+  },
   "transformation_ladder": [
     {
       "evs_placed": 294193,

@@ -233,6 +233,11 @@ def test_a_tract_whose_state_has_no_published_total_is_left_unconstrained() -> N
     assert len(result.reconciliation.unconstrained) == len(OTHER_TRACTS)
     california = [r for r in result.estimates if r.state_fips == "06"]
     assert all(r.constraint_vintage is None for r in california)
+    # Their raw values are real output resting on NO observed total, so the accounting
+    # names them rather than absorbing them.
+    result.accounting.assert_balanced()
+    assert result.accounting.unconstrained_sum == pytest.approx(
+        sum(r.estimate for r in california))
 
 
 def test_the_evidence_artifact_round_trips_as_json(tmp_path: Path) -> None:
@@ -240,3 +245,79 @@ def test_the_evidence_artifact_round_trips_as_json(tmp_path: Path) -> None:
     path = tmp_path / "surface.json"
     path.write_text(json.dumps(payload), encoding="utf-8")
     assert len(json.loads(path.read_text(encoding="utf-8"))) == len(ALL_TRACTS)
+
+
+# --- partial county coverage must not double count (impact I-15) ---------------------
+
+def test_partial_county_coverage_constrains_the_rest_to_the_residual() -> None:
+    """Montana publishes 51 of 56 counties and Virginia 129 of 133. Reconciling the
+    leftover tracts to the FULL state total counted both states roughly twice: Montana
+    summed to 13,673 against a 6,900 total, Virginia to 266,876 against 134,900."""
+    from pipeline.model.build_demand import _constraint_plan
+    from pipeline.model.demand import ModelRow
+
+    rows = [
+        ModelRow("MT", "tracts", "30049000100", 100.0, 200.0, {}),  # observed county
+        ModelRow("MT", "tracts", "30031000100", 100.0, 200.0, {}),  # observed county
+        ModelRow("MT", "tracts", "30099000100", 100.0, 200.0, {}),  # NOT observed
+    ]
+    counties = {"MT": {"30049": 40.0, "30031": 25.0}}
+    totals = {"30": StateTotal("30", "Montana", "2025", 100, 0)}
+    grains, group_of, plan, vintages = _constraint_plan(rows, counties, totals)
+    assert group_of == ["30049", "30031", "30"]
+    assert plan["30049"] == 40.0 and plan["30031"] == 25.0
+    # The residual, not the full 100: the observed counties already claim 65.
+    assert plan["30"] == 35.0
+    assert sum(plan.values()) == 100.0
+    assert grains == [COUNTY_ANCHORED, COUNTY_ANCHORED, STATE_TOTAL_ONLY]
+    assert "residual after 2 observed counties" in str(vintages["30"])
+
+
+def test_complete_county_coverage_creates_no_state_group() -> None:
+    """Tennessee publishes all 95 of its counties, so nothing falls through."""
+    from pipeline.model.build_demand import _constraint_plan
+    from pipeline.model.demand import ModelRow
+
+    rows = [ModelRow("TN", "tracts", "47001000100", 100.0, 200.0, {})]
+    grains, group_of, plan, _ = _constraint_plan(
+        rows, {"TN": {"47001": 40.0}},
+        {"47": StateTotal("47", "Tennessee", "2025", 100, 0)})
+    assert group_of == ["47001"]
+    assert set(plan) == {"47001"}
+    assert grains == [COUNTY_ANCHORED]
+
+
+def test_county_totals_exceeding_the_state_total_are_refused_not_clamped() -> None:
+    """A negative residual would put negative vehicles in the remaining tracts."""
+    from pipeline.model.build_demand import _constraint_plan
+    from pipeline.model.demand import ModelRow
+
+    rows = [
+        ModelRow("MT", "tracts", "30049000100", 100.0, 200.0, {}),
+        ModelRow("MT", "tracts", "30099000100", 100.0, 200.0, {}),
+    ]
+    with pytest.raises(ValueError, match="exceeds"):
+        _constraint_plan(rows, {"MT": {"30049": 500.0}},
+                         {"30": StateTotal("30", "Montana", "2025", 100, 0)})
+
+
+def test_the_national_accounting_balances_and_names_the_substitution() -> None:
+    built = surface()
+    accounting = built.accounting
+    accounting.assert_balanced()
+    assert abs(accounting.imbalance) < 1e-6
+    # Washington's observed tracts override its constraint by design.
+    assert accounting.observed_substitution_delta != 0.0
+    payload = accounting.to_dict()
+    assert payload["balances"] is True
+    assert payload["constraint_groups"] > 0
+
+
+def test_an_unbalanced_accounting_raises_rather_than_publishing() -> None:
+    from pipeline.model.build_demand import ConstraintAccounting
+
+    broken = ConstraintAccounting(national_published=100.0, constraint_sum=90.0,
+                                  observed_substitution_delta=0.0,
+                                  unconstrained_sum=0.0, per_group={"a": 90.0})
+    with pytest.raises(ValueError, match="does not balance"):
+        broken.assert_balanced()

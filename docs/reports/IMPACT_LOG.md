@@ -13,6 +13,65 @@ results are invalid), **S2 Degrading** (usable but weaker than claimed), **S3 Co
 
 None.
 
+### I-15 — partial county coverage double counted two states
+
+| Field | Value |
+|---|---|
+| Opened | 2026-08-31, during the external-review audit of the national total |
+| Affected phase | 3 (`pipeline/model/build_demand.py`) |
+| Severity | **S1 Blocking** — a published national output was wrong by 138,749 vehicles, about **2.5%** of the national total, and two states' tract estimates were roughly doubled |
+| Status | **RESOLVED 2026-08-31**, before the surface reached any downstream phase |
+
+**Assumed.** That "reconcile to county totals where they exist, else to the state total"
+partitions a state's tracts cleanly.
+
+**Actually true.** It does only when county coverage is **complete**. Where a state's DMV
+reports *some* of its counties, the remaining tracts fall through to a group keyed by the
+state whose total was the **full state total** — which the observed counties had already
+claimed. Both were then counted:
+
+| State | Counties observed | Published before | Should be |
+|---|---|---:|---:|
+| Montana | 51 of 56 | **13,673** | 6,900 |
+| Virginia | 129 of 133 | **266,876** | 134,900 |
+| Tennessee | 95 of 95 (complete) | 53,029 | 53,029 — unaffected |
+
+National estimate before **5,755,689**, after **5,616,940**: an overstatement of
+**138,749**. Every Montana and Virginia tract outside an observed county carried roughly
+twice the demand it should have.
+
+**How it surfaced.** External review asked for an exact accounting of a **two-vehicle**
+national difference between ACS vintages, refusing "floating-point noise" as an answer
+when the reconciliation residual is 2.3e-10. Building that accounting showed the national
+total exceeding the sum of its constraints by 141,816, and the per-state breakdown named
+Montana and Virginia immediately. **The two-vehicle question found a 138,749-vehicle
+defect.**
+
+**Why the existing checks missed it.** `ProportionalReconciler` was working perfectly:
+every constraint was satisfied exactly, the residual really was 2.3e-10, and no constraint
+overlapped another — the tracts *were* partitioned. The defect was in the **totals handed
+to it**, not in the reconciliation. `_check_partition` verifies that no area is bound
+twice; nothing verified that the constraint totals themselves summed to the intended
+national figure.
+
+**Response.** The state-level fallback is now the **residual** — state total minus the
+county totals already claimed — and a state whose county totals *exceed* its state total
+raises rather than clamping to a negative residual. A new `ConstraintAccounting` proves
+the identity on every build and raises if it does not hold:
+
+```
+national_published == constraint_sum + observed_substitution_delta + unconstrained_sum
+```
+
+Four regression tests cover it: the residual case, the complete-coverage case, the
+negative-residual refusal, and the balanced national identity.
+
+**The completed identity found a second gap in my own first attempt.** The initial
+accounting omitted `unconstrained_sum` — the raw values of tracts no constraint binds —
+and its own assertion caught that during testing. That term is now reported rather than
+absorbed, because it is the share of the national figure resting on no observed total at
+all (currently 0.0: every jurisdiction has a published total).
+
 ### I-14 — the ACS vintage could not be selected by patching its constant
 
 | Field | Value |
