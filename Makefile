@@ -5,7 +5,8 @@ PY := .venv/bin/python
 REPLAY := tests/fixtures/replay
 
 .PHONY: help setup test coverage lint copy-lint probe probe-live gate gate-0 gate-1 \
-	gate-2 gate-3 build build-fixture phase3 determinism determinism-1 clean \
+	gate-2 gate-3 gate-4 build build-fixture phase3 phase4 determinism \
+	determinism-1 clean \
 	live-smoke live-integration integration-assurance
 
 help:
@@ -19,6 +20,7 @@ help:
 	@echo "build       rebuild every canonical table (national)"
 	@echo "build-fixture  rebuild the MN + IL two-state fixture"
 	@echo "phase3      reproduce every Phase 3 number from cached inputs"
+	@echo "phase4      reproduce every Phase 4 siting number from cached inputs"
 	@echo "gate        full phase gate: make gate PHASE=n (never touches the network)"
 	@echo ""
 	@echo "  LIVE commands below DO require network access and credentials."
@@ -86,6 +88,10 @@ build-fixture:
 # Phase 3. Reads only cached responses: no network, no credentials.
 phase3:
 	$(PY) -m pipeline.model.run_phase3
+
+# Phase 4. Reads only cached responses: no network, no credentials.
+phase4:
+	$(PY) -m pipeline.model.run_phase4
 
 probe:
 	$(PY) -m pipeline.discovery.probe --offline --cache-root $(REPLAY)
@@ -282,3 +288,43 @@ gate-3:
 	@$(MAKE) --no-print-directory build-fixture
 	@$(MAKE) --no-print-directory phase3
 	@echo "=== Phase 3 gate: PASS ==="
+
+# Phase 4 gate. Runs, in order:
+#   1. lint            ruff + mypy strict
+#   2. full test suite
+#   3. coverage thresholds
+#   4. prior gate suites  (Phase 0, 1, 2 and 3)
+#   5. Phase 4 acceptance criteria P4-A to P4-G
+#   6. D3 / UI copy lint
+#   7. determinism        (semantic, CLAUDE.md 14.1)
+#   8. one-command rebuild of the canonical tables, Phase 3 and Phase 4
+gate-4:
+	@echo "=== Phase 4 gate ==="
+	@echo "--- 1. lint (ruff + mypy strict) ---"
+	@$(MAKE) --no-print-directory lint
+	@echo "--- 2. full test suite ---"
+	@$(PY) -m pytest
+	@echo "--- 3. coverage thresholds ---"
+	@$(MAKE) --no-print-directory coverage
+	@echo "--- 4. prior gate suites (Phase 0, 1, 2 and 3) ---"
+	@$(PY) -m pytest tests/regression/test_source_findings.py \
+		tests/regression/test_domain_rules.py \
+		tests/regression/test_phase2_gates.py \
+		tests/regression/test_phase3_gates.py \
+		tests/regression/test_phase3_corrections.py \
+		tests/integration/test_smoke_forward.py \
+		tests/integration/test_smoke_forward_phase2.py \
+		tests/integration/test_smoke_forward_phase3.py -q
+	@$(MAKE) --no-print-directory determinism
+	@echo "--- 4b. smoke-forward test for Phase 5 ---"
+	@$(PY) -m pytest tests/integration/test_smoke_forward_phase4.py -v
+	@echo "--- 5. Phase 4 acceptance criteria P4-A to P4-G ---"
+	@$(PY) -m pytest tests/regression/test_phase4_gates.py -v
+	@echo "--- 6. D3 copy lint ---"
+	@$(MAKE) --no-print-directory copy-lint
+	@echo "--- 7. determinism (semantic, CLAUDE.md 14.1) ---"
+	@$(MAKE) --no-print-directory determinism-1
+	@echo "--- 8. one-command rebuild ---"
+	@$(MAKE) --no-print-directory build-fixture
+	@$(MAKE) --no-print-directory phase4
+	@echo "=== Phase 4 gate: PASS ==="
