@@ -109,3 +109,56 @@ artifact. **Degradation is never the default and is never silent.**
 - The uninhabited filter is retained **on its own merits** — a cell with no residents is not
   a siting candidate — but it is no longer described as standing in for road proximity,
   because it never was one.
+
+---
+
+## Amendment — 2026-08-31, after external review
+
+This document is a pre-registration, so §5 above is **left as written**: it records what was
+decided before any candidate set was computed, which is the whole point of pre-registering
+it. This amendment records what changed afterwards and why.
+
+### The distance method in §5 was wrong and has been replaced
+
+§5 pre-registered distance to road **vertices**, with the approximation acknowledged and
+deferred as assumption A-4.6. External review identified that as a correctness defect, and
+it is one. A LineString's nearest vertex is not generally its nearest point: a cell beside
+the middle of a long straight segment is close to the road and far from both endpoints, so
+the measurement **overestimates**, by up to half a segment length — **2.96 km** against the
+longest segment on this data, on a **5.0 km** threshold. In a hard candidate filter an
+overestimate does not degrade a number, it removes a cell from consideration, so deferring
+it was the wrong call.
+
+**What is measured now:** the great-circle distance to the nearest **point on** the nearest
+road segment. The nearest point along each segment is located in a tangent plane centred on
+the query point, then measured with haversine, so the value is a genuine geodesic distance
+to a real location on a road — and never greater than the vertex distance, because a vertex
+is itself a point on the segment.
+
+**What did NOT change:** the road source (TIGER/Line 2024 PRISECROADS), the road classes
+(MTFCC S1100 + S1200), the 5.0 km threshold, the 1–20 km sensitivity sweep, and the D8
+failure behaviour in §6. None of the pre-registered *choices* moved. Only the arithmetic
+that was supposed to implement them was corrected.
+
+**What the correction changed in the results:** nothing. Across all six frontier states,
+zero cells changed side of the 5.0 km threshold, candidate-set Jaccard is 1.000000
+everywhere, and every portfolio at 5, 20 and 50 sites is identical. Largest distance error
+666.9 m (Texas); 34 cells in total overstated by more than 100 m. That the outcome held is
+a property of this snapshot — TIGER is densely vertexed, ~125 vertices per feature — not a
+justification for the method that produced it.
+
+### One further discrepancy between §5 and the implementation, recorded for honesty
+
+§5 describes gathering vertices with `grid_disk(cell, 2)`, about 7.7 km. The shipped
+implementation uses a haversine ball-tree radius query instead, pruned by the bound
+"a segment can only beat the current best if it has an endpoint within
+`current_best + longest_segment`". This was not a deliberate departure from the
+pre-registration; it is how the code was written. It does not change the pre-registered
+*quantity* — nearest distance to the included road classes — and it is strictly less
+restrictive, because `grid_disk(cell, 2)` would have capped every reported distance at
+~7.7 km whereas the shipped method reports true distances well past the top of the 20 km
+sensitivity sweep. Beyond a 30 km cap the unrefined vertex distance is reported, and
+`assert_refinement_covers` raises rather than answering any threshold that far out.
+
+Assumption **A-4.6** is closed. Assumption **A-4.8** is opened for what the tangent-plane
+step still assumes. Impact-log entry **I-20**.

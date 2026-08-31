@@ -662,6 +662,71 @@ charging-unit and connector identity; the Phase 1 identifiability investigation 
 three levels; a dated correction appended to `docs/reports/PHASE_0_REPORT.md`; Phase 0 gate
 re-run and passing. No Phase 0 measurement required recomputation.
 
+### I-20 — road distance was measured to the nearest vertex, not the nearest point on a road
+
+| Field | Value |
+|---|---|
+| Opened | 2026-08-31, external review of the Phase 4 blocker corrections |
+| Discovering phase | 4 (external review) |
+| Affected phase | 4 (`pipeline/spatial/road_proximity.py`, `docs/evidence/P4-1_siting.json`) |
+| Severity | **S2 Degrading** — the candidate filter used a method that can overestimate distance and falsely exclude cells. Measurement afterwards showed it changed no published value on this data, which is why this is S2 and not S1 |
+| Status | **RESOLVED 2026-08-31** |
+
+**Assumed.** That distance from a cell centroid to the nearest TIGER **vertex** was an
+adequate measure of distance to the road network, on the reasoning that TIGER geometries
+are densely vertexed. This was recorded as assumption **A-4.6** and deferred to Phase 6.
+
+**Actually true.** A LineString's nearest vertex is not generally its nearest point. A cell
+beside the middle of a long straight segment is close to the road and far from both of its
+endpoints, so the vertex measurement **overestimates**, and the error is bounded by half
+the segment length — up to **2.96 km** against the measured 5.928 km longest segment in
+California, on a filter whose threshold is **5.0 km**. Deferring that to a later phase was
+wrong: it is an error in a **hard candidate filter**, where an overestimate does not
+degrade a number, it removes a cell from consideration entirely.
+
+The synthetic regression fixture makes the failure concrete: a two-vertex road ~76 km long
+and a cell whose centroid sits 2.22 km from its middle. Nearest-vertex distance reports
+**37.98 km** — a **17x** overestimate — and excludes the cell from the 5 km filter, which
+the corrected method admits. `test_a_long_segment_is_not_reduced_to_its_endpoints` asserts
+both halves of that, and `test_the_refinement_is_not_skipped_just_because_vertices_are_far`
+guards the pruning shortcut that a first implementation of the correction got wrong.
+
+**Response taken.** `pipeline.spatial.distance.PolylineIndex` computes distance to the
+nearest **point on** the nearest segment. The nearest point along each segment is located
+in a tangent plane centred on the query point, then its distance is measured with the same
+haversine used everywhere else, so the reported value is a genuine great-circle distance to
+a real location on a road — and therefore never greater than the vertex distance, since a
+vertex is itself a point on the segment. `RoadVertices` now carries CSR-style feature
+offsets so a segment is only ever formed **within** one road: flattening the vertices
+without them would join the end of one road to the start of the next and invent a segment
+that does not exist (`test_segments_are_never_formed_between_two_different_roads`).
+
+**What the measurement found — the correction changes nothing published.** Across all six
+frontier states: **zero** cells change side of the 5.0 km threshold, candidate-set Jaccard
+is **1.000000** in every state, and every portfolio at 5, 20 and 50 sites is identical.
+
+| State | Candidates, vertex | Candidates, corrected | Cells changing side | Max distance error | Cells overstated >100 m |
+|---|---:|---:|---:|---:|---:|
+| Washington | 674 | 674 | 0 | 193.2 m | 3 |
+| Tennessee | 1,425 | 1,425 | 0 | 169.1 m | 2 |
+| Montana | 297 | 297 | 0 | 138.0 m | 1 |
+| Vermont | 250 | 250 | 0 | 53.4 m | 0 |
+| Texas | 2,417 | 2,417 | 0 | 666.9 m | 18 |
+| California | 1,253 | 1,253 | 0 | 394.2 m | 10 |
+
+The frontier (96/96 optimal, every CBC gap 0.0) and the greedy shortfalls are **byte-identical
+after the field renames**, verified by comparing the regenerated artifact against the
+committed one key by key. So no downstream value needed regenerating on its merits — but the
+artifact was regenerated anyway, because it now carries the corrected distances and the
+comparison itself.
+
+The practical error is far below the 2.96 km theoretical worst case because the longest
+segments happen not to lie near candidate cells. That is a property of this snapshot, not a
+guarantee, which is exactly why the method rather than the outcome was fixed.
+
+**A-4.6 is closed.** It was opened as "vertex distance is close enough" and deferred; it is
+closed by replacing the method rather than by confirming the assumption.
+
 ---
 
 ## Phase 0 note

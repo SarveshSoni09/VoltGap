@@ -3,7 +3,7 @@
 Run with ``python -m pipeline.model.run_phase4``. It reads only cached responses, so it
 needs no network and no credentials, and writes ``docs/evidence/P4-1_siting.json``: the
 candidate set with its exclusions, the epsilon-constraint frontier in both objective
-directions, greedy solutions with measured optimality gaps against CBC, timing against
+directions, greedy solutions with the measured shortfall against optimal CBC, timing against
 the two-second budget, and the four preflight investigations the assumption ledger
 attached to this phase.
 
@@ -19,6 +19,7 @@ from __future__ import annotations
 import argparse
 import json
 from collections.abc import Callable, Mapping, Sequence
+from dataclasses import replace
 from pathlib import Path
 from typing import Any
 
@@ -34,6 +35,7 @@ from pipeline.model.hexes import (
 )
 from pipeline.model.observed import load_all
 from pipeline.model.panel import build_panels, load_area_tables
+from pipeline.model.road_method_comparison import compare_distance_methods
 from pipeline.model.run_phase3 import allocation_penalty, constraint_totals
 from pipeline.model.siting import (
     MAXIMISE_DEMAND,
@@ -41,7 +43,7 @@ from pipeline.model.siting import (
     build_candidates,
     build_frontier,
     greedy_select,
-    measure_optimality_gap,
+    measure_greedy_shortfall,
 )
 from pipeline.model.siting_preflight import (
     assert_no_categorical_urban_rural,
@@ -131,16 +133,16 @@ def run(states: Sequence[str] = (), frontier_states: Sequence[str] = (),
             continue
         cells = state_cells(surface.estimates, state_fips, supply)
         roads = read_road_vertices(state_fips)
+        geometry = roads.index()
         distances = measure_road_distances(
-            [c.h3_index for c in cells], roads.latitudes, roads.longitudes,
-            DEFAULT_ROAD_PROXIMITY_KM)
+            [c.h3_index for c in cells], geometry, DEFAULT_ROAD_PROXIMITY_KM)
         candidates = build_candidates(cells, SATURATION_PORTS_PER_1K, distances)
         # The honest before/after baseline: the SAME filters minus road proximity, which
         # is what Phase 4 shipped before this correction. An infinite threshold admits
         # every cell the road filter would have judged, without changing anything else.
         unfiltered = measure_road_distances(
-            [c.h3_index for c in cells], roads.latitudes, roads.longitudes,
-            float("inf"))
+            [c.h3_index for c in cells], geometry, DEFAULT_ROAD_PROXIMITY_KM)
+        unfiltered = replace(unfiltered, threshold_km=float("inf"))
         before_roads = build_candidates(cells, SATURATION_PORTS_PER_1K, unfiltered)
         name, why = labels.get(state_fips, (state_fips, "unlabelled"))
 
@@ -159,6 +161,8 @@ def run(states: Sequence[str] = (), frontier_states: Sequence[str] = (),
             "candidates_after_road_filter": len(candidates.candidates),
             "candidates_removed_by_road_filter": (
                 len(before_roads.candidates) - len(candidates.candidates)),
+            "distance_method_comparison_vertex_vs_segment": compare_distance_methods(
+                name, cells, geometry, SATURATION_PORTS_PER_1K, budgets).to_dict(),
             "clustering_sensitivity_A_2_1": [
                 r.to_dict() for r in compare_conditions(
                     cells, supply_by_condition, distances, SATURATION_PORTS_PER_1K,
@@ -176,7 +180,7 @@ def run(states: Sequence[str] = (), frontier_states: Sequence[str] = (),
                 frontier_points.append({"state": name, **point.to_dict()})
         for budget in budgets:
             gaps.append({"state": name,
-                         **measure_optimality_gap(candidates, budget, name).to_dict()})
+                         **measure_greedy_shortfall(candidates, budget, name).to_dict()})
         rounding.append({
             "state": name,
             **assess_rounding_sensitivity(
@@ -211,7 +215,8 @@ def run(states: Sequence[str] = (), frontier_states: Sequence[str] = (),
             "cardinality-constrained maximum coverage, where a classical guarantee "
             "applies; the interactive surface exposes objective weights and constraint "
             "toggles, which is a different problem class, so the guarantee does not "
-            "carry over. Measured optimality gaps are reported instead."
+            "carry over. The measured greedy shortfall against optimal CBC solutions "
+            "is reported instead, which is an observation, not a bound."
         ),
         "road_filter": {
             "source": "TIGER/Line 2024 primary and secondary roads, per state",
@@ -236,7 +241,7 @@ def run(states: Sequence[str] = (), frontier_states: Sequence[str] = (),
         ),
         "per_state": per_state,
         "frontier": frontier_points,
-        "empirical_optimality_gaps": gaps,
+        "greedy_objective_shortfall_vs_optimal_cbc": gaps,
         "greedy_slowest_seconds": round(slowest_greedy, 4),
         "greedy_budget_seconds": GREEDY_BUDGET_SECONDS,
         "greedy_within_budget": slowest_greedy <= GREEDY_BUDGET_SECONDS,

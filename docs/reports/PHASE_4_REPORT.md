@@ -171,11 +171,11 @@ All checked by `tests/regression/test_phase4_gates.py` against the published art
 | 6 | Browser algorithm defined exactly | `test_p4_b_the_greedy_algorithm_is_defined_exactly_in_code` | **PASS** | §5.4 |
 | 7 | Problem class stated | `test_p4_b_the_problem_class_and_the_reason_are_stated` | **PASS** | §5.4 |
 | 8 | **No bound claimed anywhere** | `test_p4_b_no_approximation_bound_is_claimed_in_the_artifact` | **PASS** | regex over the whole artifact |
-| 9 | Gaps on real state problems | `test_p4_c_gaps_are_reported_on_representative_real_state_problems` | **PASS** | 18 gaps, 6 states |
-| 10 | Gaps on controlled fixtures | `test_p4_c_gaps_are_reported_on_controlled_fixtures_too` | **PASS** | §5.5 |
-| 11 | Greedy solves a state in ≤ 2 s | `test_p4_d_greedy_solves_a_state_within_two_seconds` | **PASS** | slowest **0.023 s** |
+| 9 | Shortfall on real state problems | `test_p4_c_gaps_are_reported_on_representative_real_state_problems` | **PASS** | 18 measurements, 6 states |
+| 10 | Shortfall on controlled fixtures | `test_p4_c_gaps_are_reported_on_controlled_fixtures_too` | **PASS** | §5.5 |
+| 11 | Greedy solves a state in ≤ 2 s | `test_p4_d_greedy_solves_a_state_within_two_seconds` | **PASS** | slowest **0.032 s** |
 | 12 | Candidate filtering verified | `test_p4_e_every_state_retains_candidates_after_filtering` | **PASS** | §5.1 |
-| 13 | **No mandatory substation filter** | `test_p4_e_there_is_no_mandatory_substation_filter` | **PASS** | only 2 exclusion reasons exist |
+| 13 | **No mandatory substation filter** | `test_p4_e_there_is_no_mandatory_substation_filter` | **PASS** | only 3 exclusion reasons exist, none of them grid |
 | 14 | Transmission never an interconnection constraint | `test_p4_e_transmission_is_never_an_interconnection_constraint` | **PASS** | D6 |
 | 15 | A-2.1 measured | `test_p4_f_a21_site_clustering_was_measured` | **PASS** | §5.6 |
 | 16 | A-2.2 respected | `test_p4_f_a22_is_not_triggered_and_cannot_be_violated` | **PASS** | §5.6 |
@@ -313,10 +313,15 @@ appears.
 Acceptable copy, per §7.8: *"Interactive approximation. Exact offline solutions are used
 for the published analytical frontier."*
 
-### 5.5 Empirical optimality gaps (task 7)
+### 5.5 Greedy objective shortfall against the optimal CBC solution (task 7)
 
 Greedy against an exact CBC solve on the same problem, ε relaxed to zero so the comparison
 isolates the objective greedy actually optimises. **Every exact solve reached optimality.**
+
+**This is deliberately not called an "optimality gap".** A solver's optimality gap is the
+distance between its own bound and its own incumbent, and it is reported separately, per
+frontier point, as `cbc_optimality_gap`. What this table shows is a different quantity: how
+much objective a heuristic left on the table against a known optimum. See §12.7.
 
 | State | Budget 5 | Budget 20 | Budget 50 |
 |---|---:|---:|---:|
@@ -327,12 +332,15 @@ isolates the objective greedy actually optimises. **Every exact solve reached op
 | Texas | **0.0000%** | **0.0000%** | 0.6372% |
 | California | 1.6549% | 1.0947% | **0.0000%** |
 
-**Worst measured gap: 3.14%** (Montana at 20 sites). Greedy is exact at budget 5 in five of
-six states, and exact in three further cells of this table. Controlled fixtures are covered
-separately by `test_the_optimality_gap_is_measured_against_an_exact_solve`.
+**Worst observed greedy objective shortfall against the optimal CBC solution: 3.14%**
+(Montana at 20 sites). Greedy is exact at budget 5 in five of six states, and exact in three
+further cells of this table. This is an observation on these eighteen problems, **not a
+bound**: no approximation guarantee is claimed for the browser algorithm anywhere (§7.8,
+amendment A11). Controlled fixtures are covered separately by
+`test_the_greedy_shortfall_is_measured_against_an_exact_solve`.
 
-**Timing:** slowest greedy solve **0.023 s** (Texas, 2,417 candidates) against a 2-second
-budget — roughly 87× headroom. This is wall-clock time on the build machine and it moves a
+**Timing:** slowest greedy solve **0.032 s** (Texas, 2,417 candidates) against a 2-second
+budget — roughly 62x headroom. This is wall-clock time on the build machine and it moves a
 millisecond or two between runs, so the **test asserts the 2-second budget, not this
 figure** (`assert state["greedy"]["seconds"] <= GREEDY_BUDGET_SECONDS`). The quoted number
 is the value carried by the committed `docs/evidence/P4-1_siting.json`.
@@ -632,3 +640,226 @@ sidecar is a **pure addition of 14 lines** with no other source's record altered
 The complete Phase 4 gate and every prior gate suite, from a regenerated
 `docs/evidence/P4-1_siting.json`. Nothing in this section is carried forward from the first
 submission's run.
+
+---
+
+## 12. Correction — 2026-08-31 (second round)
+
+Appended, not merged: §11 and everything above it are preserved (CLAUDE.md §15.3 item 4).
+External review **accepted** the §11 corrections — TIGER/Line PRISECROADS and the
+S1100/S1200 selection are accepted for Core, and A-2.1 is accepted as resolved — and
+identified **one newly exposed correctness issue** in the road filter that §11 introduced.
+It is resolved here, together with four bounded naming and documentation items.
+
+### 12.1 The blocker — road distance was measured to the nearest vertex
+
+**What §11 shipped.** Distance from a cell centroid to the nearest TIGER **vertex**,
+computed with a haversine ball tree. The limitation was noticed and recorded as assumption
+**A-4.6**, deferred to Phase 6.
+
+**Why that was wrong, and why deferring it was wrong.** A LineString's nearest vertex is
+not generally its nearest point. A cell beside the middle of a long straight segment is
+close to the road and far from both of its endpoints, so the measurement **overestimates**
+distance. The overestimate is bounded by half the segment length — up to **2.96 km**
+against the longest segment measured on this data (5.928 km, California) — on a filter
+whose threshold is **5.0 km**.
+
+Recording that as a deferred assumption was the mistake. This is not a number that comes
+out slightly wrong; it is an error in a **hard candidate filter**, where an overestimate
+does not degrade a value, it removes a cell from consideration entirely. The review is
+right, and A-4.6 is closed by replacing the method rather than by confirming the guess.
+
+**Segment lengths, measured across the six frontier states.** This is what bounds the
+error, so it is reported rather than assumed:
+
+| State | Features | Vertices | Segments | Mean segment | p99 | Longest |
+|---|---:|---:|---:|---:|---:|---:|
+| Washington | 3,006 | 376,007 | 373,001 | 56.9 m | 401.9 m | 3.377 km |
+| Tennessee | 9,184 | 1,392,729 | 1,383,545 | 41.9 m | 245.9 m | 2.120 km |
+| Montana | 1,251 | 252,599 | 251,348 | 76.8 m | 559.4 m | 3.438 km |
+| Vermont | 1,432 | 178,596 | 177,164 | 42.9 m | 231.0 m | 1.236 km |
+| Texas | 15,290 | 1,115,704 | 1,100,414 | 93.5 m | 608.8 m | 4.754 km |
+| California | 7,351 | 1,246,491 | 1,239,140 | 54.0 m | 404.7 m | 5.928 km |
+
+TIGER is densely vertexed — about 125 vertices per feature — which is why the practical
+error turns out small. It is *not* why the method was acceptable.
+
+### 12.2 What replaced it
+
+`pipeline/spatial/distance.py` gains `PolylineIndex`, which measures distance to the
+nearest **point on** the nearest segment. Three properties matter:
+
+1. **The reported number is a real geodesic distance to a real place.** The nearest point
+   along each segment is located in a tangent plane centred on the query point; the
+   distance to *that point* is then measured with the same haversine used everywhere else
+   in the pipeline. So the published value is a great-circle distance to an actual
+   location on an actual road, not a planar approximation of one.
+2. **It can never exceed the vertex distance.** A vertex is itself a point on the segment
+   — the `t=0` and `t=1` cases — so the minimum over the segment is at most the minimum
+   over its endpoints. `test_the_segment_distance_never_exceeds_the_vertex_distance`
+   asserts this over a grid of 25 offsets, and `compare_distance_methods` raises rather
+   than publishing if it is ever violated on real data.
+3. **Segments are formed only within one road feature.** `RoadVertices` now carries
+   CSR-style `offsets`, so vertex *i* and *i+1* are joined only when they belong to the
+   same feature. Flattening the vertex list without them would join the end of one road to
+   the start of the next and invent a segment that does not exist — asserted by
+   `test_segments_are_never_formed_between_two_different_roads`, where the invented
+   segment would put a query point 3.8 km from a road that is really 50+ km away.
+
+**Cost of the correction.** Pruning keeps it cheap: the vertex distance is an upper bound,
+so only segments with an endpoint within `vertex_distance + longest_segment` can beat it,
+and only those are evaluated exactly. Washington's 569-cell benchmark takes **0.30 s**
+against 0.09 s for the vertex method. The full `make phase4` run is unchanged in practice.
+
+### 12.3 The synthetic regression fixture (review item 2)
+
+`test_a_long_segment_is_not_reduced_to_its_endpoints`. A **two-vertex road about 76 km
+long**, and a candidate cell whose centroid sits **2.22 km from its middle**:
+
+| Quantity | Value |
+|---|---|
+| Distance by nearest **vertex** | **37.98 km** |
+| Distance by nearest **point on segment** | **2.22 km** |
+| Overestimate | **17x** |
+| Vertex method at the 5.0 km filter | cell **excluded** |
+| Corrected method at the 5.0 km filter | cell **admitted** |
+
+The test asserts both the ratio and the filter outcome, and it calls
+`vertex_road_distances` — the superseded method, retained only for comparison — to assert
+the old behaviour explicitly, so the fixture cannot silently start passing because both
+methods changed together.
+
+The road is positioned relative to the **cell centroid** rather than to an arbitrary point,
+because the filter measures from centroids and an H3 res-6 centroid can sit over 3 km from
+any given point inside its own cell. A first version of this fixture placed the road
+relative to a chosen coordinate and failed for that reason — the fixture was wrong, not the
+implementation.
+
+**A second defect the fixture caught.** The first implementation of the correction skipped
+the exact refinement whenever the *vertex* distance exceeded a 30 km cap. That is precisely
+backwards: a point beside a long segment is near the road while being far from every
+vertex, so the shortcut skipped refinement exactly where it was needed, and the fixture
+returned 37.98 km. The cap now gates on what is *provable* — the true distance is at least
+`vertex_distance - longest_segment`, so refinement is skipped only when that lower bound
+already exceeds the cap. `test_the_refinement_is_not_skipped_just_because_vertices_are_far`
+locks it, and `assert_refinement_covers` raises if any threshold is ever swept past the
+cap rather than answering it with an unrefined number.
+
+### 12.4 What the correction changed across the six states (review item 3)
+
+`pipeline/model/road_method_comparison.py` scores the corrected method against the
+superseded one, per state, on everything the review asked for.
+
+| State | Cells | Mean error | p99 error | Max error | Cells >100 m | Cells changing side of 5.0 km | Candidates vertex | Candidates corrected | Jaccard |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| Washington | 1,054 | 2.4 m | 45.5 m | 193.2 m | 3 | **0** | 674 | **674** | **1.000000** |
+| Tennessee | 1,603 | 1.7 m | 29.2 m | 169.1 m | 2 | **0** | 1,425 | **1,425** | **1.000000** |
+| Montana | 432 | 2.8 m | 59.2 m | 138.0 m | 1 | **0** | 297 | **297** | **1.000000** |
+| Vermont | 311 | 0.7 m | 10.6 m | 53.4 m | 0 | **0** | 250 | **250** | **1.000000** |
+| Texas | 3,532 | 4.5 m | 67.9 m | 666.9 m | 18 | **0** | 2,417 | **2,417** | **1.000000** |
+| California | 2,268 | 2.8 m | 53.3 m | 394.2 m | 10 | **0** | 1,253 | **1,253** | **1.000000** |
+
+*(Cell counts and per-state error percentiles are read from
+`per_state[].distance_method_comparison_vertex_vs_segment` in
+`docs/evidence/P4-1_siting.json`.)*
+
+**Portfolio overlap is 1.000 at 5, 20 and 50 sites in every state.** Demand and equity
+objective deltas are exactly **0.00** everywhere. The frontier is unchanged: 96 of 96
+`optimal`, every `cbc_optimality_gap` 0.0. The greedy shortfalls are unchanged.
+
+This was verified rather than asserted: the regenerated artifact was compared against the
+committed one key by key, normalising only the field renames of §12.5 and wall-clock
+timings. Every frontier point matched, every shortfall record matched, and every per-state
+key matched in all six states.
+
+### 12.5 Regeneration (review item 4)
+
+`docs/evidence/P4-1_siting.json` was regenerated. **No published value changed on its
+merits** — the artifact differs only in the renamed fields, the new comparison block, the
+corrected `distance_method` and `road_network` descriptions, and wall-clock times. Slowest
+greedy solve is now **0.0323 s** (0.0288 s in the first submission, 0.023 s in
+the §11 round — all three are wall clock on the build machine and move run to run, which
+is why the gate asserts the 2-second budget and never a figure); worst greedy shortfall
+remains **3.14%** (Montana at 20
+sites).
+
+The honest summary: **the defect was real and the fix was necessary, and it moved nothing.**
+The practical error sits far below the 2.96 km worst case because the longest segments
+happen not to lie near candidate cells. That is a property of this snapshot, not a
+guarantee — which is exactly why the method was corrected rather than the outcome accepted.
+On sparser geometry, or at a tighter threshold, the same defect would change results.
+
+### 12.6 Naming (review item 5)
+
+"Road proximity" implied proximity to roads in general. What is measured is proximity to
+**TIGER/Line 2024 primary (`S1100`) and secondary (`S1200`) roads**, with local streets
+(`S1400`) excluded by design. Renamed accordingly:
+
+| Where | Was | Now |
+|---|---|---|
+| Exclusion reason | `beyond_road_network` | **`beyond_primary_secondary_road_network`** |
+| Enum member | `ExclusionReason.BEYOND_ROAD_NETWORK` | **`ExclusionReason.BEYOND_PRIMARY_SECONDARY_ROADS`** |
+| Artifact | no statement of scope | **`road_network`**: *"TIGER/Line 2024 PRIMARY (MTFCC S1100) and SECONDARY (S1200) roads only. NOT all roads: local streets (S1400) are excluded by design."* |
+| Artifact | `distance_method` describing vertex distance | **`distance_method`** describing nearest-point-on-segment, and naming the superseded method as wrong |
+| `METHODOLOGY.md` §4.5, `LIMITATIONS.md` | "road proximity" | proximity to primary and secondary roads, with the consequence stated: a cell can be excluded while being served by local streets |
+
+`test_the_shipped_summary_names_the_method_and_the_road_classes` asserts the artifact
+carries the road classes and the phrase "NOT all roads".
+
+### 12.7 Greedy shortfall is not an optimality gap (review item 6)
+
+Two different quantities were both being called an optimality gap. They are now separated
+in code, in the artifact and in the documentation:
+
+| Quantity | What it is | Published as |
+|---|---|---|
+| **CBC solver optimality gap** | The distance between the solver's own bound and its own incumbent. A property of the *solve*. | `cbc_optimality_gap`, with `cbc_status`, per frontier point |
+| **Greedy objective shortfall** | How much objective the browser heuristic left on the table against a known optimum. A property of the *heuristic*. | `greedy_objective_shortfall_vs_optimal_cbc`, with `optimal_cbc_objective` and `cbc_status` |
+
+**§11 above is left as written.** It is a dated correction section from the previous round
+and CLAUDE.md §15.3 item 4 forbids rewriting prior report content in place, so its sentence
+"the worst empirical optimality gap moved 3.06% → 3.14%" stands as the record of what was
+said at the time. It is superseded by this section: that quantity is the worst observed
+greedy objective shortfall against the optimal CBC solution.
+
+The class `OptimalityGap` is now `GreedyShortfall`; `measure_optimality_gap` is
+`measure_greedy_shortfall`; the property `.gap` is `.shortfall`; the artifact section
+`empirical_optimality_gaps` is `greedy_objective_shortfall_vs_optimal_cbc`. Every shortfall
+record carries a `measures` field stating in full: *"observed shortfall of the greedy
+objective against the optimal CBC objective on the same problem. NOT a solver optimality
+gap and NOT an approximation bound: no bound is claimed for the browser algorithm."*
+
+`test_the_greedy_shortfall_is_never_called_an_optimality_gap` asserts that no shortfall key
+contains `optimality_gap` and no frontier key starts with `greedy`, so the two cannot drift
+back together.
+
+**The 3.14% figure is therefore restated as: the worst observed greedy objective shortfall
+against the optimal CBC solution**, across six states and three budgets — Montana at 20
+sites. It is an observation on those eighteen problems. It is not a bound, and §7.8 with
+amendment A11 remains satisfied: no approximation bound is claimed anywhere.
+
+### 12.8 What was not reopened
+
+Per the review's instruction, no other Phase 4 design decision was revisited. The ε sweep
+is still 8 levels per state per direction, 96 points. The frontier sample is still the same
+six states with the same pre-outcome stratification. The equity indicator, the k-ring, the
+uniform site cost and the saturation threshold are unchanged.
+
+### 12.9 Assumption ledger and impact log
+
+- **A-4.6 CLOSED** — withdrawn and resolved by replacing the method, not by confirming the
+  assumption.
+- **A-4.8 OPENED** — the tangent-plane step assumes it selects the same point along a
+  segment that an exact spherical calculation would. It can only affect *which* point is
+  chosen, never the distance reported for it, so the published value remains a rigorous
+  upper bound on the true minimum; what is unproven is that no other point is closer by an
+  amount the projection hid. Millimetres at these distances. Deferred to Phase 6 or to
+  whenever a geodesic geometry dependency is added.
+- **Impact-log entry I-20**, severity **S2 Degrading** — the method could falsely exclude
+  cells from a hard filter; measurement afterwards showed it changed no published value on
+  this data, which is why it is S2 rather than S1.
+
+### 12.10 What was re-run
+
+Gates 0, 1, 2, 3 and 4 in full, from a regenerated `docs/evidence/P4-1_siting.json`.
+Nothing in this section is carried forward from an earlier run.

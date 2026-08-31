@@ -28,6 +28,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from pipeline.config.settings import PATHS
+from pipeline.spatial.distance import PolylineIndex
 
 TIGER_YEAR = 2024
 TIGER_BASE = f"https://www2.census.gov/geo/tiger/TIGER{TIGER_YEAR}/PRISECROADS"
@@ -52,17 +53,33 @@ class RoadSourceError(ValueError):
 
 @dataclass(frozen=True)
 class RoadVertices:
-    """Every vertex of the included road classes in one state."""
+    """The road geometry of one state: vertices, plus where each feature starts.
+
+    ``offsets`` is CSR-style — ``offsets[i]`` to ``offsets[i+1]`` are one feature's
+    vertices — so segments are only ever formed *within* a feature. Flattening the
+    vertices without it would join the end of one road to the start of the next and
+    invent a segment that does not exist.
+    """
 
     state_fips: str
     vintage: str
     latitudes: tuple[float, ...]
     longitudes: tuple[float, ...]
+    offsets: tuple[int, ...]
     features: int
     excluded_classes: dict[str, int]
 
     def __len__(self) -> int:
         return len(self.latitudes)
+
+    def index(self) -> PolylineIndex:
+        """The searchable geometry: nearest point on a road, not nearest vertex."""
+        return PolylineIndex(self.latitudes, self.longitudes, self.offsets)
+
+    @property
+    def segments(self) -> int:
+        """Vertices minus one per feature: a run of n vertices makes n-1 segments."""
+        return max(len(self) - (len(self.offsets) - 1), 0)
 
     def to_dict(self) -> dict[str, object]:
         return {
@@ -71,6 +88,7 @@ class RoadVertices:
             "road_classes_included": sorted(INCLUDED_MTFCC),
             "features_included": self.features,
             "vertices": len(self),
+            "segments": self.segments,
             "features_excluded_by_class": dict(sorted(self.excluded_classes.items())),
         }
 
@@ -153,6 +171,7 @@ def read_road_vertices(
     classes = fields[0]
     latitudes: list[float] = []
     longitudes: list[float] = []
+    offsets: list[int] = [0]
     excluded: dict[str, int] = {}
     kept = 0
     for mtfcc, geometry in zip(classes, geometries, strict=True):
@@ -167,6 +186,7 @@ def read_road_vertices(
         for latitude, longitude in parse_wkb_linestring(bytes(geometry)):
             latitudes.append(latitude)
             longitudes.append(longitude)
+        offsets.append(len(latitudes))
 
     if not latitudes:
         raise RoadSourceError(
@@ -177,5 +197,5 @@ def read_road_vertices(
     return RoadVertices(
         state_fips=state_fips, vintage=str(TIGER_YEAR),
         latitudes=tuple(latitudes), longitudes=tuple(longitudes),
-        features=kept, excluded_classes=excluded,
+        offsets=tuple(offsets), features=kept, excluded_classes=excluded,
     )

@@ -56,8 +56,7 @@ def candidates() -> CandidateSet:
     cells = state_cells(surface.estimates, "53", load_hex_supply())
     roads = read_road_vertices("53")
     distances = measure_road_distances(
-        [c.h3_index for c in cells], roads.latitudes, roads.longitudes,
-        DEFAULT_ROAD_PROXIMITY_KM)
+        [c.h3_index for c in cells], roads.index(), DEFAULT_ROAD_PROXIMITY_KM)
     return build_candidates(cells, 2.0, distances)
 
 

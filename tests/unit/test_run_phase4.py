@@ -40,7 +40,8 @@ def payload() -> dict[str, Any]:
 def test_the_driver_produces_every_published_section(payload: dict[str, Any]) -> None:
     assert payload["phase"] == 4
     for section in ("spatial_unit", "frontier_scope", "budget_units", "per_state",
-                    "frontier", "empirical_optimality_gaps", "preflight"):
+                    "frontier", "greedy_objective_shortfall_vs_optimal_cbc",
+                    "preflight"):
         assert section in payload, section
     assert payload["spatial_unit"] == "H3 resolution 6"
 
@@ -69,18 +70,18 @@ def test_every_frontier_point_is_feasible_and_both_directions_are_run(
     senses = {p["objective_sense"] for p in payload["frontier"]}
     assert senses == {"maximise_demand_subject_to_equity",
                       "maximise_equity_subject_to_demand"}
-    assert all(p["status"] == "optimal" for p in payload["frontier"])
+    assert all(p["cbc_status"] == "optimal" for p in payload["frontier"])
 
 
-def test_optimality_gaps_are_measured_against_optimal_solves(
+def test_the_greedy_shortfall_is_measured_against_optimal_solves(
     payload: dict[str, Any],
 ) -> None:
-    gaps = payload["empirical_optimality_gaps"]
+    gaps = payload["greedy_objective_shortfall_vs_optimal_cbc"]
     assert len(gaps) == len(BUDGETS)
     for gap in gaps:
-        assert gap["exact_status"] == "optimal"
-        assert 0.0 <= gap["empirical_optimality_gap"] < 0.25
-        assert gap["greedy_objective"] <= gap["exact_objective"] + 1e-6
+        assert gap["cbc_status"] == "optimal"
+        assert 0.0 <= gap["greedy_objective_shortfall_vs_optimal_cbc"] < 0.25
+        assert gap["greedy_objective"] <= gap["optimal_cbc_objective"] + 1e-6
 
 
 def test_the_greedy_solver_meets_the_two_second_budget(

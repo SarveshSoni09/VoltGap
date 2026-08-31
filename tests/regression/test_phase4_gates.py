@@ -56,12 +56,12 @@ def test_p4_a_every_frontier_point_records_status_and_gap(
     evidence: dict[str, Any],
 ) -> None:
     for point in evidence["frontier"]:
-        assert point["status"] in {"optimal", "feasible_time_limit", "infeasible",
+        assert point["cbc_status"] in {"optimal", "feasible_time_limit", "infeasible",
                                    "not_solved"}
-        assert "optimality_gap" in point
+        assert "cbc_optimality_gap" in point
         assert "solve_seconds" in point
-        if point["status"] == "optimal":
-            assert point["optimality_gap"] == 0.0
+        if point["cbc_status"] == "optimal":
+            assert point["cbc_optimality_gap"] == 0.0
 
 
 def test_p4_a_the_reverse_objective_check_was_run(evidence: dict[str, Any]) -> None:
@@ -124,27 +124,27 @@ def test_p4_b_the_greedy_algorithm_is_defined_exactly_in_code() -> None:
     assert "no approximation bound" in doc
 
 
-# --- P4-C: measured optimality gaps ---------------------------------------------------
+# --- P4-C: measured greedy shortfall against optimal CBC ------------------------------
 
 def test_p4_c_gaps_are_reported_on_representative_real_state_problems(
     evidence: dict[str, Any],
 ) -> None:
-    gaps = evidence["empirical_optimality_gaps"]
+    gaps = evidence["greedy_objective_shortfall_vs_optimal_cbc"]
     assert len(gaps) >= 12
     assert len({g["label"] for g in gaps}) == 6
     for gap in gaps:
-        assert gap["exact_status"] == "optimal", gap
-        assert gap["greedy_objective"] <= gap["exact_objective"] + 1e-6
-        assert 0.0 <= gap["empirical_optimality_gap"] < 0.25
+        assert gap["cbc_status"] == "optimal", gap
+        assert gap["greedy_objective"] <= gap["optimal_cbc_objective"] + 1e-6
+        assert 0.0 <= gap["greedy_objective_shortfall_vs_optimal_cbc"] < 0.25
 
 
 def test_p4_c_gaps_are_reported_on_controlled_fixtures_too() -> None:
     """The named fixture test in the unit suite is the controlled half of §7.8 task 6."""
     from tests.unit.test_siting import (
-        test_the_optimality_gap_is_measured_against_an_exact_solve,
+        test_the_greedy_shortfall_is_measured_against_an_exact_solve,
     )
 
-    test_the_optimality_gap_is_measured_against_an_exact_solve()
+    test_the_greedy_shortfall_is_measured_against_an_exact_solve()
 
 
 # --- P4-D: the two-second budget ------------------------------------------------------
@@ -171,7 +171,8 @@ def test_p4_e_there_is_no_mandatory_substation_filter(
         # The road filter §7.8 requires IS present. What must not appear is a
         # substation or interconnection exclusion, which §7.9 forbids as a Core filter.
         assert set(candidates["excluded_by_reason"]) <= {
-            "uninhabited", "already_saturated", "beyond_road_network"}
+            "uninhabited", "already_saturated",
+            "beyond_primary_secondary_road_network"}
         assert not any("substation" in r or "interconnect" in r
                        for r in candidates["excluded_by_reason"])
 

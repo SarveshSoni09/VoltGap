@@ -1,22 +1,24 @@
-"""Road-proximity distance for H3 candidate cells.
+"""Distance from H3 candidate cells to the TIGER/Line primary and secondary road network.
 
-CLAUDE.md §7.8: siting candidates must be "within a configured distance of the road
+CLAUDE.md §7.8 requires siting candidates to be "within a configured distance of the road
 network". The threshold, the road classes and the distance method were pre-registered in
 ``docs/evidence/P4-0_road_filter_preregistration.md`` **before** any candidate set was
 recomputed, so none of them could be chosen after seeing which value gave a convenient
 answer.
 
-The measurement reuses the same haversine ball tree Phase 2 uses for access distance
-rather than adding a second spatial index: the operation is identical - nearest point from
-a query location to a set of fixtures - and two implementations of it would be two places
-for it to be wrong.
+**What this measures, precisely.** Proximity to TIGER/Line 2024 **primary (MTFCC S1100)
+and secondary (S1200) roads** — arterials. It is not proximity to *all* roads: local
+streets (S1400) are deliberately excluded, because at 38.2 km² per cell nearly every
+inhabited cell contains one and the filter would become a near no-op. Every name in the
+code, the artifact and the documentation says primary-and-secondary for that reason.
 
-**Distance is measured to road VERTICES, not to the nearest point on a road segment.** A
-long straight segment between two distant vertices could pass close to a cell whose
-centroid is far from either endpoint. TIGER road geometries are densely vertexed - 3,006
-Washington features carry 376,007 vertices, about 125 each - so the error is small, but it
-is an approximation and it is recorded as assumption **A-4.6** rather than described as
-exact.
+**Distance is to the nearest point on a road, not to the nearest vertex.** A vertex
+measurement overestimates: a cell beside the middle of a long straight segment is close to
+the road and far from both of its endpoints. In the synthetic regression fixture the
+overestimate is **17x** (2.22 km true against 37.98 km by vertex), and on real TIGER
+geometry the error is bounded by half the longest segment — up to 2.96 km against a 5 km
+filter threshold. That is large enough to falsely exclude candidates, so the nearest point
+on each segment is computed. See ``pipeline.spatial.distance.PolylineIndex``.
 """
 
 from __future__ import annotations
@@ -24,7 +26,7 @@ from __future__ import annotations
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 
-from pipeline.spatial.distance import nearest_site_distances
+from pipeline.spatial.distance import PolylineIndex
 from pipeline.spatial.h3_grid import cell_centroid
 
 #: Pre-registered before any result was recomputed. An H3 res-6 centroid sits up to
@@ -44,6 +46,7 @@ class RoadDistances:
     distances_km: Mapping[str, float]
     road_vertices: int
     threshold_km: float
+    road_segments: int = 0
 
     def within(self, cell: str, threshold_km: float | None = None) -> bool:
         limit = self.threshold_km if threshold_km is None else threshold_km
@@ -60,40 +63,50 @@ class RoadDistances:
         qualifying = [c for c in cells if self.within(c)]
         return {
             "threshold_km": self.threshold_km,
+            "road_network": (
+                "TIGER/Line 2024 PRIMARY (MTFCC S1100) and SECONDARY (S1200) roads "
+                "only. NOT all roads: local streets (S1400) are excluded by design."
+            ),
             "road_vertices": self.road_vertices,
+            "road_segments": self.road_segments,
             "cells_measured": len(cells),
             "cells_within_threshold": len(qualifying),
             "sensitivity_cells_within_threshold_by_km": self.sensitivity(cells),
             "distance_method": (
-                "haversine from the cell centroid to the nearest road VERTEX, not to "
-                "the nearest point on a segment (assumption A-4.6)"
+                "great-circle distance from the cell centroid to the nearest POINT on "
+                "the nearest road segment. The nearest point along each segment is "
+                "located in a local tangent plane, then its distance is measured with "
+                "haversine, so the reported value is a true geodesic distance to a real "
+                "location on a road. Nearest-VERTEX distance was used in the first "
+                "Phase 4 submission and is wrong: it overestimates by up to half a "
+                "segment length (2.96 km on this data, 17x in the regression fixture)."
             ),
         }
 
 
 def measure_road_distances(
     cells: Sequence[str],
-    road_latitudes: Sequence[float],
-    road_longitudes: Sequence[float],
+    roads: PolylineIndex,
     threshold_km: float = DEFAULT_ROAD_PROXIMITY_KM,
 ) -> RoadDistances:
-    """Nearest included-class road vertex for every cell, in kilometres.
+    """Distance from each cell centroid to the nearest point on a primary/secondary road.
 
-    With no road vertices at all every cell reports infinite distance rather than being
-    quietly passed through. That is directive D8: "there is no road anywhere" is the
-    strongest possible exclusion, not missing data, and the caller decides what to do
-    about it rather than the measurement deciding silently.
+    With no roads at all every cell reports infinite distance rather than being quietly
+    passed through. That is directive D8: "there is no road anywhere" is the strongest
+    possible exclusion, not missing data, and the caller decides what to do about it
+    rather than the measurement deciding silently.
     """
     if not cells:
-        return RoadDistances({}, len(road_latitudes), threshold_km)
+        return RoadDistances({}, roads.vertices, threshold_km, roads.segments)
+    for swept in (*SENSITIVITY_KM, threshold_km):
+        roads.assert_refinement_covers(swept)
     centroids = [cell_centroid(cell) for cell in cells]
-    result = nearest_site_distances(
-        [lat for lat, _ in centroids], [lon for _, lon in centroids],
-        road_latitudes, road_longitudes,
-    )
+    distances = roads.nearest_km([lat for lat, _ in centroids],
+                                 [lon for _, lon in centroids])
     return RoadDistances(
-        distances_km={cell: metres / 1000.0
-                      for cell, metres in zip(cells, result.distances_m, strict=True)},
-        road_vertices=len(road_latitudes),
+        distances_km={cell: float(km)
+                      for cell, km in zip(cells, distances, strict=True)},
+        road_vertices=roads.vertices,
         threshold_km=threshold_km,
+        road_segments=roads.segments,
     )

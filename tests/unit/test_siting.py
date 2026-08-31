@@ -12,7 +12,7 @@ from pipeline.model.siting import (
     MAXIMISE_EQUITY,
     CandidateSet,
     ExclusionReason,
-    OptimalityGap,
+    GreedyShortfall,
     SitingError,
     SolveStatus,
     build_candidates,
@@ -20,10 +20,11 @@ from pipeline.model.siting import (
     coverage_sets,
     epsilon_levels,
     greedy_select,
-    measure_optimality_gap,
+    measure_greedy_shortfall,
     solve_epsilon_constraint,
 )
 from pipeline.model.uncertainty import COMPONENT_NAMES
+from pipeline.spatial.distance import PolylineIndex
 from pipeline.spatial.h3_grid import cells_for_points
 from pipeline.spatial.road_proximity import RoadDistances, measure_road_distances
 
@@ -58,8 +59,8 @@ def roads_covering(cells: list[HexCell], km: float = 5.0) -> RoadDistances:
     otherwise.
     """
     return measure_road_distances(
-        [c.h3_index for c in cells], [c.latitude for c in cells],
-        [c.longitude for c in cells], km)
+        [c.h3_index for c in cells],
+        PolylineIndex.from_polylines([[(c.latitude, c.longitude)] for c in cells]), km)
 
 
 def candidates_from(cells: list[HexCell], saturation: float = 2.0,
@@ -76,7 +77,7 @@ def test_there_is_no_substation_filter() -> None:
     payload = candidates_from([hexcell(0, 100.0)]).to_dict()
     assert payload["no_mandatory_substation_filter"] is True
     assert set(ExclusionReason) == {ExclusionReason.UNINHABITED,
-                                    ExclusionReason.BEYOND_ROAD_NETWORK,
+                                    ExclusionReason.BEYOND_PRIMARY_SECONDARY_ROADS,
                                     ExclusionReason.ALREADY_SATURATED}
 
 
@@ -86,10 +87,11 @@ def test_a_cell_beyond_the_road_network_is_excluded_by_name() -> None:
     cells = [hexcell(0, 100.0), hexcell(1, 100.0)]
     # A road only near the first cell.
     roads = measure_road_distances(
-        [c.h3_index for c in cells], [cells[0].latitude], [cells[0].longitude], 5.0)
+        [c.h3_index for c in cells],
+        PolylineIndex.from_polylines([[(cells[0].latitude, cells[0].longitude)]]), 5.0)
     result = build_candidates(cells, 2.0, roads)
     assert [c.h3_index for c in result.candidates] == [cell_at(0)]
-    assert result.excluded == {"beyond_road_network": 1}
+    assert result.excluded == {"beyond_primary_secondary_road_network": 1}
     road = cast(dict[str, object], result.to_dict()["road_network_filter"])
     assert road["threshold_km"] == 5.0
 
@@ -114,7 +116,8 @@ def test_the_road_threshold_sensitivity_curve_ships_with_the_result() -> None:
     """So the threshold is visible as a choice rather than presented as a finding."""
     cells = [hexcell(i, 100.0) for i in range(3)]
     roads = measure_road_distances(
-        [c.h3_index for c in cells], [cells[0].latitude], [cells[0].longitude], 5.0)
+        [c.h3_index for c in cells],
+        PolylineIndex.from_polylines([[(cells[0].latitude, cells[0].longitude)]]), 5.0)
     curve = cast(dict[str, int], roads.to_dict([c.h3_index for c in cells])[
         "sensitivity_cells_within_threshold_by_km"])
     assert set(curve) == {"1", "2", "3", "5", "8", "12", "20"}
@@ -298,16 +301,35 @@ def test_greedy_stops_at_the_budget() -> None:
     assert len(greedy_select(candidates_from(cells), 3).selected) == 3
 
 
-# --- measured gaps ------------------------------------------------------------------------
+# --- greedy shortfall against optimal CBC, kept distinct from CBC's own gap ----------
 
-def test_the_optimality_gap_is_measured_against_an_exact_solve() -> None:
+def test_the_greedy_shortfall_is_measured_against_an_exact_solve() -> None:
     cells = [hexcell(i, 100.0 - 10 * i) for i in range(6)]
-    gap = measure_optimality_gap(candidates_from(cells), 3, "fixture")
-    assert gap.exact_status == SolveStatus.OPTIMAL.value
-    assert gap.greedy_objective <= gap.exact_objective + 1e-9
-    assert 0.0 <= gap.gap < 1.0
-    assert gap.to_dict()["label"] == "fixture"
+    shortfall = measure_greedy_shortfall(candidates_from(cells), 3, "fixture")
+    assert shortfall.exact_status == SolveStatus.OPTIMAL.value
+    assert shortfall.greedy_objective <= shortfall.exact_objective + 1e-9
+    assert 0.0 <= shortfall.shortfall < 1.0
+    assert shortfall.to_dict()["label"] == "fixture"
 
 
-def test_a_gap_against_a_zero_objective_is_zero_not_a_division_error() -> None:
-    assert OptimalityGap(1, 0.0, 0.0, "optimal").gap == 0.0
+def test_a_shortfall_against_a_zero_objective_is_zero_not_a_division_error() -> None:
+    assert GreedyShortfall(1, 0.0, 0.0, "optimal").shortfall == 0.0
+
+
+def test_the_greedy_shortfall_is_never_called_an_optimality_gap() -> None:
+    """Two different quantities. CBC's optimality gap is the distance between its own
+    bound and its own incumbent, a property of the SOLVE. The greedy shortfall is how
+    much objective a heuristic left on the table. Publishing both as "the gap" would
+    invite a reader to think the browser solver carries a solver-style guarantee, and
+    §7.8 with amendment A11 is explicit that it carries none."""
+    cells = [hexcell(i, 100.0 - 10 * i) for i in range(6)]
+    payload = measure_greedy_shortfall(candidates_from(cells), 3, "fixture").to_dict()
+    assert "greedy_objective_shortfall_vs_optimal_cbc" in payload
+    assert "optimal_cbc_objective" in payload
+    assert not any("optimality_gap" in key for key in payload)
+    assert "NOT a solver optimality gap" in str(payload["measures"])
+
+    point = build_frontier(candidates_from(cells), 3)[0].to_dict()
+    assert "cbc_optimality_gap" in point
+    assert "cbc_status" in point
+    assert not any(key.startswith("greedy") for key in point)
