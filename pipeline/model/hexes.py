@@ -55,7 +55,11 @@ class HexSupply:
     accident - only by someone adding one, which a test forbids.
     """
 
-    site_count: int = 0
+    #: Distinct AFDC **stations**, not DBSCAN sites. ``load_hex_supply`` places each
+    #: station at its own reported coordinates and never clusters, so calling this a
+    #: site count would misname it. Whether clustering would change anything is measured
+    #: by the A-2.1 sensitivity rather than assumed either way.
+    station_count: int = 0
     dcfc_ports: float = 0.0
     l2_ports: float = 0.0
 
@@ -124,7 +128,7 @@ class HexCell:
                 k: round(v, 6) for k, v in sorted(self.value_provenance_share.items())},
             "sub_state_anchored_share": round(self.sub_state_anchored_share, 6),
             "dominant_evidence_grain": self.dominant_evidence_grain,
-            "site_count": self.supply.site_count,
+            "station_count": self.supply.station_count,
             "dcfc_ports": round(self.supply.dcfc_ports, 2),
             "l2_ports": round(self.supply.l2_ports, 2),
         }
@@ -255,7 +259,8 @@ def assert_provenance_survived(cells: Sequence[HexCell]) -> None:
 
 
 def load_hex_supply(
-    path: Path | None = None, resolution: int = RESOLUTION_NATIONAL
+    path: Path | None = None, resolution: int = RESOLUTION_NATIONAL,
+    cluster_eps_m: float | None = None,
 ) -> dict[str, HexSupply]:
     """Existing public operational supply, placed on the grid by site coordinates.
 
@@ -296,6 +301,8 @@ def load_hex_supply(
 
     if not rows:
         return {}
+    if cluster_eps_m is not None:
+        rows = _assign_to_site_centroids(rows, cluster_eps_m)
     cells = cells_for_points([r[0] for r in rows], [r[1] for r in rows], resolution)
     dcfc: dict[str, float] = {}
     l2: dict[str, float] = {}
@@ -307,8 +314,32 @@ def load_hex_supply(
             l2[cell] = l2.get(cell, 0.0) + ports
         stations.setdefault(cell, set()).add(station)
     return {
-        cell: HexSupply(site_count=len(members),
+        cell: HexSupply(station_count=len(members),
                         dcfc_ports=dcfc.get(cell, 0.0),
                         l2_ports=l2.get(cell, 0.0))
         for cell, members in stations.items()
     }
+
+
+def _assign_to_site_centroids(
+    rows: Sequence[tuple[float, float, str, float, str]], eps_m: float
+) -> list[tuple[float, float, str, float, str]]:
+    """Move every station's ports to its DBSCAN site centroid.
+
+    Used **only** by the A-2.1 sensitivity analysis, which asks whether clustering
+    stations into sites and placing a whole site at one point could move ports across an
+    H3 boundary and change a cell's saturation status. The shipped path does not cluster:
+    each station sits at its own reported coordinates.
+    """
+    from pipeline.spatial.clustering import cluster_sites
+
+    assignments = cluster_sites(
+        [f"{index}" for index in range(len(rows))],
+        [row[0] for row in rows], [row[1] for row in rows], eps_m=eps_m,
+    )
+    centroid = {a.station_id: (a.site_latitude, a.site_longitude) for a in assignments}
+    moved: list[tuple[float, float, str, float, str]] = []
+    for index, row in enumerate(rows):
+        latitude, longitude = centroid.get(f"{index}", (row[0], row[1]))
+        moved.append((latitude, longitude, row[2], row[3], row[4]))
+    return moved

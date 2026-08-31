@@ -195,8 +195,21 @@ def _census() -> list[ProbeSpec]:
             headers=dict(RANGE_1K),
             max_bytes=PROBE_BYTES,
             note="TIGER/Line 2020 blocks with INTPTLAT/INTPTLON internal points. "
-                 "Required for genuine block-level allocation because no ready-made "
-                 "block-level population-weighted centroid file exists.",
+                 "Required for genuine block-grain allocation because the Census "
+                 "publishes no PREBUILT block-grain population-weighted centroid "
+                 "file. The block inputs themselves exist: this geometry plus P.L. "
+                 "94-171 block population counts.",
+        ),
+        ProbeSpec(
+            source_id="census_tiger_prisecroads",
+            kind="availability",
+            url="https://www2.census.gov/geo/tiger/TIGER2024/PRISECROADS/"
+                "tl_2024_53_prisecroads.zip",
+            headers=dict(RANGE_1K),
+            max_bytes=PROBE_BYTES,
+            note="TIGER/Line primary (MTFCC S1100) and secondary (S1200) roads, per "
+                 "state. Washington probed. The Core source for the CLAUDE.md section "
+                 "7.8 candidate road-proximity filter.",
         ),
         ProbeSpec(
             source_id="census_cenpop_tract",

@@ -271,14 +271,60 @@ guarantee would apply. **The shipped surface is not that problem**: it exposes o
 weights and constraint toggles, which is a different problem class. The guarantee's
 assumptions therefore cannot be verified for the algorithm actually implemented, so **no
 bound is claimed anywhere**, and measured optimality gaps against exact CBC solves are
-reported instead — worst 3.06%, slowest greedy solve 0.0288 s against a 2-second budget.
+reported instead — worst 3.14%, slowest greedy solve 0.0229 s against a 2-second budget.
 
 ### 4.5 Candidate filtering
 
-Two filters, both named in the output: **uninhabited** (standing in for the unavailable
-road-network filter, labelled a degradation) and **already saturated** (public operational
-DCFC ports per 1,000 BEV of demand above the configured threshold). **There is no
-substation-proximity filter**, because Phase 0 located no authoritative national dataset
-and §7.9 requires Core siting to function without one. Transmission proximity is not used
-at all; if it ever ships it is a labelled contextual proximity proxy and never an
-interconnection constraint (D6).
+Three filters, all named and counted in the output, applied in a fixed order with each
+cell counted under the **first** reason that applies:
+
+1. **uninhabited** — no resident population. Retained on its own merits: a cell with
+   nobody in it is not a siting candidate. It was once described as standing in for the
+   road filter, which it never was; that framing is withdrawn.
+2. **beyond the road network** — no TIGER/Line 2024 primary (MTFCC `S1100`) or secondary
+   (`S1200`) road within **5.0 km** of the cell centroid. This is the §7.8 filter. The
+   threshold, the road classes and the distance method were fixed in
+   `docs/evidence/P4-0_road_filter_preregistration.md` **before** any candidate set was
+   recomputed, so none could be chosen after seeing which value gave a convenient answer.
+3. **already saturated** — public operational DCFC ports per 1,000 BEV of demand at or
+   above the configured threshold.
+
+**Why 5.0 km.** An H3 resolution-6 cell has an inradius of roughly 3,320 m, so a threshold
+below that would exclude cells whose nearest arterial lies immediately outside their own
+boundary. 5.0 km is the smallest round figure above it. The full 1–20 km sensitivity curve
+ships in the artifact so the threshold is visible as a choice rather than a finding.
+
+**Why arterials only.** At 38.2 km² per cell, nearly every inhabited cell in the country
+contains some local street (`S1400`), so including local roads would make the filter a
+near no-op rather than the siting constraint the specification asks for. The consequence
+is recorded rather than hidden: a cell served only by local streets is excluded even
+though something could physically be built there.
+
+**Distance is measured to a road vertex, not to the nearest point on a segment.** TIGER
+geometries are densely vertexed — 3,006 Washington features carry 376,007 vertices, about
+125 each — so the error is small, but it is an approximation, recorded as assumption
+**A-4.6** rather than described as exact.
+
+**Road proximity is proximity, not buildability.** A cell within 5.0 km of an arterial may
+still have no legal, physical or commercially available site on it. This is a proximity
+proxy in exactly the sense D6 applies to grid proximity, and nothing in the pipeline or
+the UI may describe it as feasibility.
+
+**There is no substation-proximity filter**, because Phase 0 located no authoritative
+national dataset and §7.9 requires Core siting to function without one. Transmission
+proximity is not used at all; if it ever ships it is a labelled contextual proximity proxy
+and never an interconnection constraint (D6).
+
+### 4.6 The equity objective
+
+The ε-constraint's equity quantity is **one named current ACS-derived socioeconomic
+indicator**, not a composite: population in households with income below $35,000 a year,
+computed as the ACS five-year `income_share_under_35k` feature multiplied by tract
+population and allocated to cells with the same block-group population weights as demand.
+§8 requires the primary equity measure to come from current ACS indicators rather than the
+archived CEJST overlay, and §17 forbids shipping a composite index without a
+weight-sensitivity control. One indicator needs no weights, so there is nothing to
+hand-pick — and correspondingly it is a narrower view of disadvantage than a composite
+would be. The indicator's definition is published verbatim in every artifact carrying an
+equity number, under `equity_objective_indicator`, so a reader of the JSON alone cannot
+mistake it for a general disadvantage index.

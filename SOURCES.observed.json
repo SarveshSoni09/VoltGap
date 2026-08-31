@@ -2879,6 +2879,20 @@
     },
     {
       "content_bytes": 1024,
+      "content_sha256": "b320621d6f07d21bc60cddae68c760b5ff7891e3d8e4a639470449c2442339cc",
+      "elapsed_ms": 300.8,
+      "http_status": 206,
+      "measurement": null,
+      "note": "reachable, HTTP 206, 1024 bytes sampled [bounded sample: transfer capped]. TIGER/Line primary (MTFCC S1100) and secondary (S1200) roads, per state. Washington probed. The Core source for the CLAUDE.md section 7.8 candidate road-proximity filter.",
+      "rate_limit_headers": {},
+      "retrieved_at": "2026-08-31T16:04:26+00:00",
+      "source_id": "census_tiger_prisecroads",
+      "status": "confirmed",
+      "url": "https://www2.census.gov/geo/tiger/TIGER2024/PRISECROADS/tl_2024_53_prisecroads.zip",
+      "vintage": "Fri, 27 Jun 2025 20:04:05 GMT"
+    },
+    {
+      "content_bytes": 1024,
       "content_sha256": "a5e84a1d842b02b63ee730916d61788c1603bd4b1d4b3531db8d78c3fee5c82e",
       "elapsed_ms": 303.4,
       "http_status": 206,

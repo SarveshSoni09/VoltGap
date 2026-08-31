@@ -309,6 +309,26 @@ def test_main_replays_the_committed_fixtures_and_writes_the_sidecar(
     ]
 
 
+def test_a_partial_probe_does_not_delete_the_other_sources_observations(
+    tmp_path: Path, replay_root: Path
+) -> None:
+    """The sidecar is the evidence that each source was actually measured. A `--only`
+    run that rewrote the file with just its own subset would silently destroy that
+    evidence for every source it did not touch, and the result would look clean."""
+    out = tmp_path / "observed.json"
+    main(["--offline", "--cache-root", str(replay_root), "--out", str(out),
+          "--only", "afdc_state_ev_registrations_2023"])
+    first = json.loads(out.read_text())
+    assert [o["source_id"] for o in first["observations"]] == [
+        "afdc_state_ev_registrations_2023"]
+
+    main(["--offline", "--cache-root", str(replay_root), "--out", str(out),
+          "--only", "seed_state_ev_registrations"])
+    merged = json.loads(out.read_text())
+    assert [o["source_id"] for o in merged["observations"]] == [
+        "afdc_state_ev_registrations_2023", "seed_state_ev_registrations"]
+
+
 def test_main_honours_no_write(tmp_path: Path, replay_root: Path) -> None:
     out = tmp_path / "observed.json"
     main(["--offline", "--cache-root", str(replay_root), "--out", str(out),

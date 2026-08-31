@@ -15,6 +15,8 @@ from pipeline.discovery.contract import (
     Observation,
     evaluate_drift,
     load_contract,
+    load_observations,
+    merge_observations,
     observations_document,
     tolerance_band,
     validate_contract,
@@ -257,3 +259,36 @@ def test_write_observations_is_deterministic(tmp_path: Path) -> None:
 def test_a_non_mapping_quality_block_is_skipped_rather_than_crashing() -> None:
     entry = complete_entry(quality="not-a-mapping")
     validate_contract(document([entry]))
+
+
+def test_a_partial_probe_merges_rather_than_deleting_every_other_observation() -> None:
+    """`--only` writing just what it probed would silently delete the evidence that
+    every other source was measured — and the result would read as a clean file."""
+    existing = {
+        "generated_by": "old",
+        "observations": [{"source_id": "a", "status": "confirmed"},
+                         {"source_id": "b", "status": "confirmed"}],
+        "drift": [{"source_id": "b", "field": "row_count"}],
+    }
+    fresh = {
+        "generated_by": "new",
+        "observations": [{"source_id": "b", "status": "degraded"},
+                         {"source_id": "c", "status": "confirmed"}],
+        "drift": [],
+    }
+    merged = merge_observations(existing, fresh)
+    assert [o["source_id"] for o in merged["observations"]] == ["a", "b", "c"]
+    # The fresh measurement wins where both have one; the untouched source survives.
+    assert {o["source_id"]: o["status"] for o in merged["observations"]} == {
+        "a": "confirmed", "b": "degraded", "c": "confirmed"}
+    # Drift from a source this run did not probe is preserved, not silently cleared.
+    assert [d["source_id"] for d in merged["drift"]] == ["b"]
+    assert merged["generated_by"] == "new"
+
+
+def test_the_sidecar_round_trips_through_load_and_write(tmp_path: Path) -> None:
+    path = tmp_path / "observed.json"
+    document = {"generated_by": "x", "observations": [], "drift": []}
+    write_observations(path, document)
+    assert load_observations(path) == document
+    assert path.read_text(encoding="utf-8").endswith("\n")

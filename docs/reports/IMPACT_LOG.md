@@ -13,6 +13,93 @@ results are invalid), **S2 Degrading** (usable but weaker than claimed), **S3 Co
 
 None.
 
+### I-18 — the §7.8 road-proximity filter was omitted on a false premise
+
+| Field | Value |
+|---|---|
+| Opened | 2026-08-31, external review of the Phase 4 submission |
+| Affected phase | 4 (`pipeline/model/siting.py`, `docs/reports/PHASE_4_REPORT.md`) |
+| Severity | **S1 Blocking** — the published candidate universe omitted a filter the specification mandates, so every candidate set, frontier point and optimality gap in the first submission was computed over the wrong universe |
+| Status | **RESOLVED 2026-08-31** |
+
+**Assumed.** That no road-network dataset was available to the project, and that
+explicitly degrading — substituting a resident-population filter and labelling it a
+degradation under D8 — was therefore the correct response. Recorded as assumption A-4.1.
+
+**Actually true.** The premise was wrong. The Census Bureau publishes TIGER/Line
+`PRISECROADS`, one zipped shapefile of primary and secondary roads per state, free,
+keyless and on the same host as the TIGER tract and block products the pipeline already
+retrieves. D8 governs what to do when a source is genuinely unavailable; it does not
+license omitting a mandatory filter when the source exists and was not looked for.
+Separately, resident population is not a road proxy in either direction: an uninhabited
+cell can sit on an interstate, and an inhabited one can be far from any arterial.
+
+**Evidence.** `https://www2.census.gov/geo/tiger/TIGER2024/PRISECROADS/tl_2024_53_prisecroads.zip`
+retrieves 3,006 Washington features carrying 376,007 vertices — 2,800 MTFCC `S1200`
+(secondary) and 206 `S1100` (primary).
+
+**What was wrong in the published output.** Candidate counts in all six frontier states,
+and therefore every downstream number:
+
+| State | Published (no road filter) | Corrected | Removed |
+|---|---:|---:|---:|
+| Washington | 856 | **674** | −182 |
+| Tennessee | 1,479 | **1,425** | −54 |
+| Montana | 400 | **297** | −103 |
+| Vermont | 258 | **250** | −8 |
+| Texas | 3,073 | **2,417** | −656 |
+| California | 1,611 | **1,253** | −358 |
+
+The frontier, the greedy portfolios and the empirical optimality gaps all moved with them:
+the worst measured gap changed from 3.06% to **3.14%**, and the slowest greedy solve from
+0.0288 s to **0.0229 s** on the smaller candidate sets.
+
+**Response taken.** The threshold, road classes and distance method were pre-registered in
+`docs/evidence/P4-0_road_filter_preregistration.md` **before** any result was recomputed,
+so none could be chosen after seeing which value gave a convenient answer. New modules
+`pipeline/sources/tiger_roads.py` and `pipeline/spatial/road_proximity.py` ship the source
+and the measurement; `build_candidates` now **raises** without road distances rather than
+passing every cell through, and degraded mode must be requested explicitly and is counted
+in the published artifact. Assumption A-4.1 is withdrawn and closed; A-4.6 (vertex versus
+segment distance) and A-4.7 (road-class choice) are opened in its place. A dated
+correction is appended to `docs/reports/PHASE_4_REPORT.md`. The full Phase 4 gate and all
+prior gates were re-run.
+
+---
+
+### I-19 — A-2.1 was closed by a geometric argument, not by a measurement
+
+| Field | Value |
+|---|---|
+| Opened | 2026-08-31, external review of the Phase 4 submission |
+| Affected phase | 4 (`docs/reports/ASSUMPTION_LEDGER.md`, `docs/reports/PHASE_4_REPORT.md`) |
+| Severity | **S2 Degrading** — the conclusion turned out to be right, but it was asserted rather than shown, so the assumption was not in fact resolved |
+| Status | **RESOLVED 2026-08-31** |
+
+**Assumed.** That the ratio of the largest DBSCAN cluster diameter (500 m) to the H3
+resolution-6 cell edge (3,834 m) — 13.0% — established that station clustering does not
+materially distort candidate siting.
+
+**Actually true.** It does not. The ratio establishes that a cluster is small relative to a
+cell. It says nothing about whether a cluster straddling a cell boundary changes a cell's
+saturation classification, its candidate status, or the portfolio selected from it. A
+boundary effect does not scale with the ratio of the object to the cell; it depends on
+where the boundary falls.
+
+**Response taken.** The argument is withdrawn. `pipeline/model/clustering_sensitivity.py`
+now runs three conditions per state — shipped (no clustering), DBSCAN eps 50 m, DBSCAN eps
+200 m — and reports candidate-set Jaccard, saturation reclassifications, portfolio overlap
+at 5, 20 and 50 sites, and the demand and equity objective deltas.
+
+**What the measurement found.** At the shipped Phase 1 configuration (**eps 50 m**) the
+effect is **exactly zero in all six states**: Jaccard 1.000, zero saturation
+reclassifications. At a deliberately coarser **eps 200 m**, two states move — Washington
+reclassifies 1 cell (Jaccard 0.998519), Texas 2 (0.999173) — and **no portfolio changes at
+any budget in any state**: overlap 1.000 at every budget, demand and equity deltas exactly
+0.00. A-2.1 is resolved, now on evidence.
+
+---
+
 ### I-17 — zero-by-absence was assumed, and gated by a test that could not establish it
 
 | Field | Value |

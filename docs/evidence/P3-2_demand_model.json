@@ -3472,6 +3472,7 @@
         "out_of_jurisdiction_records": 573,
         "total_records": 237567,
         "tract_not_in_jurisdiction_geography": 3,
+        "unknown_jurisdiction_records": 0,
         "unresolved_in_jurisdiction": 0
       },
       "publisher_scope": "statewide_vehicle_registry",

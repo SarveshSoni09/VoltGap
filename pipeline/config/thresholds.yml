@@ -55,12 +55,31 @@ siting:
   # than a single portfolio published.
   saturation_dcfc_ports_per_1k_demand: 2.0
 
-  # Minimum resident population for a cell to be buildable. This stands in for the road
-  # network proximity filter CLAUDE.md 7.8 specifies: NO ROAD NETWORK DATASET WAS
-  # RETRIEVED, and substituting one silently is what directive D8 forbids. An inhabited
-  # cell has roads; an uninhabited one is wilderness or water. Weaker than the specified
-  # filter, labelled as a degradation everywhere it appears.
+  # Minimum resident population for a cell to be buildable. This is retained ON ITS OWN
+  # MERITS - a cell with nobody in it is not a siting candidate - and is NOT a stand-in
+  # for the road filter. It was described that way until 2026-08-31 and that framing is
+  # withdrawn: resident population is not a road proxy in either direction, since an
+  # uninhabited cell can sit on an interstate and an inhabited one can be far from any
+  # arterial.
   minimum_population: 1.0
+
+  # The CLAUDE.md 7.8 road-network proximity filter. Distance from the cell centroid to
+  # the nearest TIGER/Line primary (MTFCC S1100) or secondary (S1200) road vertex.
+  #
+  # 5.0 km was PRE-REGISTERED in docs/evidence/P4-0_road_filter_preregistration.md before
+  # any candidate set was recomputed, so it could not be chosen after seeing which value
+  # gave a convenient answer. An H3 res-6 cell has an inradius of about 3,320 m, so a
+  # threshold below that would exclude cells whose nearest arterial lies immediately
+  # outside their own boundary; 5.0 km is the smallest round figure above it.
+  #
+  # This is PROXIMITY, NOT BUILDABILITY. A cell within 5 km of an arterial may have no
+  # legal, physical or commercially available site on it - the same distinction directive
+  # D6 draws for grid proximity.
+  road_proximity_km: 5.0
+
+  # The swept range the shipped sensitivity curve is computed across, so the threshold is
+  # visible as a choice rather than presented as a finding.
+  road_proximity_sensitivity_km: [1.0, 2.0, 3.0, 5.0, 8.0, 12.0, 20.0]
 
   # The published frontier is computed PER STATE (CLAUDE.md 7.8 compute budget): a
   # national solve at eight epsilon levels in two directions is sixteen national integer

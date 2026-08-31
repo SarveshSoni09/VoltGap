@@ -4,8 +4,9 @@ Four assumptions were carried into Phase 4 as conditions on using Phase 2 and Ph
 outputs for siting. Each is measured here rather than restated, or - where the honest
 answer is that Phase 4 does not exercise it - shown not to be triggered.
 
-* **A-2.1** DBSCAN site clusters exceeding 200 m diameter might move a site between H3
-  cells. Measured against the actual grid.
+* **A-2.1** DBSCAN site clusters might move ports between H3 cells and change a cell's
+  saturation status. **Measured empirically** in
+  :mod:`pipeline.model.clustering_sensitivity`, not argued from cell geometry.
 * **A-2.2** The rung-2 empirical power median needs masked validation before a phase
   consumes imputed capacity. **Not triggered:** Phase 4 reads port *counts* and no kW
   figure at all, which is enforced structurally.
@@ -25,66 +26,7 @@ from typing import Any
 import h3
 
 from pipeline.model.hexes import HexCell
-from pipeline.spatial.h3_grid import RESOLUTION_NATIONAL, PopulationPoint, cell_area_km2
-
-
-@dataclass(frozen=True)
-class ClusterSensitivity:
-    """A-2.1: can a pathological DBSCAN cluster straddle an H3 cell boundary?"""
-
-    resolution: int
-    cell_area_km2: float
-    approximate_cell_edge_m: float
-    max_cluster_diameter_m: float
-    clusters_over_200m: int
-    diameter_as_share_of_edge: float
-    could_straddle_a_boundary: bool
-
-    def to_dict(self) -> dict[str, object]:
-        return {
-            "assumption": "A-2.1",
-            "resolution": self.resolution,
-            "cell_area_km2": round(self.cell_area_km2, 2),
-            "approximate_cell_edge_m": round(self.approximate_cell_edge_m, 1),
-            "max_cluster_diameter_m": self.max_cluster_diameter_m,
-            "clusters_over_200m": self.clusters_over_200m,
-            "diameter_as_share_of_cell_edge": round(self.diameter_as_share_of_edge, 6),
-            "could_straddle_a_cell_boundary": self.could_straddle_a_boundary,
-            "interpretation": (
-                "A cluster smaller than a cell can still straddle a boundary if it sits "
-                "on one, so the honest answer is that it CAN, for a vanishing share of "
-                "cells. What matters is the magnitude: a 500 m cluster against a ~3.2 km "
-                "cell edge moves at most a boundary-adjacent site by one cell, and the "
-                "k-ring coverage neighbourhood already spans adjacent cells, so a site "
-                "landing either side covers substantially the same demand."
-            ),
-        }
-
-
-def assess_cluster_sensitivity(
-    max_cluster_diameter_m: float = 500.0,
-    clusters_over_200m: int = 4,
-    resolution: int = RESOLUTION_NATIONAL,
-) -> ClusterSensitivity:
-    """A-2.1, measured against the grid the candidates actually use.
-
-    Phase 2's site diagnostic found 886 clusters over 50 m, 86 over 100 m, 4 over 200 m
-    and none over 500 m. Those are the inputs; what Phase 4 adds is the comparison
-    against H3 resolution 6.
-    """
-    reference = h3.latlng_to_cell(39.0, -98.0, resolution)   # geographic centre of the US
-    area = cell_area_km2(reference)
-    # A regular hexagon of area A has edge sqrt(2A / (3 sqrt 3)).
-    edge_m = ((2 * area * 1_000_000) / (3 * 3 ** 0.5)) ** 0.5
-    return ClusterSensitivity(
-        resolution=resolution,
-        cell_area_km2=area,
-        approximate_cell_edge_m=edge_m,
-        max_cluster_diameter_m=max_cluster_diameter_m,
-        clusters_over_200m=clusters_over_200m,
-        diameter_as_share_of_edge=max_cluster_diameter_m / edge_m,
-        could_straddle_a_boundary=True,
-    )
+from pipeline.spatial.h3_grid import RESOLUTION_NATIONAL, PopulationPoint
 
 
 @dataclass(frozen=True)
@@ -213,6 +155,7 @@ def assess_rounding_sensitivity(
     budget: int,
     state_total: float,
     half_width: float = 50.0,
+    road_distances: Any = None,
 ) -> RoundingSensitivity:
     """A-3.4: re-run the greedy selection with the state total moved by +/- half_width."""
     from dataclasses import replace
@@ -221,7 +164,10 @@ def assess_rounding_sensitivity(
 
     def portfolio(scale: float) -> tuple[str, ...]:
         scaled = [replace(cell, demand_bev=cell.demand_bev * scale) for cell in cells]
-        candidates = build_candidates(scaled, saturation_ports_per_1k_demand=2.0)
+        candidates = build_candidates(
+            scaled, saturation_ports_per_1k_demand=2.0,
+            road_distances=road_distances,
+            allow_missing_roads=road_distances is None)
         return greedy_select(candidates, budget).selected
 
     if state_total <= 0:

@@ -41,7 +41,9 @@ from enum import StrEnum
 
 import h3
 
+from pipeline.model.build_demand import EQUITY_INDICATOR
 from pipeline.model.hexes import HexCell
+from pipeline.spatial.road_proximity import RoadDistances
 
 
 class SitingError(ValueError):
@@ -52,6 +54,7 @@ class ExclusionReason(StrEnum):
     """Why a cell is not a candidate. Every exclusion is named and counted (D8)."""
 
     UNINHABITED = "uninhabited"
+    BEYOND_ROAD_NETWORK = "beyond_road_network"
     ALREADY_SATURATED = "already_saturated"
 
 
@@ -91,6 +94,11 @@ class CandidateSet:
     excluded: Mapping[str, int]
     coverage: Mapping[str, tuple[str, ...]]
     coverage_k: int
+    road_filter: Mapping[str, object] | None = None
+    #: Cells admitted **without** the road filter having run, in degraded mode. Nonzero
+    #: means the published candidate set does not satisfy the §7.8 road constraint, and
+    #: the artifact says so rather than the number quietly standing in for a filtered one.
+    admitted_without_road_filter: int = 0
 
     def to_dict(self) -> dict[str, object]:
         return {
@@ -101,7 +109,12 @@ class CandidateSet:
                 round(sum(len(v) for v in self.coverage.values())
                       / max(len(self.coverage), 1), 3)),
             "no_mandatory_substation_filter": True,
-            "road_network_filter": "unavailable — see populated-area proxy in §7.9 note",
+            "road_network_filter": (
+                dict(self.road_filter) if self.road_filter is not None
+                else "NOT APPLIED — DEGRADED. These candidates do not satisfy the "
+                     "CLAUDE.md §7.8 road-proximity constraint."),
+            "cells_admitted_without_road_filter": self.admitted_without_road_filter,
+            "equity_objective_indicator": EQUITY_INDICATOR,
         }
 
 
@@ -123,26 +136,48 @@ def coverage_sets(
 def build_candidates(
     cells: Sequence[HexCell],
     saturation_ports_per_1k_demand: float,
+    road_distances: RoadDistances | None = None,
     minimum_population: float = 1.0,
     coverage_k: int = 1,
+    allow_missing_roads: bool = False,
 ) -> CandidateSet:
     """Filter cells to buildable candidates. **No substation filter (§7.9).**
 
-    Two filters apply, and both are named in the output:
+    Three filters apply, and every one is named and counted in the output:
 
-    * **uninhabited** — a cell with no resident population. This stands in for the road
-      network proximity filter §7.8 specifies, because **no road-network dataset was
-      retrieved** and substituting one silently is what directive D8 forbids. An
-      inhabited cell has roads; an uninhabited one is wilderness or water. It is a
-      *weaker* filter than the specified one, it is labelled as a degradation wherever
-      it appears, and the real filter is recorded in ``docs/FUTURE_WORK.md``.
+    * **beyond the road network** — no TIGER/Line primary or secondary road (MTFCC
+      ``S1100`` or ``S1200``) within the pre-registered distance of the cell centroid.
+      This is the filter CLAUDE.md §7.8 specifies. Its threshold, road classes and
+      distance method were fixed in
+      ``docs/evidence/P4-0_road_filter_preregistration.md`` before any candidate set was
+      recomputed.
+    * **uninhabited** — no resident population. This is retained **on its own merits**: a
+      cell with nobody in it is not a siting candidate. It was previously described as
+      standing in for the road filter, which it never was, and that framing is withdrawn.
     * **already saturated** — existing public operational DC fast ports per 1,000 BEV of
-      demand above the configured threshold. This is the only place supply enters
-      siting, and it is not a demand feature: D2 governs the demand model, not the
-      question of where capacity already exists.
+      demand above the configured threshold. This is the only place supply enters siting,
+      and it is not a demand feature: D2 governs the demand model, not the question of
+      where capacity already exists.
+
+    **Failure behaviour (D8).** Without road distances this raises. Passing every cell
+    through would silently drop the filter, and falling back to the population filter is
+    exactly the substitution this source exists to replace. A caller may set
+    ``allow_missing_roads`` to proceed, in which case every cell is recorded under
+    ``road_data_unavailable`` and the degradation appears in the published artifact.
+    Degradation is never the default and never silent.
     """
+    if road_distances is None and not allow_missing_roads:
+        raise SitingError(
+            "candidate construction needs road distances. CLAUDE.md §7.8 requires "
+            "candidates to be within a configured distance of the road network, and "
+            "TIGER/Line primary and secondary roads are the Core source for it. To "
+            "proceed without them, pass allow_missing_roads=True, which records every "
+            "cell as road_data_unavailable rather than pretending the filter ran."
+        )
+
     kept: list[Candidate] = []
     excluded: dict[str, int] = {}
+    degraded = 0
 
     def drop(reason: ExclusionReason) -> None:
         excluded[reason.value] = excluded.get(reason.value, 0) + 1
@@ -150,6 +185,14 @@ def build_candidates(
     for cell in cells:
         if cell.population < minimum_population:
             drop(ExclusionReason.UNINHABITED)
+            continue
+        if road_distances is None:
+            # Degraded: the filter did not run. The cell is admitted, and the count of
+            # such cells is published so nobody mistakes this candidate set for a
+            # road-filtered one.
+            degraded += 1
+        elif not road_distances.within(cell.h3_index):
+            drop(ExclusionReason.BEYOND_ROAD_NETWORK)
             continue
         if cell.demand_bev > 0:
             ports_per_1k = cell.supply.dcfc_ports * 1000.0 / cell.demand_bev
@@ -171,6 +214,9 @@ def build_candidates(
         excluded=excluded,
         coverage=coverage_sets([c.h3_index for c in kept], coverage_k),
         coverage_k=coverage_k,
+        road_filter=(None if road_distances is None
+                     else road_distances.to_dict([c.h3_index for c in cells])),
+        admitted_without_road_filter=degraded,
     )
 
 

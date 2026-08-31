@@ -269,6 +269,32 @@ def observations_document(
     }
 
 
+def load_observations(path: Path) -> dict[str, Any]:
+    """Read an existing sidecar."""
+    loaded: dict[str, Any] = json.loads(path.read_text(encoding="utf-8"))
+    return loaded
+
+
+def merge_observations(
+    existing: dict[str, Any], fresh: dict[str, Any]
+) -> dict[str, Any]:
+    """Overlay a partial probe's results onto the full sidecar, by source id.
+
+    A partial probe must never write only what it probed. The sidecar is the evidence
+    that each source was actually measured, so replacing it with a subset would silently
+    delete that evidence for every source the run did not touch — and the result would
+    read as a clean, well-formed file.
+    """
+    def by_id(document: dict[str, Any], key: str) -> dict[str, Any]:
+        return {entry["source_id"]: entry for entry in document.get(key, [])}
+
+    merged = dict(fresh)
+    for key in ("observations", "drift"):
+        combined = by_id(existing, key) | by_id(fresh, key)
+        merged[key] = [combined[k] for k in sorted(combined)]
+    return merged
+
+
 def write_observations(path: Path, document: dict[str, Any]) -> None:
     """Write the sidecar deterministically: sorted keys, 2-space indent, trailing newline."""
     path.write_text(json.dumps(document, indent=2, sort_keys=True) + "\n", encoding="utf-8")

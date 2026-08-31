@@ -188,7 +188,7 @@ def test_supply_attaches_to_cells_and_carries_no_kilowatt_figure(
     entry = next(iter(supply.values()))
     assert entry.dcfc_ports == 4.0
     assert entry.l2_ports == 2.0
-    assert entry.site_count == 1
+    assert entry.station_count == 1
 
 
 def test_private_and_non_operational_supply_is_excluded(tmp_path: Path) -> None:

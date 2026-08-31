@@ -37,6 +37,8 @@ from pipeline.discovery.contract import (
     Observation,
     evaluate_drift,
     load_contract,
+    load_observations,
+    merge_observations,
     observations_document,
     validate_contract,
     write_observations,
@@ -327,6 +329,11 @@ def main(argv: list[str] | None = None) -> int:
     fetcher = build_fetcher(args.offline, args.cache_root)
     observations, drifts = run(specs, fetcher, contract)
     document = observations_document(observations, drifts, GENERATOR)
+    if args.only and args.out.exists():
+        # A partial probe MERGES. Writing only the probed subset would silently delete
+        # every other source's observation, which reads as a clean file and is not: the
+        # sidecar is the evidence that each source was actually measured.
+        document = merge_observations(load_observations(args.out), document)
     if not args.no_write:
         write_observations(args.out, document)
 

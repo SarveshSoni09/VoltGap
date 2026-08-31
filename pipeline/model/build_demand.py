@@ -77,6 +77,20 @@ PROVENANCE_OBSERVED_COUNT = "native_registry_observed_count"
 PROVENANCE_ZERO_BY_ABSENCE = "native_registry_zero_by_absence"
 PROVENANCE_MODELLED = "modeled_reconciled"
 
+#: What the equity objective actually measures, published alongside every artifact that
+#: carries an equity number so a reader of the JSON alone cannot mistake it for a
+#: composite disadvantage index. CLAUDE.md §8 requires the primary equity measure to come
+#: from current ACS-derived indicators rather than the archived CEJST overlay, and §17
+#: forbids shipping a composite index without a weight-sensitivity control. This is ONE
+#: named indicator, so there are no weights to hand-pick — and correspondingly it is a
+#: narrower view of disadvantage than a composite would be.
+EQUITY_INDICATOR = (
+    "population in households with income below $35,000 a year, from the ACS "
+    "five-year feature income_share_under_35k multiplied by tract population. ONE "
+    "named current ACS-derived socioeconomic indicator, NOT a composite index and NOT "
+    "a general measure of disadvantage."
+)
+
 NATIVE_TRACT = EvidenceGrain.NATIVE_TRACT.value
 COUNTY_ANCHORED = EvidenceGrain.COUNTY_ANCHORED.value
 STATE_TOTAL_ONLY = EvidenceGrain.STATE_TOTAL_ONLY.value
