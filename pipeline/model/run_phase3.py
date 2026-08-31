@@ -357,7 +357,9 @@ def run(states: Sequence[str] = ALL_STATE_FIPS,
     candidate to exercise the plumbing without refitting the whole leaderboard.
     """
     tables = load_area_tables(states=states)
-    observations = load_all()
+    # Washington's geography ledger checks each tract against real Census geography, so
+    # a well-formed GEOID naming no actual tract is caught rather than counted.
+    observations = load_all(known_tracts=sorted(tables["tracts"].rows))
     panels = build_panels(observations, tables)
     loso = run_loso(panels, load_state_totals(), estimators=estimators)
     penalty, ladder = allocation_penalty()

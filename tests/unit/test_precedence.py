@@ -4,9 +4,15 @@ from __future__ import annotations
 
 import pytest
 
-from pipeline.model.observed import ObservedCount, StateObservations, StateTotal
+from pipeline.model.observed import (
+    STATEWIDE_VEHICLE_REGISTRY,
+    GeographyResolution,
+    ObservedCount,
+    StateObservations,
+    StateTotal,
+)
 from pipeline.model.precedence import (
-    NATIVE_SUPERSEDE_TOLERANCE,
+    EXTERNAL_AGREEMENT_REVIEW_THRESHOLD,
     PRECEDENCE,
     ConstraintSource,
     PrecedenceError,
@@ -19,7 +25,8 @@ from pipeline.validation.scope import ExclusionLedger
 
 
 def native(total: int, tracts: int = 3, state: str = "WA", prefix: str = "53",
-           balanced: bool = True) -> StateObservations:
+           balanced: bool = True, unresolved: int = 0,
+           scope: str = STATEWIDE_VEHICLE_REGISTRY) -> StateObservations:
     counts = tuple(
         ObservedCount(state, SourceGeography.TRACT, f"{prefix}033{i:06d}",
                       total // tracts, 0)
@@ -28,8 +35,13 @@ def native(total: int, tracts: int = 3, state: str = "WA", prefix: str = "53",
     actual = sum(c.bev_count for c in counts)
     ledger = (ExclusionLedger(actual, actual, {}, {}) if balanced
               else ExclusionLedger(actual + 5, actual, {}, {}))
+    resolution = GeographyResolution(
+        total_records=actual + unresolved, in_jurisdiction_records=actual + unresolved,
+        in_jurisdiction_placed=actual, out_of_jurisdiction_records=0,
+        invalid_tract_format=unresolved, tract_not_in_jurisdiction_geography=0)
     return StateObservations(state, SourceGeography.TRACT, "current snapshot",
-                             counts, ledger)
+                             counts, ledger, publisher_scope=scope,
+                             resolution=resolution)
 
 
 def county(total: int, state: str = "MT") -> StateObservations:
@@ -78,24 +90,46 @@ def test_a_source_reaching_outside_the_jurisdiction_disqualifies() -> None:
     assert "outside the jurisdiction" in reason
 
 
-def test_a_native_total_far_from_the_external_total_does_not_qualify() -> None:
-    """A partial extract must not silently become a jurisdiction's constraint."""
-    ok, reason = native_source_qualifies(native(300), "53", external(1000))
-    assert not ok
-    assert "beyond the 10% tolerance" in reason
-    assert NATIVE_SUPERSEDE_TOLERANCE == 0.10
+def test_external_agreement_is_a_diagnostic_and_gates_nothing() -> None:
+    """A source can agree closely while omitting a region, or disagree widely while
+    being exhaustive over a differently-defined population. Agreement proves neither."""
+    from pipeline.model.precedence import assess_native_source
+
+    far = assess_native_source(native(300), "53", external(1000))
+    assert far.is_complete is True          # completeness does not depend on agreement
+    assert far.licenses_zero_completion is True
+    assert far.external_agreement_within_review_threshold is False
+    assert EXTERNAL_AGREEMENT_REVIEW_THRESHOLD == 0.10
+    close = assess_native_source(native(300), "53", external(303))
+    assert close.external_agreement_within_review_threshold is True
 
 
-def test_without_an_external_total_completeness_cannot_be_demonstrated() -> None:
-    ok, reason = native_source_qualifies(native(300), "53", None)
-    assert not ok
-    assert "cannot be demonstrated" in reason
+def test_completeness_does_not_require_an_external_total_at_all() -> None:
+    """Completeness is a property of the source, not of a third-party aggregate."""
+    ok, _ = native_source_qualifies(native(300), "53", None)
+    assert ok
 
 
-def test_a_non_positive_external_total_cannot_corroborate() -> None:
-    ok, reason = native_source_qualifies(native(300), "53", external(0))
-    assert not ok
-    assert "not positive" in reason
+def test_an_unplaced_in_jurisdiction_record_refuses_the_zero_completion_licence() -> None:
+    """A tract absent while a record is unplaced may not be completed to zero: that
+    record could belong to it."""
+    from pipeline.model.precedence import assess_native_source
+
+    assessment = assess_native_source(native(300, unresolved=1), "53", external(303))
+    assert assessment.is_complete is True
+    assert assessment.licenses_zero_completion is False
+    assert assessment.unresolved_in_jurisdiction == 1
+    assert "could belong to an unnamed area" in assessment.zero_completion_reason
+
+
+def test_a_fully_resolved_registry_licenses_a_completed_zero() -> None:
+    from pipeline.model.precedence import assess_native_source
+
+    assessment = assess_native_source(native(300), "53", external(303))
+    assert assessment.licenses_zero_completion is True
+    assert "COMPLETED ZERO" in assessment.zero_completion_reason
+    assert "not a" in assessment.zero_completion_reason
+    assert "literal zero-valued source row" in assessment.zero_completion_reason
 
 
 # --- resolution ------------------------------------------------------------------------
@@ -113,10 +147,10 @@ def test_a_qualifying_native_source_supersedes_and_records_what_it_displaced() -
     assert published[0]["total"] == 303.0
 
 
-def test_a_disqualified_native_source_falls_back_to_the_external_total() -> None:
-    op = resolve("53", native(300), external(1000), None)
+def test_a_source_without_declared_jurisdiction_wide_scope_cannot_supersede() -> None:
+    op = resolve("53", native(300, scope="partial_or_undeclared"), external(303), None)
     assert op.chosen.source is ConstraintSource.STATE_REGISTRATION_TOTAL
-    assert op.total == 1000.0
+    assert op.total == 303.0
     assert op.superseded == ()
 
 

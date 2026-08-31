@@ -1487,13 +1487,20 @@ appears in the decomposition. The identity closes twice over:
 
 **Option B: a qualifying native sub-state source supersedes a coarser external total.**
 
-This is not a new rule. CLAUDE.md §7.3 already says tract estimates "reconcile exactly to
-**reliable county totals where they exist** and to state totals everywhere else" — finer,
-more reliable evidence displaces a coarser external total. Tennessee already demonstrates
-it in the shipped surface: its complete county observations displace its AFDC state total,
-53,029 against 55,400. §7.4.1 puts `native_tract` at the top of the same evidence
-hierarchy. Extending the existing rule one rung to the grain it already ranks highest is
-the coherent choice; inventing a special case for Washington would not be.
+> ~~This is not a new rule.~~ **Corrected 2026-08-31 on external review (§17.4): the
+> native-registry rung was NOT unambiguously specified before this review.** CLAUDE.md
+> §7.3 specifies county-over-state precedence, and §7.4.1 ranks `native_tract` highest as
+> *evidence*, but neither states that a native tract registry supersedes a state
+> *constraint*. That rung is an **externally reviewed clarification introduced here**, not
+> a pre-existing rule being restated.
+
+CLAUDE.md §7.3 says tract estimates "reconcile exactly to **reliable county totals where
+they exist** and to state totals everywhere else" — finer, more reliable evidence displaces
+a coarser external total — and Tennessee already demonstrates that rung in the shipped
+surface, its complete county observations displacing its AFDC state total, 53,029 against
+55,400. §7.4.1 separately ranks `native_tract` at the top of the evidence hierarchy.
+Extending the precedence one rung to that grain is consistent with both, but it is an
+extension.
 
 **It was chosen on source quality, coverage, vintage and the existing hierarchy — not on
 which option preserved a preferred number.** The corrected national total is in fact
@@ -1627,3 +1634,143 @@ reconciliation identity and the poisoned-substitution negative test, and four up
 audit checks to the corrected invariants. **No acceptance criterion was weakened.** The
 gate failed twice during this pass — a typing error in a new test, then two audit checks
 still asserting the pre-correction values — and both were fixed rather than accommodated.
+
+---
+
+# 17. External Review Correction — zero-by-absence proven, completeness redefined (2026-08-31)
+
+A-3.13 could not remain an assumption while 15 Washington tracts were hard-constrained to
+zero on the strength of it. It is now **proven from the source**, and the completeness rule
+that licensed it has been rebuilt on the right foundation.
+
+## 17.1 Washington geography-resolution ledger
+
+Over the exact BEV snapshot the production surface uses, mutually exclusive by the
+**tract field alone**:
+
+| Category | BEV records |
+|---|---:|
+| valid in-state tract | **236,994** |
+| null / missing tract | **8** |
+| invalid tract format | 0 |
+| tract outside Washington | **565** |
+| well-formed but not a Census tract | **0** |
+| **Total BEV records** | **237,567** |
+
+`236,994 + 8 + 0 + 565 + 0 = 237,567` — **balances exactly**. And the sum of BEV counts
+across valid tract GEOIDs is **236,994**, equal to the count claimed as resolved.
+
+**The eight null-tract records are not unresolved-within-Washington.** Each carries a
+**non-Washington `state` field**: 5 × BC, 1 × QC, 1 × AE (APO/FPO), 1 × NH. They have null
+county, null city and null ZIP because the address of record is outside Washington
+entirely. Classifying them by the tract field alone was the wrong taxonomy.
+
+Resolved by the source's own jurisdiction field, the decisive test:
+
+| Test | Result |
+|---|---|
+| BEV records with `state == 'WA'` | **236,994** |
+| of those, **not** placed in a valid in-state Census tract | **0** |
+| every WA-addressed BEV is placed | **TRUE** |
+| BEV records not placed in a WA tract, having a null `state` | **0** |
+
+The correspondence is exact in both directions: `state == 'WA'` ⟺ placed in a valid
+Washington tract, 236,994 = 236,994. The 573 unplaced records are **every one of them
+non-WA-addressed** (CA 139, VA 78, FL 36, … BC 5, AE 1, QC 1); not a single one has a null
+jurisdiction.
+
+**`unresolved_in_jurisdiction = 0`.**
+
+## 17.2 A-3.13 is RESOLVED
+
+The registry is exhaustively geographically resolved over its Washington-addressed
+population, so a Washington tract absent from it holds **zero** WA-addressed registered
+BEVs. Completing the 15 absent tracts to zero is licensed.
+
+**They are completed zeros from an exhaustive registry, not literal zero-valued source
+rows**, and the published surface says so explicitly. Every tract now carries
+`value_provenance`:
+
+| Value | Meaning | Tracts |
+|---|---|---:|
+| `native_registry_observed_count` | a source row named this tract and gave this count | 1,769 |
+| `native_registry_zero_by_absence` | **completed zero**: an exhaustively resolved registry does not name this tract, so it holds none | **15** |
+| `modeled_reconciled` | modelled and reconciled to its operative constraint | 82,617 |
+
+Those 15 keep `estimate_method = modeled` — no source row named them, so they are not
+`directly_observed` — while `evidence_grain = native_tract`, because the registry does
+cover them and reports nothing. The two orthogonal fields plus the new provenance field
+carry the full distinction, which is exactly what amendment A2 asks of them.
+
+## 17.3 Completeness redefined
+
+**Agreement with an external total is no longer a completeness test.** It was wrong in
+both directions: a source can agree closely while omitting a whole region, and disagree
+widely while being exhaustive over a differently-defined population.
+
+| Concept | Basis | Gates anything? |
+|---|---|---|
+| **Source completeness** | declared **publisher scope** (`statewide_vehicle_registry`), native tract grain, a **balanced record ledger**, every observed tract inside the jurisdiction, and published geography accounting | **Yes** — required to supersede |
+| **Zero-completion licence** | additionally **`unresolved_in_jurisdiction == 0`** | **Yes** — required before an unnamed area may be read as zero |
+| **External agreement** | closeness to the AFDC total (Washington: **0.25%**) | **No** — a review diagnostic, reported and nothing more |
+
+**Superseding now requires the zero-completion licence too.** A source that cannot place
+every in-jurisdiction record falls back **entirely** to the external total rather than
+constraining its named tracts and needing an invented residual for the rest — which is the
+double count of I-15 in another guise. The observations remain training and validation
+evidence. `test_without_the_zero_completion_licence_absent_tracts_are_not_zeroed` proves
+the fallback.
+
+## 17.4 Constraint hierarchy — externally reviewed clarification
+
+```
+complete native tract registry
+    > complete reliable county observations
+        > external state registration total
+```
+
+**This is recorded as a clarification introduced by external review, not as a
+restatement of something already unambiguously specified.** CLAUDE.md §7.3 specifies
+county-over-state precedence and §7.4.1 ranks `native_tract` highest as *evidence*, but
+neither states that a native tract registry supersedes a state *constraint*. §16.2's
+claim that "this is not a new rule" overstated it and is struck above. Superseded
+constraints remain preserved as provenance.
+
+## 17.5 Outcome
+
+| | Value |
+|---|---:|
+| National identity | `5,616,923.0000 == 5,616,923.0000` |
+| Imbalance | **0.0** |
+| `unconstrained_sum` | 0.0 |
+| Washington | 236,994, its own operative total |
+| Zero-by-absence tracts | 15, summing to exactly 0.0 |
+
+**The national total is unchanged at 5,616,923** — the licence was earned, so the accepted
+figure stands on proof rather than on assumption. No estimator, LOSO metric, ACS decision,
+NJ figure, ZIP policy, uncertainty weight or ladder value moved.
+
+## 17.6 New defect found
+
+**None.** The investigation the review demanded produced a *correction to the reasoning*
+and to the completeness rule, not a wrong published number: the 15 zeros were right, but
+they had been justified by an argument that did not hold (absence of a source row) and
+gated by a test that could not establish what it claimed (agreement with AFDC).
+
+## 17.7 Gate evidence
+
+| Step | Result |
+|---|---|
+| 1. lint | ruff clean; `mypy --strict` clean over 101 source files |
+| 2. full test suite | **935 passed, 47 deselected** in 97.57s |
+| 3. coverage | **100% line and branch on every tier**: 4,339 statements, 1,060 branches, zero missed |
+| 4. prior gate suites (Phase 0, 1, 2) | pass |
+| 5. Phase 3 acceptance criteria | **20 passed** |
+| 6. D3 copy lint | clean, 143 files |
+| 7. semantic determinism | pass |
+| 8. one-command rebuild | pass |
+| **Verdict** | **PASS** |
+
+The gate failed once during this pass, on a coverage shortfall of three statements in the
+new geography ledger, and was fixed by testing the uncovered paths rather than by lowering
+the threshold.

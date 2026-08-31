@@ -56,6 +56,11 @@ CSV_READ_OPTIONS = "header=true, all_varchar=true, quote='\"', escape='\"'"
 BEV = "BEV"
 PHEV = "PHEV"
 
+#: Declared publisher scope values. Only an exhaustive jurisdiction-wide enumeration can
+#: establish that an area it does not name holds zero.
+STATEWIDE_VEHICLE_REGISTRY = "statewide_vehicle_registry"
+PARTIAL_OR_UNDECLARED = "partial_or_undeclared"
+
 #: Source geography per state, declared and never inferred (CLAUDE.md §7.5.1).
 STATE_GEOGRAPHY: Mapping[str, SourceGeography] = {
     "CO": SourceGeography.USPS_ZIP,
@@ -111,6 +116,63 @@ class ObservedCount:
 
 
 @dataclass(frozen=True)
+class GeographyResolution:
+    """How completely a registry places its own in-jurisdiction records.
+
+    **This, not agreement with an external total, is what establishes completeness.** A
+    registry may be exhaustive over the vehicles it registers and still fail to geocode
+    some of them; a tract absent from a source with unplaced in-jurisdiction records
+    cannot be completed to zero, because one of those records might belong to it.
+
+    ``in_jurisdiction_records`` counts records whose **address of record** is in the
+    jurisdiction, read from the source's own state field rather than inferred from the
+    tract. That distinction is the whole point: Washington's eight BEV rows with a null
+    tract all carry a non-Washington state (BC, QC, AE, NH), so they are *resolved as
+    out-of-state*, not unresolved within Washington.
+    """
+
+    total_records: int
+    in_jurisdiction_records: int
+    in_jurisdiction_placed: int
+    out_of_jurisdiction_records: int
+    invalid_tract_format: int
+    tract_not_in_jurisdiction_geography: int
+
+    @property
+    def unresolved_in_jurisdiction(self) -> int:
+        """In-jurisdiction records the source could not place. Must be 0 for zero-completion."""
+        return self.in_jurisdiction_records - self.in_jurisdiction_placed
+
+    @property
+    def fully_resolved(self) -> bool:
+        return self.unresolved_in_jurisdiction == 0
+
+    def assert_balanced(self) -> None:
+        total = self.in_jurisdiction_records + self.out_of_jurisdiction_records
+        if total != self.total_records:
+            raise ObservationError(
+                f"geography ledger does not balance: {self.total_records} records != "
+                f"{self.in_jurisdiction_records} in-jurisdiction + "
+                f"{self.out_of_jurisdiction_records} out-of-jurisdiction"
+            )
+
+    def to_dict(self) -> dict[str, object]:
+        self.assert_balanced()
+        return {
+            "total_records": self.total_records,
+            "in_jurisdiction_records": self.in_jurisdiction_records,
+            "in_jurisdiction_placed_in_a_valid_tract": self.in_jurisdiction_placed,
+            "unresolved_in_jurisdiction": self.unresolved_in_jurisdiction,
+            "out_of_jurisdiction_records": self.out_of_jurisdiction_records,
+            "invalid_tract_format": self.invalid_tract_format,
+            "tract_not_in_jurisdiction_geography":
+                self.tract_not_in_jurisdiction_geography,
+            "fully_resolved": self.fully_resolved,
+            "balances": True,
+        }
+
+
+@dataclass(frozen=True)
 class StateObservations:
     """Every observation for one state, plus the accounting for what was excluded."""
 
@@ -119,6 +181,10 @@ class StateObservations:
     vintage_label: str
     counts: tuple[ObservedCount, ...]
     ledger: ExclusionLedger
+    #: Declared publisher scope. A source that does not claim to enumerate the whole
+    #: jurisdiction cannot establish that an absent area holds zero.
+    publisher_scope: str = "unknown"
+    resolution: GeographyResolution | None = None
 
     @property
     def total_bev(self) -> int:
@@ -134,6 +200,9 @@ class StateObservations:
             "total_bev": self.total_bev,
             "total_phev": sum(c.phev_count for c in self.counts),
             "record_accounting": self.ledger.to_dict(),
+            "publisher_scope": self.publisher_scope,
+            "geography_resolution": (None if self.resolution is None
+                                     else self.resolution.to_dict()),
         }
 
 
@@ -252,13 +321,24 @@ def load_atlas_state(
     return StateObservations(state, geography, label, counts, ledger)
 
 
-def load_washington(path: Path | None = None) -> StateObservations:
+def load_washington(
+    path: Path | None = None,
+    known_tracts: Sequence[str] | None = None,
+) -> StateObservations:
     """Washington's tract-grain observations: the only natively tract-keyed source.
 
     Washington is the **preprocessing-method-selection state** (Phase 3 pre-registration
     §2): it chose HUD ``res_ratio`` over land-area weighting, so any leave-one-state-out
     result it produces is tuning-influenced and is excluded from the independent
-    aggregate. It is loaded here because it is still reported, separately and labelled.
+    aggregate. It is loaded here because it is still reported, and because it is training
+    evidence and - where it proves itself exhaustive - a constraint.
+
+    **The geography ledger built here is what licenses zero-completion, or refuses it.**
+    A record's jurisdiction is read from the source's own ``state`` field, not inferred
+    from its tract: the eight BEV rows with a null tract all carry a non-Washington state
+    (BC, QC, AE, NH), so they are out-of-jurisdiction rather than unplaced. Passing
+    ``known_tracts`` additionally checks each tract against real Census geography, so a
+    well-formed GEOID that names no actual tract is caught rather than counted.
     """
     import json
 
@@ -266,6 +346,8 @@ def load_washington(path: Path | None = None) -> StateObservations:
     if not source.exists():
         raise ObservationError(f"Washington records missing at {source}")
     records = json.loads(source.read_text(encoding="utf-8"))
+    valid_tracts = set(known_tracts) if known_tracts is not None else None
+    fips = STATE_FIPS["WA"]
 
     excluded: dict[str, int] = {}
     descriptions: dict[str, str] = {}
@@ -276,21 +358,44 @@ def load_washington(path: Path | None = None) -> StateObservations:
 
     bev: dict[str, int] = {}
     phev: dict[str, int] = {}
+    counters = dict.fromkeys(
+        ("bev_total", "in_jurisdiction", "in_jurisdiction_placed",
+         "out_of_jurisdiction", "invalid_format", "tract_not_real"), 0)
+
     for record in records:
         tract = "".join(c for c in str(record.get("_2020_census_tract") or "")
                         if c.isdigit())
         kind = str(record.get("ev_type") or "")
+        addressed_here = str(record.get("state") or "").upper() == "WA"
+        is_bev = "BEV" in kind
+
+        if is_bev:
+            counters["bev_total"] += 1
+            counters["in_jurisdiction" if addressed_here
+                     else "out_of_jurisdiction"] += 1
+            if len(tract) != 11:
+                counters["invalid_format"] += 1
+            elif valid_tracts is not None and tract not in valid_tracts:
+                counters["tract_not_real"] += 1
+            elif addressed_here and tract.startswith(fips):
+                counters["in_jurisdiction_placed"] += 1
+
         if len(tract) != 11:
             drop("tract_unusable",
                  "the row carries no 11-digit 2020 census tract, so it cannot be "
                  "placed at the geography this source is valued for")
             continue
-        if not tract.startswith(STATE_FIPS["WA"]):
+        if not tract.startswith(fips):
             drop("tract_outside_state",
                  "the geocoded tract lies outside Washington; the vehicle is "
-                 "registered in-state but geocoded elsewhere")
+                 "registered in-state but addressed elsewhere")
             continue
-        if "BEV" in kind:
+        if valid_tracts is not None and tract not in valid_tracts:
+            drop("tract_not_in_census_geography",
+                 "the GEOID is well formed and in-state but names no tract in the "
+                 "current Census geography, so it cannot be placed")
+            continue
+        if is_bev:
             bev[tract] = bev.get(tract, 0) + 1
         elif "PHEV" in kind:
             phev[tract] = phev.get(tract, 0) + 1
@@ -311,20 +416,32 @@ def load_washington(path: Path | None = None) -> StateObservations:
         descriptions=descriptions,
     )
     ledger.assert_balanced()
+    resolution = GeographyResolution(
+        total_records=counters["bev_total"],
+        in_jurisdiction_records=counters["in_jurisdiction"],
+        in_jurisdiction_placed=counters["in_jurisdiction_placed"],
+        out_of_jurisdiction_records=counters["out_of_jurisdiction"],
+        invalid_tract_format=counters["invalid_format"],
+        tract_not_in_jurisdiction_geography=counters["tract_not_real"],
+    )
+    resolution.assert_balanced()
     return StateObservations("WA", SourceGeography.TRACT, "current snapshot",
-                             counts, ledger)
+                             counts, ledger,
+                             publisher_scope=STATEWIDE_VEHICLE_REGISTRY,
+                             resolution=resolution)
 
 
 def load_all(
     states: Sequence[str] = tuple(STATE_GEOGRAPHY),
     directory: Path | None = None,
     washington_path: Path | None = None,
+    known_tracts: Sequence[str] | None = None,
 ) -> dict[str, StateObservations]:
     """Every declared sub-state source, keyed by state code."""
     connection = duckdb.connect()
     out: dict[str, StateObservations] = {}
     for state in states:
-        out[state] = (load_washington(washington_path) if state == "WA"
+        out[state] = (load_washington(washington_path, known_tracts) if state == "WA"
                       else load_atlas_state(state, directory, connection))
     return out
 

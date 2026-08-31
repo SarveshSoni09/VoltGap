@@ -2487,6 +2487,7 @@
         "chosen_constraint_total": 24400.0,
         "chosen_constraint_vintage": "2025",
         "constraint_precedence_reason": "external state registration total; no finer source qualified",
+        "source_assessment": null,
         "state_fips": "01",
         "superseded_constraints": []
       },
@@ -2495,6 +2496,7 @@
         "chosen_constraint_total": 4100.0,
         "chosen_constraint_vintage": "2025",
         "constraint_precedence_reason": "external state registration total; no finer source qualified",
+        "source_assessment": null,
         "state_fips": "02",
         "superseded_constraints": []
       },
@@ -2503,6 +2505,7 @@
         "chosen_constraint_total": 141800.0,
         "chosen_constraint_vintage": "2025",
         "constraint_precedence_reason": "external state registration total; no finer source qualified",
+        "source_assessment": null,
         "state_fips": "04",
         "superseded_constraints": []
       },
@@ -2511,6 +2514,7 @@
         "chosen_constraint_total": 12300.0,
         "chosen_constraint_vintage": "2025",
         "constraint_precedence_reason": "external state registration total; no finer source qualified",
+        "source_assessment": null,
         "state_fips": "05",
         "superseded_constraints": []
       },
@@ -2519,6 +2523,7 @@
         "chosen_constraint_total": 1843100.0,
         "chosen_constraint_vintage": "2025",
         "constraint_precedence_reason": "external state registration total; no finer source qualified",
+        "source_assessment": null,
         "state_fips": "06",
         "superseded_constraints": []
       },
@@ -2527,6 +2532,7 @@
         "chosen_constraint_total": 162800.0,
         "chosen_constraint_vintage": "2025",
         "constraint_precedence_reason": "external state registration total; no finer source qualified",
+        "source_assessment": null,
         "state_fips": "08",
         "superseded_constraints": []
       },
@@ -2535,6 +2541,7 @@
         "chosen_constraint_total": 48800.0,
         "chosen_constraint_vintage": "2025",
         "constraint_precedence_reason": "external state registration total; no finer source qualified",
+        "source_assessment": null,
         "state_fips": "09",
         "superseded_constraints": []
       },
@@ -2543,6 +2550,7 @@
         "chosen_constraint_total": 16000.0,
         "chosen_constraint_vintage": "2025",
         "constraint_precedence_reason": "external state registration total; no finer source qualified",
+        "source_assessment": null,
         "state_fips": "10",
         "superseded_constraints": []
       },
@@ -2551,6 +2559,7 @@
         "chosen_constraint_total": 12900.0,
         "chosen_constraint_vintage": "2025",
         "constraint_precedence_reason": "external state registration total; no finer source qualified",
+        "source_assessment": null,
         "state_fips": "11",
         "superseded_constraints": []
       },
@@ -2559,6 +2568,7 @@
         "chosen_constraint_total": 450400.0,
         "chosen_constraint_vintage": "2025",
         "constraint_precedence_reason": "external state registration total; no finer source qualified",
+        "source_assessment": null,
         "state_fips": "12",
         "superseded_constraints": []
       },
@@ -2567,6 +2577,7 @@
         "chosen_constraint_total": 161200.0,
         "chosen_constraint_vintage": "2025",
         "constraint_precedence_reason": "external state registration total; no finer source qualified",
+        "source_assessment": null,
         "state_fips": "13",
         "superseded_constraints": []
       },
@@ -2575,6 +2586,7 @@
         "chosen_constraint_total": 35100.0,
         "chosen_constraint_vintage": "2025",
         "constraint_precedence_reason": "external state registration total; no finer source qualified",
+        "source_assessment": null,
         "state_fips": "15",
         "superseded_constraints": []
       },
@@ -2583,6 +2595,7 @@
         "chosen_constraint_total": 14100.0,
         "chosen_constraint_vintage": "2025",
         "constraint_precedence_reason": "external state registration total; no finer source qualified",
+        "source_assessment": null,
         "state_fips": "16",
         "superseded_constraints": []
       },
@@ -2591,6 +2604,7 @@
         "chosen_constraint_total": 164900.0,
         "chosen_constraint_vintage": "2025",
         "constraint_precedence_reason": "external state registration total; no finer source qualified",
+        "source_assessment": null,
         "state_fips": "17",
         "superseded_constraints": []
       },
@@ -2599,6 +2613,7 @@
         "chosen_constraint_total": 47200.0,
         "chosen_constraint_vintage": "2025",
         "constraint_precedence_reason": "external state registration total; no finer source qualified",
+        "source_assessment": null,
         "state_fips": "18",
         "superseded_constraints": []
       },
@@ -2607,6 +2622,7 @@
         "chosen_constraint_total": 15100.0,
         "chosen_constraint_vintage": "2025",
         "constraint_precedence_reason": "external state registration total; no finer source qualified",
+        "source_assessment": null,
         "state_fips": "19",
         "superseded_constraints": []
       },
@@ -2615,6 +2631,7 @@
         "chosen_constraint_total": 18700.0,
         "chosen_constraint_vintage": "2025",
         "constraint_precedence_reason": "external state registration total; no finer source qualified",
+        "source_assessment": null,
         "state_fips": "20",
         "superseded_constraints": []
       },
@@ -2623,6 +2640,7 @@
         "chosen_constraint_total": 20700.0,
         "chosen_constraint_vintage": "2025",
         "constraint_precedence_reason": "external state registration total; no finer source qualified",
+        "source_assessment": null,
         "state_fips": "21",
         "superseded_constraints": []
       },
@@ -2631,6 +2649,7 @@
         "chosen_constraint_total": 22600.0,
         "chosen_constraint_vintage": "2025",
         "constraint_precedence_reason": "external state registration total; no finer source qualified",
+        "source_assessment": null,
         "state_fips": "22",
         "superseded_constraints": []
       },
@@ -2639,6 +2658,7 @@
         "chosen_constraint_total": 11900.0,
         "chosen_constraint_vintage": "2025",
         "constraint_precedence_reason": "external state registration total; no finer source qualified",
+        "source_assessment": null,
         "state_fips": "23",
         "superseded_constraints": []
       },
@@ -2647,6 +2667,7 @@
         "chosen_constraint_total": 120500.0,
         "chosen_constraint_vintage": "2025",
         "constraint_precedence_reason": "external state registration total; no finer source qualified",
+        "source_assessment": null,
         "state_fips": "24",
         "superseded_constraints": []
       },
@@ -2655,6 +2676,7 @@
         "chosen_constraint_total": 113900.0,
         "chosen_constraint_vintage": "2025",
         "constraint_precedence_reason": "external state registration total; no finer source qualified",
+        "source_assessment": null,
         "state_fips": "25",
         "superseded_constraints": []
       },
@@ -2663,6 +2685,7 @@
         "chosen_constraint_total": 112600.0,
         "chosen_constraint_vintage": "2025",
         "constraint_precedence_reason": "external state registration total; no finer source qualified",
+        "source_assessment": null,
         "state_fips": "26",
         "superseded_constraints": []
       },
@@ -2671,6 +2694,7 @@
         "chosen_constraint_total": 59800.0,
         "chosen_constraint_vintage": "2025",
         "constraint_precedence_reason": "external state registration total; no finer source qualified",
+        "source_assessment": null,
         "state_fips": "27",
         "superseded_constraints": []
       },
@@ -2679,6 +2703,7 @@
         "chosen_constraint_total": 7200.0,
         "chosen_constraint_vintage": "2025",
         "constraint_precedence_reason": "external state registration total; no finer source qualified",
+        "source_assessment": null,
         "state_fips": "28",
         "superseded_constraints": []
       },
@@ -2687,6 +2712,7 @@
         "chosen_constraint_total": 43700.0,
         "chosen_constraint_vintage": "2025",
         "constraint_precedence_reason": "external state registration total; no finer source qualified",
+        "source_assessment": null,
         "state_fips": "29",
         "superseded_constraints": []
       },
@@ -2695,6 +2721,7 @@
         "chosen_constraint_total": 6900.0,
         "chosen_constraint_vintage": "2025",
         "constraint_precedence_reason": "external state registration total, decomposed across 51 observed counties with the remainder constrained to the residual. County coverage is incomplete, so the counties partition the state total rather than superseding it (impact I-15)",
+        "source_assessment": null,
         "state_fips": "30",
         "superseded_constraints": []
       },
@@ -2703,6 +2730,7 @@
         "chosen_constraint_total": 11800.0,
         "chosen_constraint_vintage": "2025",
         "constraint_precedence_reason": "external state registration total; no finer source qualified",
+        "source_assessment": null,
         "state_fips": "31",
         "superseded_constraints": []
       },
@@ -2711,6 +2739,7 @@
         "chosen_constraint_total": 85600.0,
         "chosen_constraint_vintage": "2025",
         "constraint_precedence_reason": "external state registration total; no finer source qualified",
+        "source_assessment": null,
         "state_fips": "32",
         "superseded_constraints": []
       },
@@ -2719,6 +2748,7 @@
         "chosen_constraint_total": 16100.0,
         "chosen_constraint_vintage": "2025",
         "constraint_precedence_reason": "external state registration total; no finer source qualified",
+        "source_assessment": null,
         "state_fips": "33",
         "superseded_constraints": []
       },
@@ -2727,6 +2757,7 @@
         "chosen_constraint_total": 210000.0,
         "chosen_constraint_vintage": "2025",
         "constraint_precedence_reason": "external state registration total; no finer source qualified",
+        "source_assessment": null,
         "state_fips": "34",
         "superseded_constraints": []
       },
@@ -2735,6 +2766,7 @@
         "chosen_constraint_total": 16600.0,
         "chosen_constraint_vintage": "2025",
         "constraint_precedence_reason": "external state registration total; no finer source qualified",
+        "source_assessment": null,
         "state_fips": "35",
         "superseded_constraints": []
       },
@@ -2743,6 +2775,7 @@
         "chosen_constraint_total": 209300.0,
         "chosen_constraint_vintage": "2025",
         "constraint_precedence_reason": "external state registration total; no finer source qualified",
+        "source_assessment": null,
         "state_fips": "36",
         "superseded_constraints": []
       },
@@ -2751,6 +2784,7 @@
         "chosen_constraint_total": 70200.0,
         "chosen_constraint_vintage": "2023",
         "constraint_precedence_reason": "external state registration total; no finer source qualified",
+        "source_assessment": null,
         "state_fips": "37",
         "superseded_constraints": []
       },
@@ -2759,6 +2793,7 @@
         "chosen_constraint_total": 1900.0,
         "chosen_constraint_vintage": "2025",
         "constraint_precedence_reason": "external state registration total; no finer source qualified",
+        "source_assessment": null,
         "state_fips": "38",
         "superseded_constraints": []
       },
@@ -2767,6 +2802,7 @@
         "chosen_constraint_total": 94200.0,
         "chosen_constraint_vintage": "2025",
         "constraint_precedence_reason": "external state registration total; no finer source qualified",
+        "source_assessment": null,
         "state_fips": "39",
         "superseded_constraints": []
       },
@@ -2775,6 +2811,7 @@
         "chosen_constraint_total": 26800.0,
         "chosen_constraint_vintage": "2025",
         "constraint_precedence_reason": "external state registration total; no finer source qualified",
+        "source_assessment": null,
         "state_fips": "40",
         "superseded_constraints": []
       },
@@ -2783,6 +2820,7 @@
         "chosen_constraint_total": 78400.0,
         "chosen_constraint_vintage": "2024",
         "constraint_precedence_reason": "external state registration total; no finer source qualified",
+        "source_assessment": null,
         "state_fips": "41",
         "superseded_constraints": []
       },
@@ -2791,6 +2829,7 @@
         "chosen_constraint_total": 113400.0,
         "chosen_constraint_vintage": "2025",
         "constraint_precedence_reason": "external state registration total; no finer source qualified",
+        "source_assessment": null,
         "state_fips": "42",
         "superseded_constraints": []
       },
@@ -2799,6 +2838,7 @@
         "chosen_constraint_total": 9800.0,
         "chosen_constraint_vintage": "2025",
         "constraint_precedence_reason": "external state registration total; no finer source qualified",
+        "source_assessment": null,
         "state_fips": "44",
         "superseded_constraints": []
       },
@@ -2807,6 +2847,7 @@
         "chosen_constraint_total": 35700.0,
         "chosen_constraint_vintage": "2025",
         "constraint_precedence_reason": "external state registration total; no finer source qualified",
+        "source_assessment": null,
         "state_fips": "45",
         "superseded_constraints": []
       },
@@ -2815,6 +2856,7 @@
         "chosen_constraint_total": 3000.0,
         "chosen_constraint_vintage": "2025",
         "constraint_precedence_reason": "external state registration total; no finer source qualified",
+        "source_assessment": null,
         "state_fips": "46",
         "superseded_constraints": []
       },
@@ -2823,6 +2865,7 @@
         "chosen_constraint_total": 53029.0,
         "chosen_constraint_vintage": "DMV Snapshot (12/31/2025)",
         "constraint_precedence_reason": "complete county coverage: 95 observed counties span the jurisdiction, so they supersede the coarser external state total (CLAUDE.md \u00a77.3)",
+        "source_assessment": null,
         "state_fips": "47",
         "superseded_constraints": [
           {
@@ -2839,6 +2882,7 @@
         "chosen_constraint_total": 387400.0,
         "chosen_constraint_vintage": "2025",
         "constraint_precedence_reason": "external state registration total; no finer source qualified",
+        "source_assessment": null,
         "state_fips": "48",
         "superseded_constraints": []
       },
@@ -2847,6 +2891,7 @@
         "chosen_constraint_total": 68400.0,
         "chosen_constraint_vintage": "2025",
         "constraint_precedence_reason": "external state registration total; no finer source qualified",
+        "source_assessment": null,
         "state_fips": "49",
         "superseded_constraints": []
       },
@@ -2855,6 +2900,7 @@
         "chosen_constraint_total": 11900.0,
         "chosen_constraint_vintage": "2025",
         "constraint_precedence_reason": "external state registration total; no finer source qualified",
+        "source_assessment": null,
         "state_fips": "50",
         "superseded_constraints": []
       },
@@ -2863,6 +2909,7 @@
         "chosen_constraint_total": 134900.0,
         "chosen_constraint_vintage": "2025",
         "constraint_precedence_reason": "external state registration total, decomposed across 129 observed counties with the remainder constrained to the residual. County coverage is incomplete, so the counties partition the state total rather than superseding it (impact I-15)",
+        "source_assessment": null,
         "state_fips": "51",
         "superseded_constraints": []
       },
@@ -2870,7 +2917,17 @@
         "chosen_constraint_source": "native_tract_registry",
         "chosen_constraint_total": 236994.0,
         "chosen_constraint_vintage": "current snapshot",
-        "constraint_precedence_reason": "native tract registry: 1,769 tracts enumerated at tract grain with a balanced record ledger, total 236,994 within 0.25% of the external 2025 total 236,400. Finer and directly observed, so it supersedes the coarser external total (CLAUDE.md \u00a77.3 precedence, \u00a77.4.1 evidence hierarchy)",
+        "constraint_precedence_reason": "native tract registry: declared statewide_vehicle_registry, reporting natively at tract grain, with a balanced record ledger and 1,769 tracts all inside the jurisdiction. It supersedes the coarser external total (CLAUDE.md \u00a77.3 precedence, \u00a77.4.1 evidence hierarchy)",
+        "source_assessment": {
+          "completeness_reason": "declared statewide_vehicle_registry, reporting natively at tract grain, with a balanced record ledger and 1,769 tracts all inside the jurisdiction",
+          "external_agreement_diagnostic": 0.002513,
+          "external_agreement_within_review_threshold": true,
+          "licenses_zero_completion": true,
+          "note": "External agreement is a plausibility diagnostic for review. It does NOT establish completeness and gates nothing.",
+          "source_complete": true,
+          "unresolved_in_jurisdiction_records": 0,
+          "zero_completion_reason": "every one of the 236,994 in-jurisdiction records is placed in a valid Census tract of the jurisdiction, so the enumeration is exhaustive and an unnamed tract holds zero. This is a COMPLETED ZERO derived from an exhaustive registry, not a literal zero-valued source row"
+        },
         "state_fips": "53",
         "superseded_constraints": [
           {
@@ -2887,6 +2944,7 @@
         "chosen_constraint_total": 5000.0,
         "chosen_constraint_vintage": "2025",
         "constraint_precedence_reason": "external state registration total; no finer source qualified",
+        "source_assessment": null,
         "state_fips": "54",
         "superseded_constraints": []
       },
@@ -2895,6 +2953,7 @@
         "chosen_constraint_total": 41900.0,
         "chosen_constraint_vintage": "2025",
         "constraint_precedence_reason": "external state registration total; no finer source qualified",
+        "source_assessment": null,
         "state_fips": "55",
         "superseded_constraints": []
       },
@@ -2903,6 +2962,7 @@
         "chosen_constraint_total": 1900.0,
         "chosen_constraint_vintage": "2025",
         "constraint_precedence_reason": "external state registration total; no finer source qualified",
+        "source_assessment": null,
         "state_fips": "56",
         "superseded_constraints": []
       }
@@ -2933,6 +2993,11 @@
       "county_anchored": 4204,
       "native_tract": 1784,
       "state_total_only": 78413
+    },
+    "tracts_by_value_provenance": {
+      "modeled_reconciled": 82617,
+      "native_registry_observed_count": 1769,
+      "native_registry_zero_by_absence": 15
     },
     "training_rows": 9140,
     "training_states": [
@@ -3022,6 +3087,8 @@
     "CO": {
       "areas": 803,
       "evidence_grain": "zip_anchored",
+      "geography_resolution": null,
+      "publisher_scope": "unknown",
       "record_accounting": {
         "balances": true,
         "excluded_by_reason": {
@@ -3045,6 +3112,8 @@
     "CT": {
       "areas": 406,
       "evidence_grain": "zip_anchored",
+      "geography_resolution": null,
+      "publisher_scope": "unknown",
       "record_accounting": {
         "balances": true,
         "excluded_by_reason": {
@@ -3070,6 +3139,8 @@
     "ME": {
       "areas": 478,
       "evidence_grain": "zip_anchored",
+      "geography_resolution": null,
+      "publisher_scope": "unknown",
       "record_accounting": {
         "balances": true,
         "excluded_by_reason": {
@@ -3095,6 +3166,8 @@
     "MN": {
       "areas": 824,
       "evidence_grain": "zip_anchored",
+      "geography_resolution": null,
+      "publisher_scope": "unknown",
       "record_accounting": {
         "balances": true,
         "excluded_by_reason": {
@@ -3120,6 +3193,8 @@
     "MT": {
       "areas": 51,
       "evidence_grain": "county_anchored",
+      "geography_resolution": null,
+      "publisher_scope": "unknown",
       "record_accounting": {
         "balances": true,
         "excluded_by_reason": {
@@ -3145,6 +3220,8 @@
     "NC": {
       "areas": 845,
       "evidence_grain": "zip_anchored",
+      "geography_resolution": null,
+      "publisher_scope": "unknown",
       "record_accounting": {
         "balances": true,
         "excluded_by_reason": {
@@ -3170,6 +3247,8 @@
     "NJ": {
       "areas": 621,
       "evidence_grain": "zip_anchored",
+      "geography_resolution": null,
+      "publisher_scope": "unknown",
       "record_accounting": {
         "balances": true,
         "excluded_by_reason": {
@@ -3195,6 +3274,8 @@
     "NM": {
       "areas": 258,
       "evidence_grain": "zip_anchored",
+      "geography_resolution": null,
+      "publisher_scope": "unknown",
       "record_accounting": {
         "balances": true,
         "excluded_by_reason": {
@@ -3220,6 +3301,8 @@
     "NY": {
       "areas": 2076,
       "evidence_grain": "zip_anchored",
+      "geography_resolution": null,
+      "publisher_scope": "unknown",
       "record_accounting": {
         "balances": true,
         "excluded_by_reason": {
@@ -3245,6 +3328,8 @@
     "OR": {
       "areas": 687,
       "evidence_grain": "zip_anchored",
+      "geography_resolution": null,
+      "publisher_scope": "unknown",
       "record_accounting": {
         "balances": true,
         "excluded_by_reason": {
@@ -3270,6 +3355,8 @@
     "TN": {
       "areas": 95,
       "evidence_grain": "county_anchored",
+      "geography_resolution": null,
+      "publisher_scope": "unknown",
       "record_accounting": {
         "balances": true,
         "excluded_by_reason": {
@@ -3295,6 +3382,8 @@
     "TX": {
       "areas": 1768,
       "evidence_grain": "zip_anchored",
+      "geography_resolution": null,
+      "publisher_scope": "unknown",
       "record_accounting": {
         "balances": true,
         "excluded_by_reason": {
@@ -3320,6 +3409,8 @@
     "VA": {
       "areas": 129,
       "evidence_grain": "county_anchored",
+      "geography_resolution": null,
+      "publisher_scope": "unknown",
       "record_accounting": {
         "balances": true,
         "excluded_by_reason": {
@@ -3345,6 +3436,8 @@
     "VT": {
       "areas": 458,
       "evidence_grain": "zip_anchored",
+      "geography_resolution": null,
+      "publisher_scope": "unknown",
       "record_accounting": {
         "balances": true,
         "excluded_by_reason": {
@@ -3370,6 +3463,18 @@
     "WA": {
       "areas": 1769,
       "evidence_grain": "native_tract",
+      "geography_resolution": {
+        "balances": true,
+        "fully_resolved": true,
+        "in_jurisdiction_placed_in_a_valid_tract": 236994,
+        "in_jurisdiction_records": 236994,
+        "invalid_tract_format": 8,
+        "out_of_jurisdiction_records": 573,
+        "total_records": 237567,
+        "tract_not_in_jurisdiction_geography": 3,
+        "unresolved_in_jurisdiction": 0
+      },
+      "publisher_scope": "statewide_vehicle_registry",
       "record_accounting": {
         "balances": true,
         "excluded_by_reason": {
@@ -3380,7 +3485,7 @@
         "excluded_total": 57199,
         "exclusion_descriptions": {
           "plug_in_hybrid_not_the_target": "PHEV registrations are carried separately: the AFDC state series counts battery-electric vehicles only",
-          "tract_outside_state": "the geocoded tract lies outside Washington; the vehicle is registered in-state but geocoded elsewhere",
+          "tract_outside_state": "the geocoded tract lies outside Washington; the vehicle is registered in-state but addressed elsewhere",
           "tract_unusable": "the row carries no 11-digit 2020 census tract, so it cannot be placed at the geography this source is valued for"
         },
         "included": 236994,
