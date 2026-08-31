@@ -13,6 +13,42 @@ results are invalid), **S2 Degrading** (usable but weaker than claimed), **S3 Co
 
 None.
 
+### I-17 — zero-by-absence was assumed, and gated by a test that could not establish it
+
+| Field | Value |
+|---|---|
+| Opened | 2026-08-31, external review |
+| Affected phase | 3 (`pipeline/model/precedence.py`, `pipeline/model/observed.py`) |
+| Severity | **S3 Cosmetic** — the 15 published zeros were correct, but the reasoning behind them did not hold and the gate protecting them tested the wrong thing |
+| Status | **RESOLVED 2026-08-31** |
+
+**Assumed.** Two things, neither established. First, that a tract with no source row holds
+zero (assumption A-3.13). Second, that agreement with the AFDC total within 10% showed the
+source was complete enough to license that.
+
+**Actually true.** Neither followed. Absence of a row means zero only if every
+in-jurisdiction record was actually placed — otherwise an unplaced vehicle might belong to
+the absent tract. And external agreement establishes completeness in neither direction: a
+source can agree closely while omitting a region, or disagree widely while being exhaustive
+over a differently-defined population.
+
+**What the investigation found.** The claim happens to be **true**, and is now proven:
+236,994 BEV records carry `state == 'WA'` and all 236,994 are placed in a valid in-state
+Census tract; the 573 unplaced records are all non-WA-addressed, with **zero** null
+jurisdictions. The eight null-tract rows that first looked like unresolved records carry
+non-Washington states (BC, QC, AE, NH). `unresolved_in_jurisdiction = 0`.
+
+**Response.** A published `GeographyResolution` ledger per native source. Completeness
+rebuilt on declared publisher scope plus explicit record and geography accounting, with
+external agreement demoted to a reported diagnostic that gates nothing. A separate
+**zero-completion licence** requiring `unresolved_in_jurisdiction == 0`, and superseding
+now requires it — a source that cannot place every record falls back entirely rather than
+needing an invented residual. A `value_provenance` field distinguishes
+`native_registry_zero_by_absence` from a modelled value and from an observed count.
+
+**No published number changed.** National total remains 5,616,923; the 15 zeros remain
+zero, now on proof rather than assumption.
+
 ### I-16 — the published surface stopped reconciling to its own constraints
 
 | Field | Value |

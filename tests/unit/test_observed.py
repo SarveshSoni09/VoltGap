@@ -285,3 +285,37 @@ def test_no_usable_totals_at_all_raises_rather_than_returning_empty() -> None:
 
 def test_asking_for_a_vintage_that_does_not_exist_yields_no_jurisdictions() -> None:
     assert latest_state_totals(vintage="1999") == {}
+
+
+def test_an_unbalanced_geography_ledger_raises_rather_than_publishing() -> None:
+    from pipeline.model.observed import GeographyResolution
+
+    broken = GeographyResolution(
+        total_records=100, in_jurisdiction_records=80, out_of_jurisdiction_records=5,
+        in_jurisdiction_placed=80, invalid_tract_format=0,
+        tract_not_in_jurisdiction_geography=0)
+    with pytest.raises(ObservationError, match="geography ledger does not balance"):
+        broken.assert_balanced()
+    with pytest.raises(ObservationError):
+        broken.to_dict()
+
+
+def test_a_well_formed_geoid_naming_no_real_tract_is_excluded_by_name(
+    tmp_path: Path,
+) -> None:
+    """An in-state, 11-digit GEOID that names no tract in the current Census geography
+    cannot be placed, and must not be silently counted."""
+    path = wa_json(tmp_path / "wa.json", [
+        {"_2020_census_tract": "53033000100",
+         "ev_type": "Battery Electric Vehicle (BEV)", "state": "WA"},
+        {"_2020_census_tract": "53033999999",
+         "ev_type": "Battery Electric Vehicle (BEV)", "state": "WA"},
+    ])
+    observed = load_washington(path, known_tracts=["53033000100"])
+    assert observed.total_bev == 1
+    assert observed.ledger.excluded["tract_not_in_census_geography"] == 1
+    assert observed.resolution is not None
+    # The unplaceable record keeps the source from licensing zero-completion.
+    assert observed.resolution.unresolved_in_jurisdiction == 1
+    assert observed.resolution.fully_resolved is False
+    assert observed.resolution.tract_not_in_jurisdiction_geography == 1

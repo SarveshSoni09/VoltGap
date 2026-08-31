@@ -16,7 +16,13 @@ from pipeline.model.build_demand import (
     county_constraint_states,
     estimator_by_name,
 )
-from pipeline.model.observed import ObservedCount, StateObservations, StateTotal
+from pipeline.model.observed import (
+    STATEWIDE_VEHICLE_REGISTRY,
+    GeographyResolution,
+    ObservedCount,
+    StateObservations,
+    StateTotal,
+)
 from pipeline.model.panel import (
     AreaTable,
     StatePanel,
@@ -60,8 +66,14 @@ def observations() -> dict[str, StateObservations]:
     mt = (ObservedCount("MT", SourceGeography.COUNTY, "30049", 40, 0),
           ObservedCount("MT", SourceGeography.COUNTY, "30031", 25, 0))
     return {
-        "WA": StateObservations("WA", SourceGeography.TRACT, "current snapshot", wa,
-                                ExclusionLedger(45, 45, {}, {})),
+        "WA": StateObservations(
+            "WA", SourceGeography.TRACT, "current snapshot", wa,
+            ExclusionLedger(45, 45, {}, {}),
+            publisher_scope=STATEWIDE_VEHICLE_REGISTRY,
+            resolution=GeographyResolution(
+                total_records=45, in_jurisdiction_records=45,
+                in_jurisdiction_placed=45, out_of_jurisdiction_records=0,
+                invalid_tract_format=0, tract_not_in_jurisdiction_geography=0)),
         "MT": StateObservations("MT", SourceGeography.COUNTY, "DMV Snapshot (1/1/2026)",
                                 mt, ExclusionLedger(65, 65, {}, {})),
     }
@@ -415,3 +427,63 @@ def test_every_jurisdiction_has_exactly_one_operative_constraint() -> None:
         assert operative.chosen.source.value in {
             "native_tract_registry", "county_observation", "state_registration_total"}
         assert operative.reason
+
+
+def test_a_completed_zero_is_distinguishable_from_a_missing_value() -> None:
+    """The distinction the external review required: a zero DERIVED FROM an exhaustive
+    registry is not the same thing as a missing or unknown value, and the published row
+    must say which it is."""
+    from pipeline.model.build_demand import (
+        PROVENANCE_MODELLED,
+        PROVENANCE_OBSERVED_COUNT,
+        PROVENANCE_ZERO_BY_ABSENCE,
+    )
+
+    built = surface()
+    absent = next(r for r in built.estimates if r.geoid == WA_UNOBSERVED[0])
+    assert absent.value_provenance == PROVENANCE_ZERO_BY_ABSENCE
+    assert absent.estimate == pytest.approx(0.0, abs=1e-9)
+    # It is NOT claimed to be directly observed: no source row named this tract.
+    assert absent.estimate_method != "directly_observed"
+    # Its evidence grain is still native: the registry covers it and reports nothing.
+    assert absent.evidence_grain == NATIVE_TRACT
+    assert absent.to_dict()["value_provenance"] == PROVENANCE_ZERO_BY_ABSENCE
+
+    named = next(r for r in built.estimates if r.geoid == WA_TRACTS[0])
+    assert named.value_provenance == PROVENANCE_OBSERVED_COUNT
+    assert named.estimate_method == "directly_observed"
+
+    modelled = next(r for r in built.estimates if r.state_fips == "06")
+    assert modelled.value_provenance == PROVENANCE_MODELLED
+
+
+def test_without_the_zero_completion_licence_absent_tracts_are_not_zeroed() -> None:
+    """One unplaced in-jurisdiction record and the licence is refused, because that
+    record could belong to any unnamed tract."""
+    from dataclasses import replace as dc_replace
+
+    from pipeline.model.observed import GeographyResolution
+
+    tables = {"tracts": tract_table()}
+    built = panels(tables)
+    obs = observations()
+    wa = obs["WA"]
+    assert wa.resolution is not None
+    obs["WA"] = dc_replace(wa, resolution=GeographyResolution(
+        total_records=wa.resolution.total_records + 1,
+        in_jurisdiction_records=wa.resolution.in_jurisdiction_records + 1,
+        in_jurisdiction_placed=wa.resolution.in_jurisdiction_placed,
+        out_of_jurisdiction_records=wa.resolution.out_of_jurisdiction_records,
+        invalid_tract_format=1, tract_not_in_jurisdiction_geography=0))
+    result = build_surface(tables["tracts"], built, obs, state_totals(), penalty(),
+                           "baseline_household_share", bootstrap_replicates=3)
+    # The native source no longer supersedes at all: it falls back to the external
+    # total for the whole jurisdiction rather than inventing a residual for the tracts
+    # it could not name.
+    operative = result.operative_constraints["53"]
+    assert operative.chosen.source.value == "state_registration_total"
+    assert operative.licenses_zero_completion is False
+    for row in result.estimates:
+        if row.state_fips == "53":
+            assert row.value_provenance != "native_registry_zero_by_absence"
+            assert row.evidence_grain == "state_total_only"

@@ -33,15 +33,18 @@ from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from enum import StrEnum
 
-from pipeline.model.observed import StateObservations, StateTotal
+from pipeline.model.observed import (
+    STATEWIDE_VEHICLE_REGISTRY,
+    StateObservations,
+    StateTotal,
+)
 from pipeline.spatial.geography import SourceGeography
 
-#: How far a native total may sit from the external total it claims to supersede. A
-#: registry-grade enumeration of the same population should land close to a published
-#: aggregate of it; a large gap means one of them is measuring something else, and the
-#: native source has not earned precedence. Declared here rather than tuned: it is a
-#: qualification threshold, not a fitted parameter.
-NATIVE_SUPERSEDE_TOLERANCE = 0.10
+#: Agreement with an external total is a **plausibility diagnostic**, never a proof of
+#: completeness. A source could agree closely with an external aggregate while omitting a
+#: whole region, and could disagree widely while being perfectly exhaustive over a
+#: differently-defined population. It is reported for review; it does not gate anything.
+EXTERNAL_AGREEMENT_REVIEW_THRESHOLD = 0.10
 
 
 class ConstraintSource(StrEnum):
@@ -92,6 +95,13 @@ class OperativeConstraint:
     chosen: ConstraintCandidate
     reason: str
     superseded: tuple[ConstraintCandidate, ...] = ()
+    #: Whether an area this jurisdiction's source does not name may be constrained to
+    #: zero. Only an exhaustively resolved jurisdiction-wide enumeration earns this.
+    assessment: SourceAssessment | None = None
+
+    @property
+    def licenses_zero_completion(self) -> bool:
+        return self.assessment is not None and self.assessment.licenses_zero_completion
 
     @property
     def total(self) -> float:
@@ -105,59 +115,143 @@ class OperativeConstraint:
             "chosen_constraint_total": round(self.chosen.total, 6),
             "constraint_precedence_reason": self.reason,
             "superseded_constraints": [c.to_dict() for c in self.superseded],
+            "source_assessment": (None if self.assessment is None
+                                  else self.assessment.to_dict()),
         }
+
+
+@dataclass(frozen=True)
+class SourceAssessment:
+    """What a native source has and has not demonstrated about itself."""
+
+    is_complete: bool
+    completeness_reason: str
+    licenses_zero_completion: bool
+    zero_completion_reason: str
+    unresolved_in_jurisdiction: int
+    external_agreement: float | None
+    external_agreement_within_review_threshold: bool | None
+
+    def to_dict(self) -> dict[str, object]:
+        return {
+            "source_complete": self.is_complete,
+            "completeness_reason": self.completeness_reason,
+            "licenses_zero_completion": self.licenses_zero_completion,
+            "zero_completion_reason": self.zero_completion_reason,
+            "unresolved_in_jurisdiction_records": self.unresolved_in_jurisdiction,
+            "external_agreement_diagnostic": (
+                None if self.external_agreement is None
+                else round(self.external_agreement, 6)),
+            "external_agreement_within_review_threshold":
+                self.external_agreement_within_review_threshold,
+            "note": (
+                "External agreement is a plausibility diagnostic for review. It does "
+                "NOT establish completeness and gates nothing."
+            ),
+        }
+
+
+def assess_native_source(
+    observations: StateObservations,
+    state_fips: str,
+    external: StateTotal | None,
+) -> SourceAssessment:
+    """Separate **source completeness** from **external plausibility**.
+
+    Completeness rests on the publisher's declared scope and on explicit record and
+    geography accounting — what the source says it covers, and whether it actually placed
+    what it covers. It does **not** rest on agreement with a third-party aggregate: a
+    source can agree closely while omitting a region, or disagree widely while being
+    exhaustive over a differently-defined population. Agreement is reported as a
+    diagnostic and gates nothing.
+
+    Two distinct privileges are assessed, because they need different evidence:
+
+    * **completeness** lets the source supersede a coarser external total *for the areas
+      it names*;
+    * **zero-completion** additionally lets an area it does *not* name be constrained to
+      zero, and that requires every in-jurisdiction record to have been placed. One
+      unplaced record and the licence is refused, because that record might belong to any
+      unnamed area.
+    """
+    agreement: float | None = None
+    if external is not None and external.bev_count > 0:
+        agreement = abs(
+            observations.total_bev - external.bev_count) / external.bev_count
+
+    failures: list[str] = []
+    if observations.source_geography is not SourceGeography.TRACT:
+        failures.append(
+            f"reports at {observations.source_geography.value} grain, not natively at "
+            "tract grain")
+    if observations.publisher_scope != STATEWIDE_VEHICLE_REGISTRY:
+        failures.append(
+            f"publisher scope is {observations.publisher_scope!r}, not a declared "
+            "jurisdiction-wide enumeration")
+    try:
+        observations.ledger.assert_balanced()
+    except ValueError:
+        failures.append("its record ledger does not balance")
+    stray = [c.geography_id for c in observations.counts
+             if not c.geography_id.startswith(state_fips)]
+    if stray:
+        failures.append(f"{len(stray)} observed tract(s) lie outside the jurisdiction")
+    if observations.resolution is None:
+        failures.append("it publishes no geography-resolution accounting")
+
+    complete = not failures
+    completeness_reason = (
+        f"declared {STATEWIDE_VEHICLE_REGISTRY}, reporting natively at tract grain, "
+        f"with a balanced record ledger and {len(observations.counts):,} tracts all "
+        "inside the jurisdiction"
+        if complete else "; ".join(failures)
+    )
+
+    unresolved = (observations.resolution.unresolved_in_jurisdiction
+                  if observations.resolution is not None else -1)
+    if not complete:
+        licenses, why = False, (
+            "the source has not demonstrated completeness, so an area it does not name "
+            "cannot be read as zero")
+    elif unresolved > 0:
+        licenses, why = False, (
+            f"{unresolved:,} in-jurisdiction record(s) were not placed in a valid tract. "
+            "Any of them could belong to an unnamed area, so absence does not mean zero"
+        )
+    else:
+        assert observations.resolution is not None
+        licenses, why = True, (
+            f"every one of the {observations.resolution.in_jurisdiction_records:,} "
+            "in-jurisdiction records is placed in a valid Census tract of the "
+            "jurisdiction, so the enumeration is exhaustive and an unnamed tract holds "
+            "zero. This is a COMPLETED ZERO derived from an exhaustive registry, not a "
+            "literal zero-valued source row"
+        )
+
+    return SourceAssessment(
+        is_complete=complete,
+        completeness_reason=completeness_reason,
+        licenses_zero_completion=licenses,
+        zero_completion_reason=why,
+        unresolved_in_jurisdiction=unresolved,
+        external_agreement=agreement,
+        external_agreement_within_review_threshold=(
+            None if agreement is None
+            else agreement <= EXTERNAL_AGREEMENT_REVIEW_THRESHOLD),
+    )
 
 
 def native_source_qualifies(
     observations: StateObservations,
     state_fips: str,
     external: StateTotal | None,
-    tolerance: float = NATIVE_SUPERSEDE_TOLERANCE,
 ) -> tuple[bool, str]:
-    """May this native source supersede the external total? Four conditions, all checked.
-
-    A source that fails any of them is still valuable evidence — it trains the model and
-    it validates — but it does not become the jurisdiction's operative constraint.
-    """
-    if observations.source_geography is not SourceGeography.TRACT:
-        return False, (
-            f"the source reports at {observations.source_geography.value} grain, not "
-            "natively at tract grain, so it cannot supersede a state total"
-        )
-    try:
-        observations.ledger.assert_balanced()
-    except ValueError:
-        return False, (
-            "the source's record ledger does not balance, so its total cannot be "
-            "trusted as an enumeration"
-        )
-    stray = [c.geography_id for c in observations.counts
-             if not c.geography_id.startswith(state_fips)]
-    if stray:
-        return False, (
-            f"{len(stray)} observed tract(s) lie outside the jurisdiction, so the "
-            "source does not enumerate this jurisdiction cleanly"
-        )
-    if external is None:
-        return False, (
-            "no external total exists to corroborate the native total against, so "
-            "completeness cannot be demonstrated and precedence is not granted"
-        )
-    if external.bev_count <= 0:
-        return False, "the external total is not positive, so no comparison is possible"
-    gap = abs(observations.total_bev - external.bev_count) / external.bev_count
-    if gap > tolerance:
-        return False, (
-            f"the native total {observations.total_bev:,} differs from the external "
-            f"total {external.bev_count:,} by {gap:.2%}, beyond the "
-            f"{tolerance:.0%} tolerance. A gap that size means one of them is measuring "
-            "a different population; the native source has not demonstrated completeness"
-        )
+    """Back-compatible wrapper: may this source supersede the external total?"""
+    assessment = assess_native_source(observations, state_fips, external)
+    if not assessment.is_complete:
+        return False, assessment.completeness_reason
     return True, (
-        f"native tract registry: {len(observations.counts):,} tracts enumerated at "
-        f"tract grain with a balanced record ledger, total {observations.total_bev:,} "
-        f"within {gap:.2%} of the external {external.vintage} total "
-        f"{external.bev_count:,}. Finer and directly observed, so it supersedes the "
+        f"native tract registry: {assessment.completeness_reason}. It supersedes the "
         "coarser external total (CLAUDE.md §7.3 precedence, §7.4.1 evidence hierarchy)"
     )
 
@@ -168,7 +262,6 @@ def resolve(
     external: StateTotal | None,
     county_totals: Mapping[str, float] | None,
     county_coverage_complete: bool = False,
-    tolerance: float = NATIVE_SUPERSEDE_TOLERANCE,
 ) -> OperativeConstraint:
     """Pick exactly one authoritative constraint for a jurisdiction, in precedence order.
 
@@ -186,9 +279,21 @@ def resolve(
             f"AFDC published registration total for {external.jurisdiction}",
         )
 
+    assessment: SourceAssessment | None = None
     if observations is not None:
+        assessment = assess_native_source(observations, state_fips, external)
         qualifies, reason = native_source_qualifies(
-            observations, state_fips, external, tolerance)
+            observations, state_fips, external)
+        # Superseding requires the zero-completion licence too. A source that cannot
+        # place every in-jurisdiction record cannot be the authority for the whole
+        # jurisdiction: its named tracts would claim their share while its unnamed ones
+        # still needed a total, and inventing a residual for them - or letting them take
+        # the full external total the named tracts had already claimed - is exactly the
+        # double count of impact I-15. Falling back entirely is conservative and invents
+        # nothing; the observations remain training and validation evidence.
+        if qualifies and not assessment.licenses_zero_completion:
+            qualifies = False
+            reason = assessment.zero_completion_reason
         if qualifies:
             chosen = ConstraintCandidate(
                 ConstraintSource.NATIVE_TRACT_REGISTRY, observations.vintage_label,
@@ -204,7 +309,8 @@ def resolve(
                     ConstraintSource.COUNTY_OBSERVATION, observations.vintage_label,
                     float(sum(county_totals.values())), "county",
                     f"{len(county_totals):,} observed counties"))
-            return OperativeConstraint(state_fips, chosen, reason, tuple(candidates))
+            return OperativeConstraint(state_fips, chosen, reason, tuple(candidates),
+                                       assessment)
 
     if county_totals and county_coverage_complete:
         chosen = ConstraintCandidate(

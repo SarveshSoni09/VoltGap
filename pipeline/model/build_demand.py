@@ -69,6 +69,14 @@ from pipeline.model.uncertainty import (
 )
 from pipeline.spatial.geography import EstimateMethod, EvidenceGrain, SourceGeography
 
+#: How a published value came to hold the number it holds. Distinct from
+#: ``estimate_method``, which says whether the value was observed or modelled: this says
+#: what KIND of evidence produced it, and in particular tells a **completed zero derived
+#: from an exhaustive registry** apart from a missing or unknown value.
+PROVENANCE_OBSERVED_COUNT = "native_registry_observed_count"
+PROVENANCE_ZERO_BY_ABSENCE = "native_registry_zero_by_absence"
+PROVENANCE_MODELLED = "modeled_reconciled"
+
 NATIVE_TRACT = EvidenceGrain.NATIVE_TRACT.value
 COUNTY_ANCHORED = EvidenceGrain.COUNTY_ANCHORED.value
 STATE_TOTAL_ONLY = EvidenceGrain.STATE_TOTAL_ONLY.value
@@ -91,6 +99,7 @@ class TractEstimate:
     confidence_tier: str
     constraint_name: str
     constraint_vintage: str | None
+    value_provenance: str = PROVENANCE_MODELLED
 
     def to_dict(self) -> dict[str, object]:
         return {
@@ -109,6 +118,7 @@ class TractEstimate:
             "confidence_tier": self.confidence_tier,
             "constraint": self.constraint_name,
             "constraint_vintage": self.constraint_vintage,
+            "value_provenance": self.value_provenance,
         }
 
 
@@ -129,9 +139,12 @@ class DemandSurface:
     def summary(self) -> dict[str, object]:
         by_grain: dict[str, int] = {}
         by_tier: dict[str, int] = {}
+        by_provenance: dict[str, int] = {}
         for row in self.estimates:
             by_grain[row.evidence_grain] = by_grain.get(row.evidence_grain, 0) + 1
             by_tier[row.confidence_tier] = by_tier.get(row.confidence_tier, 0) + 1
+            by_provenance[row.value_provenance] = by_provenance.get(
+                row.value_provenance, 0) + 1
         from pipeline.sources.census_acs import ACS_YEAR
 
         return {
@@ -145,6 +158,7 @@ class DemandSurface:
             "national_bev_estimate": int(sum(r.estimate for r in self.estimates)),
             "tracts_by_evidence_grain": dict(sorted(by_grain.items())),
             "tracts_by_confidence_tier": dict(sorted(by_tier.items())),
+            "tracts_by_value_provenance": dict(sorted(by_provenance.items())),
             "mean_uncertainty": round(
                 float(np.mean([r.uncertainty_score for r in self.estimates])), 6
             ),
@@ -336,10 +350,16 @@ def _constraint_plan(
                 vintages[name] = op.chosen.vintage
                 grains.append(NATIVE_TRACT)
             else:
-                name = f"{state_fips}:unobserved"
+                # Superseding requires the zero-completion licence, so a state reaching
+                # here has it: the registry is exhaustively resolved and a tract it does
+                # not name genuinely holds none.
+                assert op.licenses_zero_completion
+                name = f"{state_fips}:zero_by_absence"
                 group_of.append(name)
-                # A registry names every registered vehicle, so a tract it omits holds
-                # none. Constrained to zero rather than left free.
+                # An exhaustively resolved jurisdiction-wide registry names every
+                # registered vehicle, so a tract it omits genuinely holds none. This is
+                # a COMPLETED ZERO, not a literal zero-valued source row, and the
+                # distinction is carried on the row as provenance.
                 totals.setdefault(name, 0.0)
                 vintages[name] = op.chosen.vintage
                 grains.append(NATIVE_TRACT)
@@ -529,4 +549,10 @@ def _to_estimate(
         confidence_tier=tier,
         constraint_name=group_of[position],
         constraint_vintage=vintages.get(group_of[position]),
+        value_provenance=(
+            PROVENANCE_OBSERVED_COUNT if row.geoid in observed_tracts
+            else PROVENANCE_ZERO_BY_ABSENCE
+            if group_of[position].endswith(":zero_by_absence")
+            else PROVENANCE_MODELLED
+        ),
     )
