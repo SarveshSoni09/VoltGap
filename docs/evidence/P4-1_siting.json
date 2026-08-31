@@ -1,1328 +1,1346 @@
 {
   "approximation_bound_claimed": null,
-  "approximation_bound_note": "No formal approximation bound is claimed anywhere. With uniform costs, a single coverage objective and no further constraint the problem would be cardinality-constrained maximum coverage, where a classical guarantee applies; the interactive surface exposes objective weights and constraint toggles, which is a different problem class, so the guarantee does not carry over. Measured optimality gaps are reported instead.",
+  "approximation_bound_note": "No formal approximation bound is claimed anywhere. With uniform costs, a single coverage objective and no further constraint the problem would be cardinality-constrained maximum coverage, where a classical guarantee applies; the interactive surface exposes objective weights and constraint toggles, which is a different problem class, so the guarantee does not carry over. The measured greedy shortfall against optimal CBC solutions is reported instead, which is an observation, not a bound.",
   "budget_units": "SITES, not dollars. Charger economics is Optional tier (\u00a77.11) and no cost model exists; inventing a dollar cost would fabricate an input.",
-  "empirical_optimality_gaps": [
-    {
-      "budget_sites": 5,
-      "empirical_optimality_gap": 0.0,
-      "exact_objective": 33991.9092,
-      "exact_status": "optimal",
-      "greedy_objective": 33991.9092,
-      "label": "Washington",
-      "state": "Washington"
-    },
-    {
-      "budget_sites": 20,
-      "empirical_optimality_gap": 0.008756,
-      "exact_objective": 67522.6797,
-      "exact_status": "optimal",
-      "greedy_objective": 66931.4549,
-      "label": "Washington",
-      "state": "Washington"
-    },
-    {
-      "budget_sites": 50,
-      "empirical_optimality_gap": 0.003753,
-      "exact_objective": 88016.2292,
-      "exact_status": "optimal",
-      "greedy_objective": 87685.9051,
-      "label": "Washington",
-      "state": "Washington"
-    },
-    {
-      "budget_sites": 5,
-      "empirical_optimality_gap": 0.0,
-      "exact_objective": 9691.7996,
-      "exact_status": "optimal",
-      "greedy_objective": 9691.7996,
-      "label": "Tennessee",
-      "state": "Tennessee"
-    },
-    {
-      "budget_sites": 20,
-      "empirical_optimality_gap": 0.004771,
-      "exact_objective": 21041.4989,
-      "exact_status": "optimal",
-      "greedy_objective": 20941.1156,
-      "label": "Tennessee",
-      "state": "Tennessee"
-    },
-    {
-      "budget_sites": 50,
-      "empirical_optimality_gap": 0.011501,
-      "exact_objective": 28976.5971,
-      "exact_status": "optimal",
-      "greedy_objective": 28643.3261,
-      "label": "Tennessee",
-      "state": "Tennessee"
-    },
-    {
-      "budget_sites": 5,
-      "empirical_optimality_gap": 0.0,
-      "exact_objective": 1814.5114,
-      "exact_status": "optimal",
-      "greedy_objective": 1814.5114,
-      "label": "Montana",
-      "state": "Montana"
-    },
-    {
-      "budget_sites": 20,
-      "empirical_optimality_gap": 0.031411,
-      "exact_objective": 3509.216,
-      "exact_status": "optimal",
-      "greedy_objective": 3398.9869,
-      "label": "Montana",
-      "state": "Montana"
-    },
-    {
-      "budget_sites": 50,
-      "empirical_optimality_gap": 0.010855,
-      "exact_objective": 4154.0603,
-      "exact_status": "optimal",
-      "greedy_objective": 4108.9686,
-      "label": "Montana",
-      "state": "Montana"
-    },
-    {
-      "budget_sites": 5,
-      "empirical_optimality_gap": 0.0,
-      "exact_objective": 2281.824,
-      "exact_status": "optimal",
-      "greedy_objective": 2281.824,
-      "label": "Vermont",
-      "state": "Vermont"
-    },
-    {
-      "budget_sites": 20,
-      "empirical_optimality_gap": 0.008894,
-      "exact_objective": 4192.1714,
-      "exact_status": "optimal",
-      "greedy_objective": 4154.8861,
-      "label": "Vermont",
-      "state": "Vermont"
-    },
-    {
-      "budget_sites": 50,
-      "empirical_optimality_gap": 0.010564,
-      "exact_objective": 5833.4064,
-      "exact_status": "optimal",
-      "greedy_objective": 5771.7799,
-      "label": "Vermont",
-      "state": "Vermont"
-    },
-    {
-      "budget_sites": 5,
-      "empirical_optimality_gap": 0.0,
-      "exact_objective": 29438.1152,
-      "exact_status": "optimal",
-      "greedy_objective": 29438.1152,
-      "label": "Texas",
-      "state": "Texas"
-    },
-    {
-      "budget_sites": 20,
-      "empirical_optimality_gap": 0.0,
-      "exact_objective": 76378.114,
-      "exact_status": "optimal",
-      "greedy_objective": 76378.114,
-      "label": "Texas",
-      "state": "Texas"
-    },
-    {
-      "budget_sites": 50,
-      "empirical_optimality_gap": 0.006372,
-      "exact_objective": 116202.9899,
-      "exact_status": "optimal",
-      "greedy_objective": 115462.5078,
-      "label": "Texas",
-      "state": "Texas"
-    },
-    {
-      "budget_sites": 5,
-      "empirical_optimality_gap": 0.016549,
-      "exact_objective": 113767.4749,
-      "exact_status": "optimal",
-      "greedy_objective": 111884.7691,
-      "label": "California",
-      "state": "California"
-    },
-    {
-      "budget_sites": 20,
-      "empirical_optimality_gap": 0.010947,
-      "exact_objective": 256713.384,
-      "exact_status": "optimal",
-      "greedy_objective": 253903.0838,
-      "label": "California",
-      "state": "California"
-    },
-    {
-      "budget_sites": 50,
-      "empirical_optimality_gap": 0.0,
-      "exact_objective": 376185.2458,
-      "exact_status": "optimal",
-      "greedy_objective": 376185.2458,
-      "label": "California",
-      "state": "California"
-    }
-  ],
   "frontier": [
     {
       "budget_sites": 20,
+      "cbc_optimality_gap": 0.0,
+      "cbc_status": "optimal",
       "demand_covered": 67522.6797,
       "epsilon": 0.0,
       "equity_population_covered": 167293.87,
       "objective_sense": "maximise_demand_subject_to_equity",
-      "optimality_gap": 0.0,
       "sites_selected": 20,
-      "solve_seconds": 0.044,
-      "state": "Washington",
-      "status": "optimal"
+      "solve_seconds": 0.087,
+      "state": "Washington"
     },
     {
       "budget_sites": 20,
+      "cbc_optimality_gap": 0.0,
+      "cbc_status": "optimal",
       "demand_covered": 67522.6797,
       "epsilon": 26268.6729,
       "equity_population_covered": 167293.87,
       "objective_sense": "maximise_demand_subject_to_equity",
-      "optimality_gap": 0.0,
       "sites_selected": 20,
-      "solve_seconds": 0.042,
-      "state": "Washington",
-      "status": "optimal"
+      "solve_seconds": 0.182,
+      "state": "Washington"
     },
     {
       "budget_sites": 20,
+      "cbc_optimality_gap": 0.0,
+      "cbc_status": "optimal",
       "demand_covered": 67522.6797,
       "epsilon": 52537.3457,
       "equity_population_covered": 167293.87,
       "objective_sense": "maximise_demand_subject_to_equity",
-      "optimality_gap": 0.0,
       "sites_selected": 20,
-      "solve_seconds": 0.041,
-      "state": "Washington",
-      "status": "optimal"
+      "solve_seconds": 0.077,
+      "state": "Washington"
     },
     {
       "budget_sites": 20,
+      "cbc_optimality_gap": 0.0,
+      "cbc_status": "optimal",
       "demand_covered": 67522.6797,
       "epsilon": 78806.0186,
       "equity_population_covered": 167293.87,
       "objective_sense": "maximise_demand_subject_to_equity",
-      "optimality_gap": 0.0,
       "sites_selected": 20,
-      "solve_seconds": 0.042,
-      "state": "Washington",
-      "status": "optimal"
+      "solve_seconds": 0.079,
+      "state": "Washington"
     },
     {
       "budget_sites": 20,
+      "cbc_optimality_gap": 0.0,
+      "cbc_status": "optimal",
       "demand_covered": 67522.6797,
       "epsilon": 105074.6915,
       "equity_population_covered": 167293.87,
       "objective_sense": "maximise_demand_subject_to_equity",
-      "optimality_gap": 0.0,
       "sites_selected": 20,
-      "solve_seconds": 0.043,
-      "state": "Washington",
-      "status": "optimal"
+      "solve_seconds": 0.077,
+      "state": "Washington"
     },
     {
       "budget_sites": 20,
+      "cbc_optimality_gap": 0.0,
+      "cbc_status": "optimal",
       "demand_covered": 67522.6797,
       "epsilon": 131343.3643,
       "equity_population_covered": 167293.87,
       "objective_sense": "maximise_demand_subject_to_equity",
-      "optimality_gap": 0.0,
       "sites_selected": 20,
-      "solve_seconds": 0.043,
-      "state": "Washington",
-      "status": "optimal"
+      "solve_seconds": 0.078,
+      "state": "Washington"
     },
     {
       "budget_sites": 20,
+      "cbc_optimality_gap": 0.0,
+      "cbc_status": "optimal",
       "demand_covered": 67522.6797,
       "epsilon": 157612.0372,
       "equity_population_covered": 167293.87,
       "objective_sense": "maximise_demand_subject_to_equity",
-      "optimality_gap": 0.0,
       "sites_selected": 20,
-      "solve_seconds": 0.043,
-      "state": "Washington",
-      "status": "optimal"
+      "solve_seconds": 0.077,
+      "state": "Washington"
     },
     {
       "budget_sites": 20,
+      "cbc_optimality_gap": 0.0,
+      "cbc_status": "optimal",
       "demand_covered": 66847.2882,
       "epsilon": 183880.7101,
       "equity_population_covered": 184024.42,
       "objective_sense": "maximise_demand_subject_to_equity",
-      "optimality_gap": 0.0,
       "sites_selected": 20,
-      "solve_seconds": 0.138,
-      "state": "Washington",
-      "status": "optimal"
+      "solve_seconds": 0.249,
+      "state": "Washington"
     },
     {
       "budget_sites": 20,
+      "cbc_optimality_gap": 0.0,
+      "cbc_status": "optimal",
       "demand_covered": 55311.9417,
       "epsilon": 0.0,
       "equity_population_covered": 210149.38,
       "objective_sense": "maximise_equity_subject_to_demand",
-      "optimality_gap": 0.0,
       "sites_selected": 20,
-      "solve_seconds": 0.043,
-      "state": "Washington",
-      "status": "optimal"
+      "solve_seconds": 0.081,
+      "state": "Washington"
     },
     {
       "budget_sites": 20,
+      "cbc_optimality_gap": 0.0,
+      "cbc_status": "optimal",
       "demand_covered": 55311.9417,
       "epsilon": 8440.335,
       "equity_population_covered": 210149.38,
       "objective_sense": "maximise_equity_subject_to_demand",
-      "optimality_gap": 0.0,
       "sites_selected": 20,
-      "solve_seconds": 0.044,
-      "state": "Washington",
-      "status": "optimal"
+      "solve_seconds": 0.079,
+      "state": "Washington"
     },
     {
       "budget_sites": 20,
+      "cbc_optimality_gap": 0.0,
+      "cbc_status": "optimal",
       "demand_covered": 55311.9417,
       "epsilon": 16880.6699,
       "equity_population_covered": 210149.38,
       "objective_sense": "maximise_equity_subject_to_demand",
-      "optimality_gap": 0.0,
       "sites_selected": 20,
-      "solve_seconds": 0.042,
-      "state": "Washington",
-      "status": "optimal"
+      "solve_seconds": 0.077,
+      "state": "Washington"
     },
     {
       "budget_sites": 20,
+      "cbc_optimality_gap": 0.0,
+      "cbc_status": "optimal",
       "demand_covered": 55311.9417,
       "epsilon": 25321.0049,
       "equity_population_covered": 210149.38,
       "objective_sense": "maximise_equity_subject_to_demand",
-      "optimality_gap": 0.0,
       "sites_selected": 20,
-      "solve_seconds": 0.044,
-      "state": "Washington",
-      "status": "optimal"
+      "solve_seconds": 0.081,
+      "state": "Washington"
     },
     {
       "budget_sites": 20,
+      "cbc_optimality_gap": 0.0,
+      "cbc_status": "optimal",
       "demand_covered": 55311.9417,
       "epsilon": 33761.3398,
       "equity_population_covered": 210149.38,
       "objective_sense": "maximise_equity_subject_to_demand",
-      "optimality_gap": 0.0,
       "sites_selected": 20,
-      "solve_seconds": 0.042,
-      "state": "Washington",
-      "status": "optimal"
+      "solve_seconds": 0.078,
+      "state": "Washington"
     },
     {
       "budget_sites": 20,
+      "cbc_optimality_gap": 0.0,
+      "cbc_status": "optimal",
       "demand_covered": 55311.9417,
       "epsilon": 42201.6748,
       "equity_population_covered": 210149.38,
       "objective_sense": "maximise_equity_subject_to_demand",
-      "optimality_gap": 0.0,
       "sites_selected": 20,
-      "solve_seconds": 0.042,
-      "state": "Washington",
-      "status": "optimal"
+      "solve_seconds": 0.078,
+      "state": "Washington"
     },
     {
       "budget_sites": 20,
+      "cbc_optimality_gap": 0.0,
+      "cbc_status": "optimal",
       "demand_covered": 55311.9417,
       "epsilon": 50642.0097,
       "equity_population_covered": 210149.38,
       "objective_sense": "maximise_equity_subject_to_demand",
-      "optimality_gap": 0.0,
       "sites_selected": 20,
-      "solve_seconds": 0.042,
-      "state": "Washington",
-      "status": "optimal"
+      "solve_seconds": 0.081,
+      "state": "Washington"
     },
     {
       "budget_sites": 20,
+      "cbc_optimality_gap": 0.0,
+      "cbc_status": "optimal",
       "demand_covered": 59121.4432,
       "epsilon": 59082.3447,
       "equity_population_covered": 208857.57,
       "objective_sense": "maximise_equity_subject_to_demand",
-      "optimality_gap": 0.0,
       "sites_selected": 20,
-      "solve_seconds": 0.117,
-      "state": "Washington",
-      "status": "optimal"
+      "solve_seconds": 0.207,
+      "state": "Washington"
     },
     {
       "budget_sites": 20,
+      "cbc_optimality_gap": 0.0,
+      "cbc_status": "optimal",
       "demand_covered": 21041.4989,
       "epsilon": 0.0,
       "equity_population_covered": 325163.86,
       "objective_sense": "maximise_demand_subject_to_equity",
-      "optimality_gap": 0.0,
       "sites_selected": 20,
-      "solve_seconds": 0.145,
-      "state": "Tennessee",
-      "status": "optimal"
+      "solve_seconds": 0.251,
+      "state": "Tennessee"
     },
     {
       "budget_sites": 20,
+      "cbc_optimality_gap": 0.0,
+      "cbc_status": "optimal",
       "demand_covered": 21041.4989,
       "epsilon": 55743.0886,
       "equity_population_covered": 325163.86,
       "objective_sense": "maximise_demand_subject_to_equity",
-      "optimality_gap": 0.0,
       "sites_selected": 20,
-      "solve_seconds": 0.157,
-      "state": "Tennessee",
-      "status": "optimal"
+      "solve_seconds": 0.261,
+      "state": "Tennessee"
     },
     {
       "budget_sites": 20,
+      "cbc_optimality_gap": 0.0,
+      "cbc_status": "optimal",
       "demand_covered": 21041.4989,
       "epsilon": 111486.1772,
       "equity_population_covered": 325163.86,
       "objective_sense": "maximise_demand_subject_to_equity",
-      "optimality_gap": 0.0,
       "sites_selected": 20,
-      "solve_seconds": 0.15,
-      "state": "Tennessee",
-      "status": "optimal"
+      "solve_seconds": 0.259,
+      "state": "Tennessee"
     },
     {
       "budget_sites": 20,
+      "cbc_optimality_gap": 0.0,
+      "cbc_status": "optimal",
       "demand_covered": 21041.4989,
       "epsilon": 167229.2657,
       "equity_population_covered": 325163.86,
       "objective_sense": "maximise_demand_subject_to_equity",
-      "optimality_gap": 0.0,
       "sites_selected": 20,
-      "solve_seconds": 0.15,
-      "state": "Tennessee",
-      "status": "optimal"
+      "solve_seconds": 0.261,
+      "state": "Tennessee"
     },
     {
       "budget_sites": 20,
+      "cbc_optimality_gap": 0.0,
+      "cbc_status": "optimal",
       "demand_covered": 21041.4989,
       "epsilon": 222972.3543,
       "equity_population_covered": 325163.86,
       "objective_sense": "maximise_demand_subject_to_equity",
-      "optimality_gap": 0.0,
       "sites_selected": 20,
-      "solve_seconds": 0.151,
-      "state": "Tennessee",
-      "status": "optimal"
+      "solve_seconds": 0.259,
+      "state": "Tennessee"
     },
     {
       "budget_sites": 20,
+      "cbc_optimality_gap": 0.0,
+      "cbc_status": "optimal",
       "demand_covered": 21041.4989,
       "epsilon": 278715.4429,
       "equity_population_covered": 325163.86,
       "objective_sense": "maximise_demand_subject_to_equity",
-      "optimality_gap": 0.0,
       "sites_selected": 20,
-      "solve_seconds": 0.15,
-      "state": "Tennessee",
-      "status": "optimal"
+      "solve_seconds": 0.259,
+      "state": "Tennessee"
     },
     {
       "budget_sites": 20,
+      "cbc_optimality_gap": 0.0,
+      "cbc_status": "optimal",
       "demand_covered": 21018.573,
       "epsilon": 334458.5315,
       "equity_population_covered": 351626.98,
       "objective_sense": "maximise_demand_subject_to_equity",
-      "optimality_gap": 0.0,
       "sites_selected": 20,
-      "solve_seconds": 0.2,
-      "state": "Tennessee",
-      "status": "optimal"
+      "solve_seconds": 0.351,
+      "state": "Tennessee"
     },
     {
       "budget_sites": 20,
+      "cbc_optimality_gap": 0.0,
+      "cbc_status": "optimal",
       "demand_covered": 20581.6548,
       "epsilon": 390201.62,
       "equity_population_covered": 390384.77,
       "objective_sense": "maximise_demand_subject_to_equity",
-      "optimality_gap": 0.0,
       "sites_selected": 20,
-      "solve_seconds": 0.231,
-      "state": "Tennessee",
-      "status": "optimal"
+      "solve_seconds": 0.395,
+      "state": "Tennessee"
     },
     {
       "budget_sites": 20,
+      "cbc_optimality_gap": 0.0,
+      "cbc_status": "optimal",
       "demand_covered": 12205.3642,
       "epsilon": 0.0,
       "equity_population_covered": 445944.71,
       "objective_sense": "maximise_equity_subject_to_demand",
-      "optimality_gap": 0.0,
       "sites_selected": 20,
-      "solve_seconds": 0.073,
-      "state": "Tennessee",
-      "status": "optimal"
+      "solve_seconds": 0.141,
+      "state": "Tennessee"
     },
     {
       "budget_sites": 20,
+      "cbc_optimality_gap": 0.0,
+      "cbc_status": "optimal",
       "demand_covered": 12205.3642,
       "epsilon": 2630.1874,
       "equity_population_covered": 445944.71,
       "objective_sense": "maximise_equity_subject_to_demand",
-      "optimality_gap": 0.0,
       "sites_selected": 20,
-      "solve_seconds": 0.067,
-      "state": "Tennessee",
-      "status": "optimal"
+      "solve_seconds": 0.126,
+      "state": "Tennessee"
     },
     {
       "budget_sites": 20,
+      "cbc_optimality_gap": 0.0,
+      "cbc_status": "optimal",
       "demand_covered": 12205.3642,
       "epsilon": 5260.3747,
       "equity_population_covered": 445944.71,
       "objective_sense": "maximise_equity_subject_to_demand",
-      "optimality_gap": 0.0,
       "sites_selected": 20,
-      "solve_seconds": 0.066,
-      "state": "Tennessee",
-      "status": "optimal"
+      "solve_seconds": 0.126,
+      "state": "Tennessee"
     },
     {
       "budget_sites": 20,
+      "cbc_optimality_gap": 0.0,
+      "cbc_status": "optimal",
       "demand_covered": 12205.3642,
       "epsilon": 7890.5621,
       "equity_population_covered": 445944.71,
       "objective_sense": "maximise_equity_subject_to_demand",
-      "optimality_gap": 0.0,
       "sites_selected": 20,
-      "solve_seconds": 0.116,
-      "state": "Tennessee",
-      "status": "optimal"
+      "solve_seconds": 0.128,
+      "state": "Tennessee"
     },
     {
       "budget_sites": 20,
+      "cbc_optimality_gap": 0.0,
+      "cbc_status": "optimal",
       "demand_covered": 12205.3642,
       "epsilon": 10520.7494,
       "equity_population_covered": 445944.71,
       "objective_sense": "maximise_equity_subject_to_demand",
-      "optimality_gap": 0.0,
       "sites_selected": 20,
-      "solve_seconds": 0.067,
-      "state": "Tennessee",
-      "status": "optimal"
+      "solve_seconds": 0.126,
+      "state": "Tennessee"
     },
     {
       "budget_sites": 20,
+      "cbc_optimality_gap": 0.0,
+      "cbc_status": "optimal",
       "demand_covered": 13322.1419,
       "epsilon": 13150.9368,
       "equity_population_covered": 444488.17,
       "objective_sense": "maximise_equity_subject_to_demand",
-      "optimality_gap": 0.0,
       "sites_selected": 20,
-      "solve_seconds": 0.244,
-      "state": "Tennessee",
-      "status": "optimal"
+      "solve_seconds": 0.429,
+      "state": "Tennessee"
     },
     {
       "budget_sites": 20,
+      "cbc_optimality_gap": 0.0,
+      "cbc_status": "optimal",
       "demand_covered": 15800.6537,
       "epsilon": 15781.1242,
       "equity_population_covered": 441697.75,
       "objective_sense": "maximise_equity_subject_to_demand",
-      "optimality_gap": 0.0,
       "sites_selected": 20,
-      "solve_seconds": 0.299,
-      "state": "Tennessee",
-      "status": "optimal"
+      "solve_seconds": 0.507,
+      "state": "Tennessee"
     },
     {
       "budget_sites": 20,
+      "cbc_optimality_gap": 0.0,
+      "cbc_status": "optimal",
       "demand_covered": 18466.4696,
       "epsilon": 18411.3115,
       "equity_population_covered": 426449.55,
       "objective_sense": "maximise_equity_subject_to_demand",
-      "optimality_gap": 0.0,
       "sites_selected": 20,
-      "solve_seconds": 0.396,
-      "state": "Tennessee",
-      "status": "optimal"
+      "solve_seconds": 0.679,
+      "state": "Tennessee"
     },
     {
       "budget_sites": 20,
+      "cbc_optimality_gap": 0.0,
+      "cbc_status": "optimal",
       "demand_covered": 3509.216,
       "epsilon": 0.0,
       "equity_population_covered": 75404.91,
       "objective_sense": "maximise_demand_subject_to_equity",
-      "optimality_gap": 0.0,
       "sites_selected": 20,
-      "solve_seconds": 0.031,
-      "state": "Montana",
-      "status": "optimal"
+      "solve_seconds": 0.055,
+      "state": "Montana"
     },
     {
       "budget_sites": 20,
+      "cbc_optimality_gap": 0.0,
+      "cbc_status": "optimal",
       "demand_covered": 3509.216,
       "epsilon": 10945.944,
       "equity_population_covered": 75404.91,
       "objective_sense": "maximise_demand_subject_to_equity",
-      "optimality_gap": 0.0,
       "sites_selected": 20,
-      "solve_seconds": 0.031,
-      "state": "Montana",
-      "status": "optimal"
+      "solve_seconds": 0.054,
+      "state": "Montana"
     },
     {
       "budget_sites": 20,
+      "cbc_optimality_gap": 0.0,
+      "cbc_status": "optimal",
       "demand_covered": 3509.216,
       "epsilon": 21891.888,
       "equity_population_covered": 75404.91,
       "objective_sense": "maximise_demand_subject_to_equity",
-      "optimality_gap": 0.0,
       "sites_selected": 20,
-      "solve_seconds": 0.031,
-      "state": "Montana",
-      "status": "optimal"
+      "solve_seconds": 0.053,
+      "state": "Montana"
     },
     {
       "budget_sites": 20,
+      "cbc_optimality_gap": 0.0,
+      "cbc_status": "optimal",
       "demand_covered": 3509.216,
       "epsilon": 32837.832,
       "equity_population_covered": 75404.91,
       "objective_sense": "maximise_demand_subject_to_equity",
-      "optimality_gap": 0.0,
       "sites_selected": 20,
-      "solve_seconds": 0.031,
-      "state": "Montana",
-      "status": "optimal"
+      "solve_seconds": 0.053,
+      "state": "Montana"
     },
     {
       "budget_sites": 20,
+      "cbc_optimality_gap": 0.0,
+      "cbc_status": "optimal",
       "demand_covered": 3509.216,
       "epsilon": 43783.776,
       "equity_population_covered": 75404.91,
       "objective_sense": "maximise_demand_subject_to_equity",
-      "optimality_gap": 0.0,
       "sites_selected": 20,
-      "solve_seconds": 0.031,
-      "state": "Montana",
-      "status": "optimal"
+      "solve_seconds": 0.052,
+      "state": "Montana"
     },
     {
       "budget_sites": 20,
+      "cbc_optimality_gap": 0.0,
+      "cbc_status": "optimal",
       "demand_covered": 3509.216,
       "epsilon": 54729.72,
       "equity_population_covered": 75404.91,
       "objective_sense": "maximise_demand_subject_to_equity",
-      "optimality_gap": 0.0,
       "sites_selected": 20,
-      "solve_seconds": 0.03,
-      "state": "Montana",
-      "status": "optimal"
+      "solve_seconds": 0.051,
+      "state": "Montana"
     },
     {
       "budget_sites": 20,
+      "cbc_optimality_gap": 0.0,
+      "cbc_status": "optimal",
       "demand_covered": 3509.216,
       "epsilon": 65675.664,
       "equity_population_covered": 75404.91,
       "objective_sense": "maximise_demand_subject_to_equity",
-      "optimality_gap": 0.0,
       "sites_selected": 20,
-      "solve_seconds": 0.03,
-      "state": "Montana",
-      "status": "optimal"
+      "solve_seconds": 0.053,
+      "state": "Montana"
     },
     {
       "budget_sites": 20,
+      "cbc_optimality_gap": 0.0,
+      "cbc_status": "optimal",
       "demand_covered": 3492.0778,
       "epsilon": 76621.608,
       "equity_population_covered": 77098.23,
       "objective_sense": "maximise_demand_subject_to_equity",
-      "optimality_gap": 0.0,
       "sites_selected": 20,
-      "solve_seconds": 0.093,
-      "state": "Montana",
-      "status": "optimal"
+      "solve_seconds": 0.16,
+      "state": "Montana"
     },
     {
       "budget_sites": 20,
+      "cbc_optimality_gap": 0.0,
+      "cbc_status": "optimal",
       "demand_covered": 2662.8202,
       "epsilon": 0.0,
       "equity_population_covered": 87567.55,
       "objective_sense": "maximise_equity_subject_to_demand",
-      "optimality_gap": 0.0,
       "sites_selected": 20,
-      "solve_seconds": 0.03,
-      "state": "Montana",
-      "status": "optimal"
+      "solve_seconds": 0.051,
+      "state": "Montana"
     },
     {
       "budget_sites": 20,
+      "cbc_optimality_gap": 0.0,
+      "cbc_status": "optimal",
       "demand_covered": 2662.8202,
       "epsilon": 438.652,
       "equity_population_covered": 87567.55,
       "objective_sense": "maximise_equity_subject_to_demand",
-      "optimality_gap": 0.0,
       "sites_selected": 20,
-      "solve_seconds": 0.031,
-      "state": "Montana",
-      "status": "optimal"
+      "solve_seconds": 0.052,
+      "state": "Montana"
     },
     {
       "budget_sites": 20,
+      "cbc_optimality_gap": 0.0,
+      "cbc_status": "optimal",
       "demand_covered": 2662.8202,
       "epsilon": 877.304,
       "equity_population_covered": 87567.55,
       "objective_sense": "maximise_equity_subject_to_demand",
-      "optimality_gap": 0.0,
       "sites_selected": 20,
-      "solve_seconds": 0.031,
-      "state": "Montana",
-      "status": "optimal"
+      "solve_seconds": 0.053,
+      "state": "Montana"
     },
     {
       "budget_sites": 20,
+      "cbc_optimality_gap": 0.0,
+      "cbc_status": "optimal",
       "demand_covered": 2662.8202,
       "epsilon": 1315.956,
       "equity_population_covered": 87567.55,
       "objective_sense": "maximise_equity_subject_to_demand",
-      "optimality_gap": 0.0,
       "sites_selected": 20,
-      "solve_seconds": 0.03,
-      "state": "Montana",
-      "status": "optimal"
+      "solve_seconds": 0.056,
+      "state": "Montana"
     },
     {
       "budget_sites": 20,
+      "cbc_optimality_gap": 0.0,
+      "cbc_status": "optimal",
       "demand_covered": 2662.8202,
       "epsilon": 1754.608,
       "equity_population_covered": 87567.55,
       "objective_sense": "maximise_equity_subject_to_demand",
-      "optimality_gap": 0.0,
       "sites_selected": 20,
-      "solve_seconds": 0.031,
-      "state": "Montana",
-      "status": "optimal"
+      "solve_seconds": 0.059,
+      "state": "Montana"
     },
     {
       "budget_sites": 20,
+      "cbc_optimality_gap": 0.0,
+      "cbc_status": "optimal",
       "demand_covered": 2662.8202,
       "epsilon": 2193.26,
       "equity_population_covered": 87567.55,
       "objective_sense": "maximise_equity_subject_to_demand",
-      "optimality_gap": 0.0,
       "sites_selected": 20,
-      "solve_seconds": 0.031,
-      "state": "Montana",
-      "status": "optimal"
+      "solve_seconds": 0.056,
+      "state": "Montana"
     },
     {
       "budget_sites": 20,
+      "cbc_optimality_gap": 0.0,
+      "cbc_status": "optimal",
       "demand_covered": 2662.8202,
       "epsilon": 2631.912,
       "equity_population_covered": 87567.55,
       "objective_sense": "maximise_equity_subject_to_demand",
-      "optimality_gap": 0.0,
       "sites_selected": 20,
-      "solve_seconds": 0.031,
-      "state": "Montana",
-      "status": "optimal"
+      "solve_seconds": 0.056,
+      "state": "Montana"
     },
     {
       "budget_sites": 20,
+      "cbc_optimality_gap": 0.0,
+      "cbc_status": "optimal",
       "demand_covered": 3079.0964,
       "epsilon": 3070.564,
       "equity_population_covered": 86206.21,
       "objective_sense": "maximise_equity_subject_to_demand",
-      "optimality_gap": 0.0,
       "sites_selected": 20,
-      "solve_seconds": 0.05,
-      "state": "Montana",
-      "status": "optimal"
+      "solve_seconds": 0.087,
+      "state": "Montana"
     },
     {
       "budget_sites": 20,
+      "cbc_optimality_gap": 0.0,
+      "cbc_status": "optimal",
       "demand_covered": 4192.1714,
       "epsilon": 0.0,
       "equity_population_covered": 34354.07,
       "objective_sense": "maximise_demand_subject_to_equity",
-      "optimality_gap": 0.0,
       "sites_selected": 20,
-      "solve_seconds": 0.031,
-      "state": "Vermont",
-      "status": "optimal"
+      "solve_seconds": 0.055,
+      "state": "Vermont"
     },
     {
       "budget_sites": 20,
+      "cbc_optimality_gap": 0.0,
+      "cbc_status": "optimal",
       "demand_covered": 4192.1714,
       "epsilon": 5225.5415,
       "equity_population_covered": 34354.07,
       "objective_sense": "maximise_demand_subject_to_equity",
-      "optimality_gap": 0.0,
       "sites_selected": 20,
-      "solve_seconds": 0.031,
-      "state": "Vermont",
-      "status": "optimal"
+      "solve_seconds": 0.058,
+      "state": "Vermont"
     },
     {
       "budget_sites": 20,
+      "cbc_optimality_gap": 0.0,
+      "cbc_status": "optimal",
       "demand_covered": 4192.1714,
       "epsilon": 10451.083,
       "equity_population_covered": 34354.07,
       "objective_sense": "maximise_demand_subject_to_equity",
-      "optimality_gap": 0.0,
       "sites_selected": 20,
-      "solve_seconds": 0.03,
-      "state": "Vermont",
-      "status": "optimal"
+      "solve_seconds": 0.055,
+      "state": "Vermont"
     },
     {
       "budget_sites": 20,
+      "cbc_optimality_gap": 0.0,
+      "cbc_status": "optimal",
       "demand_covered": 4192.1714,
       "epsilon": 15676.6245,
       "equity_population_covered": 34354.07,
       "objective_sense": "maximise_demand_subject_to_equity",
-      "optimality_gap": 0.0,
       "sites_selected": 20,
-      "solve_seconds": 0.03,
-      "state": "Vermont",
-      "status": "optimal"
+      "solve_seconds": 0.056,
+      "state": "Vermont"
     },
     {
       "budget_sites": 20,
+      "cbc_optimality_gap": 0.0,
+      "cbc_status": "optimal",
       "demand_covered": 4192.1714,
       "epsilon": 20902.1659,
       "equity_population_covered": 34354.07,
       "objective_sense": "maximise_demand_subject_to_equity",
-      "optimality_gap": 0.0,
       "sites_selected": 20,
-      "solve_seconds": 0.031,
-      "state": "Vermont",
-      "status": "optimal"
+      "solve_seconds": 0.053,
+      "state": "Vermont"
     },
     {
       "budget_sites": 20,
+      "cbc_optimality_gap": 0.0,
+      "cbc_status": "optimal",
       "demand_covered": 4192.1714,
       "epsilon": 26127.7074,
       "equity_population_covered": 34354.07,
       "objective_sense": "maximise_demand_subject_to_equity",
-      "optimality_gap": 0.0,
       "sites_selected": 20,
-      "solve_seconds": 0.031,
-      "state": "Vermont",
-      "status": "optimal"
+      "solve_seconds": 0.053,
+      "state": "Vermont"
     },
     {
       "budget_sites": 20,
+      "cbc_optimality_gap": 0.0,
+      "cbc_status": "optimal",
       "demand_covered": 4192.1714,
       "epsilon": 31353.2489,
       "equity_population_covered": 34354.07,
       "objective_sense": "maximise_demand_subject_to_equity",
-      "optimality_gap": 0.0,
       "sites_selected": 20,
-      "solve_seconds": 0.03,
-      "state": "Vermont",
-      "status": "optimal"
+      "solve_seconds": 0.053,
+      "state": "Vermont"
     },
     {
       "budget_sites": 20,
+      "cbc_optimality_gap": 0.0,
+      "cbc_status": "optimal",
       "demand_covered": 4190.4281,
       "epsilon": 36578.7904,
       "equity_population_covered": 36611.17,
       "objective_sense": "maximise_demand_subject_to_equity",
-      "optimality_gap": 0.0,
       "sites_selected": 20,
-      "solve_seconds": 0.048,
-      "state": "Vermont",
-      "status": "optimal"
+      "solve_seconds": 0.085,
+      "state": "Vermont"
     },
     {
       "budget_sites": 20,
+      "cbc_optimality_gap": 0.0,
+      "cbc_status": "optimal",
       "demand_covered": 3535.0376,
       "epsilon": 0.0,
       "equity_population_covered": 41804.33,
       "objective_sense": "maximise_equity_subject_to_demand",
-      "optimality_gap": 0.0,
       "sites_selected": 20,
-      "solve_seconds": 0.03,
-      "state": "Vermont",
-      "status": "optimal"
+      "solve_seconds": 0.055,
+      "state": "Vermont"
     },
     {
       "budget_sites": 20,
+      "cbc_optimality_gap": 0.0,
+      "cbc_status": "optimal",
       "demand_covered": 3535.0376,
       "epsilon": 524.0214,
       "equity_population_covered": 41804.33,
       "objective_sense": "maximise_equity_subject_to_demand",
-      "optimality_gap": 0.0,
       "sites_selected": 20,
-      "solve_seconds": 0.03,
-      "state": "Vermont",
-      "status": "optimal"
+      "solve_seconds": 0.054,
+      "state": "Vermont"
     },
     {
       "budget_sites": 20,
+      "cbc_optimality_gap": 0.0,
+      "cbc_status": "optimal",
       "demand_covered": 3535.0376,
       "epsilon": 1048.0428,
       "equity_population_covered": 41804.33,
       "objective_sense": "maximise_equity_subject_to_demand",
-      "optimality_gap": 0.0,
       "sites_selected": 20,
-      "solve_seconds": 0.03,
-      "state": "Vermont",
-      "status": "optimal"
+      "solve_seconds": 0.052,
+      "state": "Vermont"
     },
     {
       "budget_sites": 20,
+      "cbc_optimality_gap": 0.0,
+      "cbc_status": "optimal",
       "demand_covered": 3535.0376,
       "epsilon": 1572.0643,
       "equity_population_covered": 41804.33,
       "objective_sense": "maximise_equity_subject_to_demand",
-      "optimality_gap": 0.0,
       "sites_selected": 20,
-      "solve_seconds": 0.03,
-      "state": "Vermont",
-      "status": "optimal"
+      "solve_seconds": 0.053,
+      "state": "Vermont"
     },
     {
       "budget_sites": 20,
+      "cbc_optimality_gap": 0.0,
+      "cbc_status": "optimal",
       "demand_covered": 3535.0376,
       "epsilon": 2096.0857,
       "equity_population_covered": 41804.33,
       "objective_sense": "maximise_equity_subject_to_demand",
-      "optimality_gap": 0.0,
       "sites_selected": 20,
-      "solve_seconds": 0.03,
-      "state": "Vermont",
-      "status": "optimal"
+      "solve_seconds": 0.054,
+      "state": "Vermont"
     },
     {
       "budget_sites": 20,
+      "cbc_optimality_gap": 0.0,
+      "cbc_status": "optimal",
       "demand_covered": 3535.0376,
       "epsilon": 2620.1071,
       "equity_population_covered": 41804.33,
       "objective_sense": "maximise_equity_subject_to_demand",
-      "optimality_gap": 0.0,
       "sites_selected": 20,
-      "solve_seconds": 0.03,
-      "state": "Vermont",
-      "status": "optimal"
+      "solve_seconds": 0.06,
+      "state": "Vermont"
     },
     {
       "budget_sites": 20,
+      "cbc_optimality_gap": 0.0,
+      "cbc_status": "optimal",
       "demand_covered": 3535.0376,
       "epsilon": 3144.1285,
       "equity_population_covered": 41804.33,
       "objective_sense": "maximise_equity_subject_to_demand",
-      "optimality_gap": 0.0,
       "sites_selected": 20,
-      "solve_seconds": 0.03,
-      "state": "Vermont",
-      "status": "optimal"
+      "solve_seconds": 0.057,
+      "state": "Vermont"
     },
     {
       "budget_sites": 20,
+      "cbc_optimality_gap": 0.0,
+      "cbc_status": "optimal",
       "demand_covered": 3684.0412,
       "epsilon": 3668.15,
       "equity_population_covered": 41595.4,
       "objective_sense": "maximise_equity_subject_to_demand",
-      "optimality_gap": 0.0,
       "sites_selected": 20,
-      "solve_seconds": 0.084,
-      "state": "Vermont",
-      "status": "optimal"
+      "solve_seconds": 0.147,
+      "state": "Vermont"
     },
     {
       "budget_sites": 20,
+      "cbc_optimality_gap": 0.0,
+      "cbc_status": "optimal",
       "demand_covered": 76378.114,
       "epsilon": 0.0,
       "equity_population_covered": 462341.55,
       "objective_sense": "maximise_demand_subject_to_equity",
-      "optimality_gap": 0.0,
       "sites_selected": 20,
-      "solve_seconds": 0.113,
-      "state": "Texas",
-      "status": "optimal"
+      "solve_seconds": 0.175,
+      "state": "Texas"
     },
     {
       "budget_sites": 20,
+      "cbc_optimality_gap": 0.0,
+      "cbc_status": "optimal",
       "demand_covered": 76378.114,
       "epsilon": 136133.3933,
       "equity_population_covered": 462341.55,
       "objective_sense": "maximise_demand_subject_to_equity",
-      "optimality_gap": 0.0,
       "sites_selected": 20,
-      "solve_seconds": 0.096,
-      "state": "Texas",
-      "status": "optimal"
+      "solve_seconds": 0.135,
+      "state": "Texas"
     },
     {
       "budget_sites": 20,
+      "cbc_optimality_gap": 0.0,
+      "cbc_status": "optimal",
       "demand_covered": 76378.114,
       "epsilon": 272266.7866,
       "equity_population_covered": 462341.55,
       "objective_sense": "maximise_demand_subject_to_equity",
-      "optimality_gap": 0.0,
       "sites_selected": 20,
-      "solve_seconds": 0.097,
-      "state": "Texas",
-      "status": "optimal"
+      "solve_seconds": 0.133,
+      "state": "Texas"
     },
     {
       "budget_sites": 20,
+      "cbc_optimality_gap": 0.0,
+      "cbc_status": "optimal",
       "demand_covered": 76378.114,
       "epsilon": 408400.1799,
       "equity_population_covered": 462341.55,
       "objective_sense": "maximise_demand_subject_to_equity",
-      "optimality_gap": 0.0,
       "sites_selected": 20,
-      "solve_seconds": 0.096,
-      "state": "Texas",
-      "status": "optimal"
+      "solve_seconds": 0.145,
+      "state": "Texas"
     },
     {
       "budget_sites": 20,
+      "cbc_optimality_gap": 0.0,
+      "cbc_status": "optimal",
       "demand_covered": 75849.0364,
       "epsilon": 544533.5732,
       "equity_population_covered": 549503.06,
       "objective_sense": "maximise_demand_subject_to_equity",
-      "optimality_gap": 0.0,
       "sites_selected": 20,
-      "solve_seconds": 0.382,
-      "state": "Texas",
-      "status": "optimal"
+      "solve_seconds": 0.562,
+      "state": "Texas"
     },
     {
       "budget_sites": 20,
+      "cbc_optimality_gap": 0.0,
+      "cbc_status": "optimal",
       "demand_covered": 73131.5571,
       "epsilon": 680666.9665,
       "equity_population_covered": 683377.0,
       "objective_sense": "maximise_demand_subject_to_equity",
-      "optimality_gap": 0.0,
       "sites_selected": 20,
-      "solve_seconds": 0.432,
-      "state": "Texas",
-      "status": "optimal"
+      "solve_seconds": 0.646,
+      "state": "Texas"
     },
     {
       "budget_sites": 20,
+      "cbc_optimality_gap": 0.0,
+      "cbc_status": "optimal",
       "demand_covered": 68966.293,
       "epsilon": 816800.3598,
       "equity_population_covered": 817824.94,
       "objective_sense": "maximise_demand_subject_to_equity",
-      "optimality_gap": 0.0,
       "sites_selected": 20,
-      "solve_seconds": 0.362,
-      "state": "Texas",
-      "status": "optimal"
+      "solve_seconds": 0.492,
+      "state": "Texas"
     },
     {
       "budget_sites": 20,
+      "cbc_optimality_gap": 0.0,
+      "cbc_status": "optimal",
       "demand_covered": 61301.497,
       "epsilon": 952933.7531,
       "equity_population_covered": 954384.92,
       "objective_sense": "maximise_demand_subject_to_equity",
-      "optimality_gap": 0.0,
       "sites_selected": 20,
-      "solve_seconds": 0.338,
-      "state": "Texas",
-      "status": "optimal"
+      "solve_seconds": 0.492,
+      "state": "Texas"
     },
     {
       "budget_sites": 20,
+      "cbc_optimality_gap": 0.0,
+      "cbc_status": "optimal",
       "demand_covered": 29574.0938,
       "epsilon": 0.0,
       "equity_population_covered": 1089067.15,
       "objective_sense": "maximise_equity_subject_to_demand",
-      "optimality_gap": 0.0,
       "sites_selected": 20,
-      "solve_seconds": 0.112,
-      "state": "Texas",
-      "status": "optimal"
+      "solve_seconds": 0.153,
+      "state": "Texas"
     },
     {
       "budget_sites": 20,
+      "cbc_optimality_gap": 0.0,
+      "cbc_status": "optimal",
       "demand_covered": 29574.0938,
       "epsilon": 9547.2643,
       "equity_population_covered": 1089067.15,
       "objective_sense": "maximise_equity_subject_to_demand",
-      "optimality_gap": 0.0,
       "sites_selected": 20,
-      "solve_seconds": 0.098,
-      "state": "Texas",
-      "status": "optimal"
+      "solve_seconds": 0.153,
+      "state": "Texas"
     },
     {
       "budget_sites": 20,
+      "cbc_optimality_gap": 0.0,
+      "cbc_status": "optimal",
       "demand_covered": 29574.0938,
       "epsilon": 19094.5285,
       "equity_population_covered": 1089067.15,
       "objective_sense": "maximise_equity_subject_to_demand",
-      "optimality_gap": 0.0,
       "sites_selected": 20,
-      "solve_seconds": 0.098,
-      "state": "Texas",
-      "status": "optimal"
+      "solve_seconds": 0.147,
+      "state": "Texas"
     },
     {
       "budget_sites": 20,
+      "cbc_optimality_gap": 0.0,
+      "cbc_status": "optimal",
       "demand_covered": 29574.0938,
       "epsilon": 28641.7928,
       "equity_population_covered": 1089067.15,
       "objective_sense": "maximise_equity_subject_to_demand",
-      "optimality_gap": 0.0,
       "sites_selected": 20,
-      "solve_seconds": 0.098,
-      "state": "Texas",
-      "status": "optimal"
+      "solve_seconds": 0.154,
+      "state": "Texas"
     },
     {
       "budget_sites": 20,
+      "cbc_optimality_gap": 0.0,
+      "cbc_status": "optimal",
       "demand_covered": 38401.9134,
       "epsilon": 38189.057,
       "equity_population_covered": 1069025.51,
       "objective_sense": "maximise_equity_subject_to_demand",
-      "optimality_gap": 0.0,
       "sites_selected": 20,
-      "solve_seconds": 0.318,
-      "state": "Texas",
-      "status": "optimal"
+      "solve_seconds": 0.491,
+      "state": "Texas"
     },
     {
       "budget_sites": 20,
+      "cbc_optimality_gap": 0.0,
+      "cbc_status": "optimal",
       "demand_covered": 47950.2018,
       "epsilon": 47736.3213,
       "equity_population_covered": 1037479.13,
       "objective_sense": "maximise_equity_subject_to_demand",
-      "optimality_gap": 0.0,
       "sites_selected": 20,
-      "solve_seconds": 0.418,
-      "state": "Texas",
-      "status": "optimal"
+      "solve_seconds": 0.641,
+      "state": "Texas"
     },
     {
       "budget_sites": 20,
+      "cbc_optimality_gap": 0.0,
+      "cbc_status": "optimal",
       "demand_covered": 57356.7861,
       "epsilon": 57283.5855,
       "equity_population_covered": 984158.86,
       "objective_sense": "maximise_equity_subject_to_demand",
-      "optimality_gap": 0.0,
       "sites_selected": 20,
-      "solve_seconds": 0.656,
-      "state": "Texas",
-      "status": "optimal"
+      "solve_seconds": 0.982,
+      "state": "Texas"
     },
     {
       "budget_sites": 20,
+      "cbc_optimality_gap": 0.0,
+      "cbc_status": "optimal",
       "demand_covered": 66881.336,
       "epsilon": 66830.8498,
       "equity_population_covered": 866528.6,
       "objective_sense": "maximise_equity_subject_to_demand",
-      "optimality_gap": 0.0,
       "sites_selected": 20,
-      "solve_seconds": 0.367,
-      "state": "Texas",
-      "status": "optimal"
+      "solve_seconds": 0.553,
+      "state": "Texas"
     },
     {
       "budget_sites": 20,
+      "cbc_optimality_gap": 0.0,
+      "cbc_status": "optimal",
       "demand_covered": 256713.384,
       "epsilon": 0.0,
       "equity_population_covered": 454965.98,
       "objective_sense": "maximise_demand_subject_to_equity",
-      "optimality_gap": 0.0,
       "sites_selected": 20,
-      "solve_seconds": 0.063,
-      "state": "California",
-      "status": "optimal"
+      "solve_seconds": 0.108,
+      "state": "California"
     },
     {
       "budget_sites": 20,
+      "cbc_optimality_gap": 0.0,
+      "cbc_status": "optimal",
       "demand_covered": 256713.384,
       "epsilon": 81111.6653,
       "equity_population_covered": 454965.98,
       "objective_sense": "maximise_demand_subject_to_equity",
-      "optimality_gap": 0.0,
       "sites_selected": 20,
-      "solve_seconds": 0.058,
-      "state": "California",
-      "status": "optimal"
+      "solve_seconds": 0.105,
+      "state": "California"
     },
     {
       "budget_sites": 20,
+      "cbc_optimality_gap": 0.0,
+      "cbc_status": "optimal",
       "demand_covered": 256713.384,
       "epsilon": 162223.3307,
       "equity_population_covered": 454965.98,
       "objective_sense": "maximise_demand_subject_to_equity",
-      "optimality_gap": 0.0,
       "sites_selected": 20,
-      "solve_seconds": 0.057,
-      "state": "California",
-      "status": "optimal"
+      "solve_seconds": 0.087,
+      "state": "California"
     },
     {
       "budget_sites": 20,
+      "cbc_optimality_gap": 0.0,
+      "cbc_status": "optimal",
       "demand_covered": 256713.384,
       "epsilon": 243334.996,
       "equity_population_covered": 454965.98,
       "objective_sense": "maximise_demand_subject_to_equity",
-      "optimality_gap": 0.0,
       "sites_selected": 20,
-      "solve_seconds": 0.057,
-      "state": "California",
-      "status": "optimal"
+      "solve_seconds": 0.089,
+      "state": "California"
     },
     {
       "budget_sites": 20,
+      "cbc_optimality_gap": 0.0,
+      "cbc_status": "optimal",
       "demand_covered": 256713.384,
       "epsilon": 324446.6613,
       "equity_population_covered": 454965.98,
       "objective_sense": "maximise_demand_subject_to_equity",
-      "optimality_gap": 0.0,
       "sites_selected": 20,
-      "solve_seconds": 0.057,
-      "state": "California",
-      "status": "optimal"
+      "solve_seconds": 0.089,
+      "state": "California"
     },
     {
       "budget_sites": 20,
+      "cbc_optimality_gap": 0.0,
+      "cbc_status": "optimal",
       "demand_covered": 256713.384,
       "epsilon": 405558.3267,
       "equity_population_covered": 454965.98,
       "objective_sense": "maximise_demand_subject_to_equity",
-      "optimality_gap": 0.0,
       "sites_selected": 20,
-      "solve_seconds": 0.057,
-      "state": "California",
-      "status": "optimal"
+      "solve_seconds": 0.093,
+      "state": "California"
     },
     {
       "budget_sites": 20,
+      "cbc_optimality_gap": 0.0,
+      "cbc_status": "optimal",
       "demand_covered": 256697.495,
       "epsilon": 486669.992,
       "equity_population_covered": 489029.97,
       "objective_sense": "maximise_demand_subject_to_equity",
-      "optimality_gap": 0.0,
       "sites_selected": 20,
-      "solve_seconds": 0.188,
-      "state": "California",
-      "status": "optimal"
+      "solve_seconds": 0.317,
+      "state": "California"
     },
     {
       "budget_sites": 20,
+      "cbc_optimality_gap": 0.0,
+      "cbc_status": "optimal",
       "demand_covered": 249545.743,
       "epsilon": 567781.6573,
       "equity_population_covered": 569489.42,
       "objective_sense": "maximise_demand_subject_to_equity",
-      "optimality_gap": 0.0,
       "sites_selected": 20,
-      "solve_seconds": 0.146,
-      "state": "California",
-      "status": "optimal"
+      "solve_seconds": 0.239,
+      "state": "California"
     },
     {
       "budget_sites": 20,
+      "cbc_optimality_gap": 0.0,
+      "cbc_status": "optimal",
       "demand_covered": 195481.6102,
       "epsilon": 0.0,
       "equity_population_covered": 648893.32,
       "objective_sense": "maximise_equity_subject_to_demand",
-      "optimality_gap": 0.0,
       "sites_selected": 20,
-      "solve_seconds": 0.064,
-      "state": "California",
-      "status": "optimal"
+      "solve_seconds": 0.097,
+      "state": "California"
     },
     {
       "budget_sites": 20,
+      "cbc_optimality_gap": 0.0,
+      "cbc_status": "optimal",
       "demand_covered": 195481.6102,
       "epsilon": 32089.173,
       "equity_population_covered": 648893.32,
       "objective_sense": "maximise_equity_subject_to_demand",
-      "optimality_gap": 0.0,
       "sites_selected": 20,
-      "solve_seconds": 0.058,
-      "state": "California",
-      "status": "optimal"
+      "solve_seconds": 0.086,
+      "state": "California"
     },
     {
       "budget_sites": 20,
+      "cbc_optimality_gap": 0.0,
+      "cbc_status": "optimal",
       "demand_covered": 195481.6102,
       "epsilon": 64178.346,
       "equity_population_covered": 648893.32,
       "objective_sense": "maximise_equity_subject_to_demand",
-      "optimality_gap": 0.0,
       "sites_selected": 20,
-      "solve_seconds": 0.058,
-      "state": "California",
-      "status": "optimal"
+      "solve_seconds": 0.087,
+      "state": "California"
     },
     {
       "budget_sites": 20,
+      "cbc_optimality_gap": 0.0,
+      "cbc_status": "optimal",
       "demand_covered": 195481.6102,
       "epsilon": 96267.519,
       "equity_population_covered": 648893.32,
       "objective_sense": "maximise_equity_subject_to_demand",
-      "optimality_gap": 0.0,
       "sites_selected": 20,
-      "solve_seconds": 0.058,
-      "state": "California",
-      "status": "optimal"
+      "solve_seconds": 0.088,
+      "state": "California"
     },
     {
       "budget_sites": 20,
+      "cbc_optimality_gap": 0.0,
+      "cbc_status": "optimal",
       "demand_covered": 195481.6102,
       "epsilon": 128356.692,
       "equity_population_covered": 648893.32,
       "objective_sense": "maximise_equity_subject_to_demand",
-      "optimality_gap": 0.0,
       "sites_selected": 20,
-      "solve_seconds": 0.058,
-      "state": "California",
-      "status": "optimal"
+      "solve_seconds": 0.2,
+      "state": "California"
     },
     {
       "budget_sites": 20,
+      "cbc_optimality_gap": 0.0,
+      "cbc_status": "optimal",
       "demand_covered": 195481.6102,
       "epsilon": 160445.865,
       "equity_population_covered": 648893.32,
       "objective_sense": "maximise_equity_subject_to_demand",
-      "optimality_gap": 0.0,
       "sites_selected": 20,
-      "solve_seconds": 0.058,
-      "state": "California",
-      "status": "optimal"
+      "solve_seconds": 0.094,
+      "state": "California"
     },
     {
       "budget_sites": 20,
+      "cbc_optimality_gap": 0.0,
+      "cbc_status": "optimal",
       "demand_covered": 195481.6102,
       "epsilon": 192535.038,
       "equity_population_covered": 648893.32,
       "objective_sense": "maximise_equity_subject_to_demand",
-      "optimality_gap": 0.0,
       "sites_selected": 20,
-      "solve_seconds": 0.057,
-      "state": "California",
-      "status": "optimal"
+      "solve_seconds": 0.09,
+      "state": "California"
     },
     {
       "budget_sites": 20,
+      "cbc_optimality_gap": 0.0,
+      "cbc_status": "optimal",
       "demand_covered": 224809.3337,
       "epsilon": 224624.211,
       "equity_population_covered": 628836.92,
       "objective_sense": "maximise_equity_subject_to_demand",
-      "optimality_gap": 0.0,
       "sites_selected": 20,
-      "solve_seconds": 0.708,
-      "state": "California",
-      "status": "optimal"
+      "solve_seconds": 1.104,
+      "state": "California"
     }
   ],
   "frontier_scope": "PER STATE over a documented stratified sample, not national. CLAUDE.md \u00a77.8 permits this because a national solve at eight epsilon levels in two directions is sixteen national integer programs inside a six-hour CI ceiling. The sample spans jurisdiction size and all three evidence grains.",
   "greedy_budget_seconds": 2.0,
-  "greedy_slowest_seconds": 0.023,
+  "greedy_objective_shortfall_vs_optimal_cbc": [
+    {
+      "budget_sites": 5,
+      "cbc_status": "optimal",
+      "greedy_objective": 33991.9092,
+      "greedy_objective_shortfall_vs_optimal_cbc": 0.0,
+      "label": "Washington",
+      "measures": "observed shortfall of the greedy objective against the optimal CBC objective on the same problem. NOT a solver optimality gap and NOT an approximation bound: no bound is claimed for the browser algorithm.",
+      "optimal_cbc_objective": 33991.9092,
+      "state": "Washington"
+    },
+    {
+      "budget_sites": 20,
+      "cbc_status": "optimal",
+      "greedy_objective": 66931.4549,
+      "greedy_objective_shortfall_vs_optimal_cbc": 0.008756,
+      "label": "Washington",
+      "measures": "observed shortfall of the greedy objective against the optimal CBC objective on the same problem. NOT a solver optimality gap and NOT an approximation bound: no bound is claimed for the browser algorithm.",
+      "optimal_cbc_objective": 67522.6797,
+      "state": "Washington"
+    },
+    {
+      "budget_sites": 50,
+      "cbc_status": "optimal",
+      "greedy_objective": 87685.9051,
+      "greedy_objective_shortfall_vs_optimal_cbc": 0.003753,
+      "label": "Washington",
+      "measures": "observed shortfall of the greedy objective against the optimal CBC objective on the same problem. NOT a solver optimality gap and NOT an approximation bound: no bound is claimed for the browser algorithm.",
+      "optimal_cbc_objective": 88016.2292,
+      "state": "Washington"
+    },
+    {
+      "budget_sites": 5,
+      "cbc_status": "optimal",
+      "greedy_objective": 9691.7996,
+      "greedy_objective_shortfall_vs_optimal_cbc": 0.0,
+      "label": "Tennessee",
+      "measures": "observed shortfall of the greedy objective against the optimal CBC objective on the same problem. NOT a solver optimality gap and NOT an approximation bound: no bound is claimed for the browser algorithm.",
+      "optimal_cbc_objective": 9691.7996,
+      "state": "Tennessee"
+    },
+    {
+      "budget_sites": 20,
+      "cbc_status": "optimal",
+      "greedy_objective": 20941.1156,
+      "greedy_objective_shortfall_vs_optimal_cbc": 0.004771,
+      "label": "Tennessee",
+      "measures": "observed shortfall of the greedy objective against the optimal CBC objective on the same problem. NOT a solver optimality gap and NOT an approximation bound: no bound is claimed for the browser algorithm.",
+      "optimal_cbc_objective": 21041.4989,
+      "state": "Tennessee"
+    },
+    {
+      "budget_sites": 50,
+      "cbc_status": "optimal",
+      "greedy_objective": 28643.3261,
+      "greedy_objective_shortfall_vs_optimal_cbc": 0.011501,
+      "label": "Tennessee",
+      "measures": "observed shortfall of the greedy objective against the optimal CBC objective on the same problem. NOT a solver optimality gap and NOT an approximation bound: no bound is claimed for the browser algorithm.",
+      "optimal_cbc_objective": 28976.5971,
+      "state": "Tennessee"
+    },
+    {
+      "budget_sites": 5,
+      "cbc_status": "optimal",
+      "greedy_objective": 1814.5114,
+      "greedy_objective_shortfall_vs_optimal_cbc": 0.0,
+      "label": "Montana",
+      "measures": "observed shortfall of the greedy objective against the optimal CBC objective on the same problem. NOT a solver optimality gap and NOT an approximation bound: no bound is claimed for the browser algorithm.",
+      "optimal_cbc_objective": 1814.5114,
+      "state": "Montana"
+    },
+    {
+      "budget_sites": 20,
+      "cbc_status": "optimal",
+      "greedy_objective": 3398.9869,
+      "greedy_objective_shortfall_vs_optimal_cbc": 0.031411,
+      "label": "Montana",
+      "measures": "observed shortfall of the greedy objective against the optimal CBC objective on the same problem. NOT a solver optimality gap and NOT an approximation bound: no bound is claimed for the browser algorithm.",
+      "optimal_cbc_objective": 3509.216,
+      "state": "Montana"
+    },
+    {
+      "budget_sites": 50,
+      "cbc_status": "optimal",
+      "greedy_objective": 4108.9686,
+      "greedy_objective_shortfall_vs_optimal_cbc": 0.010855,
+      "label": "Montana",
+      "measures": "observed shortfall of the greedy objective against the optimal CBC objective on the same problem. NOT a solver optimality gap and NOT an approximation bound: no bound is claimed for the browser algorithm.",
+      "optimal_cbc_objective": 4154.0603,
+      "state": "Montana"
+    },
+    {
+      "budget_sites": 5,
+      "cbc_status": "optimal",
+      "greedy_objective": 2281.824,
+      "greedy_objective_shortfall_vs_optimal_cbc": 0.0,
+      "label": "Vermont",
+      "measures": "observed shortfall of the greedy objective against the optimal CBC objective on the same problem. NOT a solver optimality gap and NOT an approximation bound: no bound is claimed for the browser algorithm.",
+      "optimal_cbc_objective": 2281.824,
+      "state": "Vermont"
+    },
+    {
+      "budget_sites": 20,
+      "cbc_status": "optimal",
+      "greedy_objective": 4154.8861,
+      "greedy_objective_shortfall_vs_optimal_cbc": 0.008894,
+      "label": "Vermont",
+      "measures": "observed shortfall of the greedy objective against the optimal CBC objective on the same problem. NOT a solver optimality gap and NOT an approximation bound: no bound is claimed for the browser algorithm.",
+      "optimal_cbc_objective": 4192.1714,
+      "state": "Vermont"
+    },
+    {
+      "budget_sites": 50,
+      "cbc_status": "optimal",
+      "greedy_objective": 5771.7799,
+      "greedy_objective_shortfall_vs_optimal_cbc": 0.010564,
+      "label": "Vermont",
+      "measures": "observed shortfall of the greedy objective against the optimal CBC objective on the same problem. NOT a solver optimality gap and NOT an approximation bound: no bound is claimed for the browser algorithm.",
+      "optimal_cbc_objective": 5833.4064,
+      "state": "Vermont"
+    },
+    {
+      "budget_sites": 5,
+      "cbc_status": "optimal",
+      "greedy_objective": 29438.1152,
+      "greedy_objective_shortfall_vs_optimal_cbc": 0.0,
+      "label": "Texas",
+      "measures": "observed shortfall of the greedy objective against the optimal CBC objective on the same problem. NOT a solver optimality gap and NOT an approximation bound: no bound is claimed for the browser algorithm.",
+      "optimal_cbc_objective": 29438.1152,
+      "state": "Texas"
+    },
+    {
+      "budget_sites": 20,
+      "cbc_status": "optimal",
+      "greedy_objective": 76378.114,
+      "greedy_objective_shortfall_vs_optimal_cbc": 0.0,
+      "label": "Texas",
+      "measures": "observed shortfall of the greedy objective against the optimal CBC objective on the same problem. NOT a solver optimality gap and NOT an approximation bound: no bound is claimed for the browser algorithm.",
+      "optimal_cbc_objective": 76378.114,
+      "state": "Texas"
+    },
+    {
+      "budget_sites": 50,
+      "cbc_status": "optimal",
+      "greedy_objective": 115462.5078,
+      "greedy_objective_shortfall_vs_optimal_cbc": 0.006372,
+      "label": "Texas",
+      "measures": "observed shortfall of the greedy objective against the optimal CBC objective on the same problem. NOT a solver optimality gap and NOT an approximation bound: no bound is claimed for the browser algorithm.",
+      "optimal_cbc_objective": 116202.9899,
+      "state": "Texas"
+    },
+    {
+      "budget_sites": 5,
+      "cbc_status": "optimal",
+      "greedy_objective": 111884.7691,
+      "greedy_objective_shortfall_vs_optimal_cbc": 0.016549,
+      "label": "California",
+      "measures": "observed shortfall of the greedy objective against the optimal CBC objective on the same problem. NOT a solver optimality gap and NOT an approximation bound: no bound is claimed for the browser algorithm.",
+      "optimal_cbc_objective": 113767.4749,
+      "state": "California"
+    },
+    {
+      "budget_sites": 20,
+      "cbc_status": "optimal",
+      "greedy_objective": 253903.0838,
+      "greedy_objective_shortfall_vs_optimal_cbc": 0.010947,
+      "label": "California",
+      "measures": "observed shortfall of the greedy objective against the optimal CBC objective on the same problem. NOT a solver optimality gap and NOT an approximation bound: no bound is claimed for the browser algorithm.",
+      "optimal_cbc_objective": 256713.384,
+      "state": "California"
+    },
+    {
+      "budget_sites": 50,
+      "cbc_status": "optimal",
+      "greedy_objective": 376185.2458,
+      "greedy_objective_shortfall_vs_optimal_cbc": 0.0,
+      "label": "California",
+      "measures": "observed shortfall of the greedy objective against the optimal CBC objective on the same problem. NOT a solver optimality gap and NOT an approximation bound: no bound is claimed for the browser algorithm.",
+      "optimal_cbc_objective": 376185.2458,
+      "state": "California"
+    }
+  ],
+  "greedy_slowest_seconds": 0.0323,
   "greedy_within_budget": true,
   "per_state": [
     {
@@ -1333,7 +1351,7 @@
         "equity_objective_indicator": "population in households with income below $35,000 a year, from the ACS five-year feature income_share_under_35k multiplied by tract population. ONE named current ACS-derived socioeconomic indicator, NOT a composite index and NOT a general measure of disadvantage.",
         "excluded_by_reason": {
           "already_saturated": 184,
-          "beyond_road_network": 185,
+          "beyond_primary_secondary_road_network": 185,
           "uninhabited": 11
         },
         "mean_cells_covered": 3.134,
@@ -1341,10 +1359,12 @@
         "road_network_filter": {
           "cells_measured": 1054,
           "cells_within_threshold": 859,
-          "distance_method": "haversine from the cell centroid to the nearest road VERTEX, not to the nearest point on a segment (assumption A-4.6)",
+          "distance_method": "great-circle distance from the cell centroid to the nearest POINT on the nearest road segment. The nearest point along each segment is located in a local tangent plane, then its distance is measured with haversine, so the reported value is a true geodesic distance to a real location on a road. Nearest-VERTEX distance was used in the first Phase 4 submission and is wrong: it overestimates by up to half a segment length (2.96 km on this data, 17x in the regression fixture).",
+          "road_network": "TIGER/Line 2024 PRIMARY (MTFCC S1100) and SECONDARY (S1200) roads only. NOT all roads: local streets (S1400) are excluded by design.",
+          "road_segments": 373001,
           "road_vertices": 376007,
           "sensitivity_cells_within_threshold_by_km": {
-            "1": 313,
+            "1": 314,
             "12": 1022,
             "2": 521,
             "20": 1040,
@@ -1407,12 +1427,36 @@
         }
       ],
       "demand_total": 236994.0,
+      "distance_method_comparison_vertex_vs_segment": {
+        "candidate_set_jaccard": 1.0,
+        "candidates_nearest_point_on_segment": 674,
+        "candidates_nearest_vertex": 674,
+        "cells": 1054,
+        "cells_overstated_by_over_100m": 3,
+        "cells_that_change_side_of_the_threshold": 0,
+        "demand_objective_delta": 0.0,
+        "distance_error_km": {
+          "definition": "nearest-VERTEX distance minus nearest-POINT-ON-SEGMENT distance; never negative, because a vertex is itself a point on the segment",
+          "max": 0.193221,
+          "mean": 0.002446,
+          "median": 1e-05,
+          "p99": 0.04551
+        },
+        "equity_objective_delta": 0.0,
+        "material": false,
+        "portfolio_overlap_by_budget": {
+          "20": 1.0,
+          "5": 1.0,
+          "50": 1.0
+        },
+        "state": "Washington"
+      },
       "equity_population_total": 1228412.32,
       "greedy": {
         "approximation_bound_claimed": null,
         "demand_covered": 66931.4549,
         "equity_population_covered": 165539.75,
-        "seconds": 0.0062,
+        "seconds": 0.0106,
         "sites_selected": 20,
         "weights": {
           "demand": 1.0,
@@ -1427,6 +1471,7 @@
           "S1100",
           "S1200"
         ],
+        "segments": 373001,
         "state_fips": "53",
         "vertices": 376007,
         "vintage": "2024"
@@ -1445,7 +1490,7 @@
         "equity_objective_indicator": "population in households with income below $35,000 a year, from the ACS five-year feature income_share_under_35k multiplied by tract population. ONE named current ACS-derived socioeconomic indicator, NOT a composite index and NOT a general measure of disadvantage.",
         "excluded_by_reason": {
           "already_saturated": 117,
-          "beyond_road_network": 54,
+          "beyond_primary_secondary_road_network": 54,
           "uninhabited": 7
         },
         "mean_cells_covered": 4.006,
@@ -1453,7 +1498,9 @@
         "road_network_filter": {
           "cells_measured": 1603,
           "cells_within_threshold": 1547,
-          "distance_method": "haversine from the cell centroid to the nearest road VERTEX, not to the nearest point on a segment (assumption A-4.6)",
+          "distance_method": "great-circle distance from the cell centroid to the nearest POINT on the nearest road segment. The nearest point along each segment is located in a local tangent plane, then its distance is measured with haversine, so the reported value is a true geodesic distance to a real location on a road. Nearest-VERTEX distance was used in the first Phase 4 submission and is wrong: it overestimates by up to half a segment length (2.96 km on this data, 17x in the regression fixture).",
+          "road_network": "TIGER/Line 2024 PRIMARY (MTFCC S1100) and SECONDARY (S1200) roads only. NOT all roads: local streets (S1400) are excluded by design.",
+          "road_segments": 1383545,
           "road_vertices": 1392729,
           "sensitivity_cells_within_threshold_by_km": {
             "1": 713,
@@ -1519,12 +1566,36 @@
         }
       ],
       "demand_total": 53029.0,
+      "distance_method_comparison_vertex_vs_segment": {
+        "candidate_set_jaccard": 1.0,
+        "candidates_nearest_point_on_segment": 1425,
+        "candidates_nearest_vertex": 1425,
+        "cells": 1603,
+        "cells_overstated_by_over_100m": 2,
+        "cells_that_change_side_of_the_threshold": 0,
+        "demand_objective_delta": 0.0,
+        "distance_error_km": {
+          "definition": "nearest-VERTEX distance minus nearest-POINT-ON-SEGMENT distance; never negative, because a vertex is itself a point on the segment",
+          "max": 0.169124,
+          "mean": 0.001737,
+          "median": 2.6e-05,
+          "p99": 0.029227
+        },
+        "equity_objective_delta": 0.0,
+        "material": false,
+        "portfolio_overlap_by_budget": {
+          "20": 1.0,
+          "5": 1.0,
+          "50": 1.0
+        },
+        "state": "Tennessee"
+      },
       "equity_population_total": 1675929.01,
       "greedy": {
         "approximation_bound_claimed": null,
         "demand_covered": 20941.1156,
         "equity_population_covered": 350492.75,
-        "seconds": 0.0148,
+        "seconds": 0.0246,
         "sites_selected": 20,
         "weights": {
           "demand": 1.0,
@@ -1539,6 +1610,7 @@
           "S1100",
           "S1200"
         ],
+        "segments": 1383545,
         "state_fips": "47",
         "vertices": 1392729,
         "vintage": "2024"
@@ -1557,7 +1629,7 @@
         "equity_objective_indicator": "population in households with income below $35,000 a year, from the ACS five-year feature income_share_under_35k multiplied by tract population. ONE named current ACS-derived socioeconomic indicator, NOT a composite index and NOT a general measure of disadvantage.",
         "excluded_by_reason": {
           "already_saturated": 31,
-          "beyond_road_network": 103,
+          "beyond_primary_secondary_road_network": 103,
           "uninhabited": 1
         },
         "mean_cells_covered": 2.172,
@@ -1565,10 +1637,12 @@
         "road_network_filter": {
           "cells_measured": 432,
           "cells_within_threshold": 329,
-          "distance_method": "haversine from the cell centroid to the nearest road VERTEX, not to the nearest point on a segment (assumption A-4.6)",
+          "distance_method": "great-circle distance from the cell centroid to the nearest POINT on the nearest road segment. The nearest point along each segment is located in a local tangent plane, then its distance is measured with haversine, so the reported value is a true geodesic distance to a real location on a road. Nearest-VERTEX distance was used in the first Phase 4 submission and is wrong: it overestimates by up to half a segment length (2.96 km on this data, 17x in the regression fixture).",
+          "road_network": "TIGER/Line 2024 PRIMARY (MTFCC S1100) and SECONDARY (S1200) roads only. NOT all roads: local streets (S1400) are excluded by design.",
+          "road_segments": 251348,
           "road_vertices": 252599,
           "sensitivity_cells_within_threshold_by_km": {
-            "1": 111,
+            "1": 114,
             "12": 413,
             "2": 200,
             "20": 427,
@@ -1631,12 +1705,36 @@
         }
       ],
       "demand_total": 6900.0,
+      "distance_method_comparison_vertex_vs_segment": {
+        "candidate_set_jaccard": 1.0,
+        "candidates_nearest_point_on_segment": 297,
+        "candidates_nearest_vertex": 297,
+        "cells": 432,
+        "cells_overstated_by_over_100m": 1,
+        "cells_that_change_side_of_the_threshold": 0,
+        "demand_objective_delta": 0.0,
+        "distance_error_km": {
+          "definition": "nearest-VERTEX distance minus nearest-POINT-ON-SEGMENT distance; never negative, because a vertex is itself a point on the segment",
+          "max": 0.137984,
+          "mean": 0.002798,
+          "median": 5.4e-05,
+          "p99": 0.059242
+        },
+        "equity_objective_delta": 0.0,
+        "material": false,
+        "portfolio_overlap_by_budget": {
+          "20": 1.0,
+          "5": 1.0,
+          "50": 1.0
+        },
+        "state": "Montana"
+      },
       "equity_population_total": 247665.99,
       "greedy": {
         "approximation_bound_claimed": null,
         "demand_covered": 3398.9869,
         "equity_population_covered": 73825.16,
-        "seconds": 0.0022,
+        "seconds": 0.0038,
         "sites_selected": 20,
         "weights": {
           "demand": 1.0,
@@ -1651,6 +1749,7 @@
           "S1100",
           "S1200"
         ],
+        "segments": 251348,
         "state_fips": "30",
         "vertices": 252599,
         "vintage": "2024"
@@ -1669,14 +1768,16 @@
         "equity_objective_indicator": "population in households with income below $35,000 a year, from the ACS five-year feature income_share_under_35k multiplied by tract population. ONE named current ACS-derived socioeconomic indicator, NOT a composite index and NOT a general measure of disadvantage.",
         "excluded_by_reason": {
           "already_saturated": 53,
-          "beyond_road_network": 8
+          "beyond_primary_secondary_road_network": 8
         },
         "mean_cells_covered": 3.04,
         "no_mandatory_substation_filter": true,
         "road_network_filter": {
           "cells_measured": 311,
           "cells_within_threshold": 303,
-          "distance_method": "haversine from the cell centroid to the nearest road VERTEX, not to the nearest point on a segment (assumption A-4.6)",
+          "distance_method": "great-circle distance from the cell centroid to the nearest POINT on the nearest road segment. The nearest point along each segment is located in a local tangent plane, then its distance is measured with haversine, so the reported value is a true geodesic distance to a real location on a road. Nearest-VERTEX distance was used in the first Phase 4 submission and is wrong: it overestimates by up to half a segment length (2.96 km on this data, 17x in the regression fixture).",
+          "road_network": "TIGER/Line 2024 PRIMARY (MTFCC S1100) and SECONDARY (S1200) roads only. NOT all roads: local streets (S1400) are excluded by design.",
+          "road_segments": 177164,
           "road_vertices": 178596,
           "sensitivity_cells_within_threshold_by_km": {
             "1": 113,
@@ -1742,12 +1843,36 @@
         }
       ],
       "demand_total": 11900.0,
+      "distance_method_comparison_vertex_vs_segment": {
+        "candidate_set_jaccard": 1.0,
+        "candidates_nearest_point_on_segment": 250,
+        "candidates_nearest_vertex": 250,
+        "cells": 311,
+        "cells_overstated_by_over_100m": 0,
+        "cells_that_change_side_of_the_threshold": 0,
+        "demand_objective_delta": 0.0,
+        "distance_error_km": {
+          "definition": "nearest-VERTEX distance minus nearest-POINT-ON-SEGMENT distance; never negative, because a vertex is itself a point on the segment",
+          "max": 0.053429,
+          "mean": 0.000721,
+          "median": 0.0,
+          "p99": 0.010584
+        },
+        "equity_objective_delta": 0.0,
+        "material": false,
+        "portfolio_overlap_by_budget": {
+          "20": 1.0,
+          "5": 1.0,
+          "50": 1.0
+        },
+        "state": "Vermont"
+      },
       "equity_population_total": 130388.22,
       "greedy": {
         "approximation_bound_claimed": null,
         "demand_covered": 4154.8861,
         "equity_population_covered": 34141.56,
-        "seconds": 0.002,
+        "seconds": 0.0035,
         "sites_selected": 20,
         "weights": {
           "demand": 1.0,
@@ -1762,6 +1887,7 @@
           "S1100",
           "S1200"
         ],
+        "segments": 177164,
         "state_fips": "50",
         "vertices": 178596,
         "vintage": "2024"
@@ -1780,7 +1906,7 @@
         "equity_objective_indicator": "population in households with income below $35,000 a year, from the ACS five-year feature income_share_under_35k multiplied by tract population. ONE named current ACS-derived socioeconomic indicator, NOT a composite index and NOT a general measure of disadvantage.",
         "excluded_by_reason": {
           "already_saturated": 441,
-          "beyond_road_network": 659,
+          "beyond_primary_secondary_road_network": 659,
           "uninhabited": 15
         },
         "mean_cells_covered": 3.178,
@@ -1788,14 +1914,16 @@
         "road_network_filter": {
           "cells_measured": 3532,
           "cells_within_threshold": 2861,
-          "distance_method": "haversine from the cell centroid to the nearest road VERTEX, not to the nearest point on a segment (assumption A-4.6)",
+          "distance_method": "great-circle distance from the cell centroid to the nearest POINT on the nearest road segment. The nearest point along each segment is located in a local tangent plane, then its distance is measured with haversine, so the reported value is a true geodesic distance to a real location on a road. Nearest-VERTEX distance was used in the first Phase 4 submission and is wrong: it overestimates by up to half a segment length (2.96 km on this data, 17x in the regression fixture).",
+          "road_network": "TIGER/Line 2024 PRIMARY (MTFCC S1100) and SECONDARY (S1200) roads only. NOT all roads: local streets (S1400) are excluded by design.",
+          "road_segments": 1100414,
           "road_vertices": 1115704,
           "sensitivity_cells_within_threshold_by_km": {
-            "1": 992,
+            "1": 994,
             "12": 3476,
-            "2": 1775,
+            "2": 1776,
             "20": 3526,
-            "3": 2256,
+            "3": 2257,
             "5": 2861,
             "8": 3291
           },
@@ -1854,12 +1982,36 @@
         }
       ],
       "demand_total": 387400.0,
+      "distance_method_comparison_vertex_vs_segment": {
+        "candidate_set_jaccard": 1.0,
+        "candidates_nearest_point_on_segment": 2417,
+        "candidates_nearest_vertex": 2417,
+        "cells": 3532,
+        "cells_overstated_by_over_100m": 18,
+        "cells_that_change_side_of_the_threshold": 0,
+        "demand_objective_delta": 0.0,
+        "distance_error_km": {
+          "definition": "nearest-VERTEX distance minus nearest-POINT-ON-SEGMENT distance; never negative, because a vertex is itself a point on the segment",
+          "max": 0.666885,
+          "mean": 0.004489,
+          "median": 0.000183,
+          "p99": 0.067866
+        },
+        "equity_objective_delta": 0.0,
+        "material": false,
+        "portfolio_overlap_by_budget": {
+          "20": 1.0,
+          "5": 1.0,
+          "50": 1.0
+        },
+        "state": "Texas"
+      },
       "equity_population_total": 6426877.69,
       "greedy": {
         "approximation_bound_claimed": null,
         "demand_covered": 76378.114,
         "equity_population_covered": 462341.55,
-        "seconds": 0.023,
+        "seconds": 0.0323,
         "sites_selected": 20,
         "weights": {
           "demand": 1.0,
@@ -1874,6 +2026,7 @@
           "S1100",
           "S1200"
         ],
+        "segments": 1100414,
         "state_fips": "48",
         "vertices": 1115704,
         "vintage": "2024"
@@ -1892,7 +2045,7 @@
         "equity_objective_indicator": "population in households with income below $35,000 a year, from the ACS five-year feature income_share_under_35k multiplied by tract population. ONE named current ACS-derived socioeconomic indicator, NOT a composite index and NOT a general measure of disadvantage.",
         "excluded_by_reason": {
           "already_saturated": 629,
-          "beyond_road_network": 366,
+          "beyond_primary_secondary_road_network": 366,
           "uninhabited": 20
         },
         "mean_cells_covered": 2.906,
@@ -1900,14 +2053,16 @@
         "road_network_filter": {
           "cells_measured": 2268,
           "cells_within_threshold": 1888,
-          "distance_method": "haversine from the cell centroid to the nearest road VERTEX, not to the nearest point on a segment (assumption A-4.6)",
+          "distance_method": "great-circle distance from the cell centroid to the nearest POINT on the nearest road segment. The nearest point along each segment is located in a local tangent plane, then its distance is measured with haversine, so the reported value is a true geodesic distance to a real location on a road. Nearest-VERTEX distance was used in the first Phase 4 submission and is wrong: it overestimates by up to half a segment length (2.96 km on this data, 17x in the regression fixture).",
+          "road_network": "TIGER/Line 2024 PRIMARY (MTFCC S1100) and SECONDARY (S1200) roads only. NOT all roads: local streets (S1400) are excluded by design.",
+          "road_segments": 1239140,
           "road_vertices": 1246491,
           "sensitivity_cells_within_threshold_by_km": {
             "1": 637,
             "12": 2225,
             "2": 1099,
             "20": 2254,
-            "3": 1446,
+            "3": 1447,
             "5": 1888,
             "8": 2127
           },
@@ -1966,12 +2121,36 @@
         }
       ],
       "demand_total": 1843100.0,
+      "distance_method_comparison_vertex_vs_segment": {
+        "candidate_set_jaccard": 1.0,
+        "candidates_nearest_point_on_segment": 1253,
+        "candidates_nearest_vertex": 1253,
+        "cells": 2268,
+        "cells_overstated_by_over_100m": 10,
+        "cells_that_change_side_of_the_threshold": 0,
+        "demand_objective_delta": 0.0,
+        "distance_error_km": {
+          "definition": "nearest-VERTEX distance minus nearest-POINT-ON-SEGMENT distance; never negative, because a vertex is itself a point on the segment",
+          "max": 0.394155,
+          "mean": 0.002822,
+          "median": 2.4e-05,
+          "p99": 0.053302
+        },
+        "equity_objective_delta": 0.0,
+        "material": false,
+        "portfolio_overlap_by_budget": {
+          "20": 1.0,
+          "5": 1.0,
+          "50": 1.0
+        },
+        "state": "California"
+      },
       "equity_population_total": 6920636.28,
       "greedy": {
         "approximation_bound_claimed": null,
         "demand_covered": 253903.0838,
         "equity_population_covered": 477744.58,
-        "seconds": 0.0114,
+        "seconds": 0.0173,
         "sites_selected": 20,
         "weights": {
           "demand": 1.0,
@@ -1986,6 +2165,7 @@
           "S1100",
           "S1200"
         ],
+        "segments": 1239140,
         "state_fips": "06",
         "vertices": 1246491,
         "vintage": "2024"

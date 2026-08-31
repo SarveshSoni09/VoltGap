@@ -228,8 +228,21 @@ nationally.
   disadvantage than several indicators would give.
 - **No approximation bound is claimed for the interactive greedy solver**, because the
   classical guarantee's assumptions do not hold for the algorithm-and-constraint-set
-  actually shipped. Measured optimality gaps are reported instead: worst **3.14%** across
-  six states and three budgets.
+  actually shipped. What is reported instead is the **worst observed greedy objective
+  shortfall against the optimal CBC solution**: **3.14%** across six states and three
+  budgets. That is an observation on those eighteen problems, not a bound, and it is
+  deliberately not called an optimality gap — the solver's own bound-versus-incumbent gap
+  is a separate quantity, published per frontier point as `cbc_optimality_gap`.
+- **Road proximity is proximity to primary and secondary roads only.** The filter measures
+  distance to TIGER/Line 2024 `S1100` and `S1200` roads. Local streets (`S1400`) are
+  excluded by design, so a cell can be counted `beyond_primary_secondary_road_network`
+  while being served by streets. The threshold ships with a 1–20 km sensitivity curve; the
+  road-*class* choice does not, and is recorded as assumption A-4.7.
+- **Road distance is measured to the nearest point on a road, not the nearest vertex, but
+  the nearest point is located in a tangent plane.** The distance finally reported is a
+  great-circle distance to a real location on a road, so it is a rigorous upper bound on
+  the true minimum. What is unproven is that no other point on the segment is closer by an
+  amount the projection hid — millimetres at these distances, recorded as A-4.8.
 - **A-2.3 is still not settled at block level.** The shipped weighting is
   block-group population-weighted centroids, so cells in large rural block groups inherit
   the corner-population problem at smaller scale. The reason is a missing *artifact*, not
@@ -239,6 +252,6 @@ nationally.
   recorded in `docs/FUTURE_WORK.md`. What was measurable was measured: a tract centroid
   places 18.66% of Washington demand in a different cell, and can land in a cell
   containing none of a tract's population at all.
-- **A time-limited CBC solve reports no optimality gap.** PuLP does not expose the
+- **A time-limited CBC solve reports no solver optimality gap.** PuLP does not expose the
   solver's bound, so a solve that hits its limit reports `feasible_time_limit` and a null
   gap rather than a fabricated number. No solve hit the limit in the published run.

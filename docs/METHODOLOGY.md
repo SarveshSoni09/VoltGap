@@ -270,8 +270,18 @@ is cardinality-constrained maximum coverage and the classical monotone-submodula
 guarantee would apply. **The shipped surface is not that problem**: it exposes objective
 weights and constraint toggles, which is a different problem class. The guarantee's
 assumptions therefore cannot be verified for the algorithm actually implemented, so **no
-bound is claimed anywhere**, and measured optimality gaps against exact CBC solves are
-reported instead — worst 3.14%, slowest greedy solve 0.0229 s against a 2-second budget.
+bound is claimed anywhere**. What is reported instead is the **worst observed greedy
+objective shortfall against the optimal CBC solution** — worst **3.14%** across six states
+and three budgets, slowest greedy solve 0.032 s against a 2-second budget (wall clock; the gate asserts the budget, not the figure).
+
+**That shortfall is not an "optimality gap", and the two are kept apart everywhere.** A
+solver's optimality gap is the distance between its own bound and its own incumbent — a
+property of the *solve*, reported per frontier point as `cbc_optimality_gap` alongside
+`cbc_status`. The greedy shortfall is a different quantity: how much objective a heuristic
+left on the table against a known optimum, published as
+`greedy_objective_shortfall_vs_optimal_cbc`. Publishing both as "the gap" would invite a
+reader to think the browser solver carries a solver-style guarantee. It carries none.
+It is an observation on six states, not a bound on anything.
 
 ### 4.5 Candidate filtering
 
@@ -281,11 +291,13 @@ cell counted under the **first** reason that applies:
 1. **uninhabited** — no resident population. Retained on its own merits: a cell with
    nobody in it is not a siting candidate. It was once described as standing in for the
    road filter, which it never was; that framing is withdrawn.
-2. **beyond the road network** — no TIGER/Line 2024 primary (MTFCC `S1100`) or secondary
-   (`S1200`) road within **5.0 km** of the cell centroid. This is the §7.8 filter. The
-   threshold, the road classes and the distance method were fixed in
+2. **beyond the primary/secondary road network** — no TIGER/Line 2024 primary (MTFCC
+   `S1100`) or secondary (`S1200`) road within **5.0 km** of the cell centroid. This is
+   the §7.8 filter. The threshold, the road classes and the distance method were fixed in
    `docs/evidence/P4-0_road_filter_preregistration.md` **before** any candidate set was
    recomputed, so none could be chosen after seeing which value gave a convenient answer.
+   The exclusion is named `beyond_primary_secondary_road_network`, not
+   `beyond_road_network`, because the shorter name implied every road was measured.
 3. **already saturated** — public operational DCFC ports per 1,000 BEV of demand at or
    above the configured threshold.
 
@@ -300,15 +312,38 @@ near no-op rather than the siting constraint the specification asks for. The con
 is recorded rather than hidden: a cell served only by local streets is excluded even
 though something could physically be built there.
 
-**Distance is measured to a road vertex, not to the nearest point on a segment.** TIGER
-geometries are densely vertexed — 3,006 Washington features carry 376,007 vertices, about
-125 each — so the error is small, but it is an approximation, recorded as assumption
-**A-4.6** rather than described as exact.
+**Distance is measured to the nearest point ON a road, not to the nearest vertex.** A
+LineString's nearest vertex is not generally its nearest point: a cell beside the middle of
+a long straight segment is close to the road and far from both endpoints. The first Phase 4
+submission measured to vertices, which **overestimates** by up to half a segment length —
+2.96 km against the longest measured segment, on a 5.0 km threshold — and an overestimate
+in a hard filter removes a cell from consideration rather than merely degrading a number.
 
-**Road proximity is proximity, not buildability.** A cell within 5.0 km of an arterial may
-still have no legal, physical or commercially available site on it. This is a proximity
-proxy in exactly the sense D6 applies to grid proximity, and nothing in the pipeline or
-the UI may describe it as feasibility.
+The corrected method locates the nearest point along each segment in a tangent plane
+centred on the query point, then measures the distance to *that point* with the same
+haversine used everywhere else. The reported value is therefore a genuine great-circle
+distance to a real location on a road, and never greater than the vertex distance, because
+a vertex is itself a point on the segment. Segments are formed only **within** a single
+road feature; joining the end of one road to the start of the next would invent a segment
+that does not exist.
+
+Measured across all six frontier states, the correction changed **nothing published**: zero
+cells changed side of the 5.0 km threshold, candidate-set Jaccard is 1.000000 in every
+state, and every portfolio at 5, 20 and 50 sites is identical. The largest distance error
+was 666.9 m (Texas) and 34 cells in total were overstated by more than 100 m. The practical
+error sits far below the 2.96 km worst case because the longest segments happen not to lie
+near candidate cells — a property of this snapshot, not a guarantee, which is why the
+method was fixed rather than the outcome accepted. Assumption **A-4.6** is closed by
+replacing the method; **A-4.8** records what the tangent-plane step still assumes.
+
+**Road proximity is proximity, not buildability — and it is proximity to arterials, not to
+roads in general.** The quantity is proximity to TIGER/Line primary and secondary roads
+(S1100/S1200). A cell within 5.0 km of one may still have no legal, physical or
+commercially available site on it; a cell beyond 5.0 km may sit on a well-served local
+street. This is a proximity proxy in exactly the sense D6 applies to grid proximity, and
+nothing in the pipeline or the UI may describe it as feasibility or as coverage of the
+whole road network. Every field name, artifact key and document sentence names the road
+classes for that reason.
 
 **There is no substation-proximity filter**, because Phase 0 located no authoritative
 national dataset and §7.9 requires Core siting to function without one. Transmission

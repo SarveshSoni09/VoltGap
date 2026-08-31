@@ -54,7 +54,10 @@ class ExclusionReason(StrEnum):
     """Why a cell is not a candidate. Every exclusion is named and counted (D8)."""
 
     UNINHABITED = "uninhabited"
-    BEYOND_ROAD_NETWORK = "beyond_road_network"
+    #: Named for the network actually measured. "beyond_road_network" implied every
+    #: road; what is measured is TIGER/Line PRIMARY and SECONDARY roads, with local
+    #: streets deliberately excluded, so a cell counted here may well have streets.
+    BEYOND_PRIMARY_SECONDARY_ROADS = "beyond_primary_secondary_road_network"
     ALREADY_SATURATED = "already_saturated"
 
 
@@ -145,12 +148,14 @@ def build_candidates(
 
     Three filters apply, and every one is named and counted in the output:
 
-    * **beyond the road network** — no TIGER/Line primary or secondary road (MTFCC
-      ``S1100`` or ``S1200``) within the pre-registered distance of the cell centroid.
-      This is the filter CLAUDE.md §7.8 specifies. Its threshold, road classes and
-      distance method were fixed in
+    * **beyond the primary/secondary road network** — no TIGER/Line primary (MTFCC
+      ``S1100``) or secondary (``S1200``) road within the pre-registered distance of the
+      cell centroid, measured to the nearest **point on** a road rather than to the
+      nearest vertex. This is the filter CLAUDE.md §7.8 specifies. Its threshold, road
+      classes and distance method were fixed in
       ``docs/evidence/P4-0_road_filter_preregistration.md`` before any candidate set was
-      recomputed.
+      recomputed. It is **not** proximity to all roads: a cell served only by local
+      streets (``S1400``) is excluded, and the name says so.
     * **uninhabited** — no resident population. This is retained **on its own merits**: a
       cell with nobody in it is not a siting candidate. It was previously described as
       standing in for the road filter, which it never was, and that framing is withdrawn.
@@ -192,7 +197,7 @@ def build_candidates(
             # road-filtered one.
             degraded += 1
         elif not road_distances.within(cell.h3_index):
-            drop(ExclusionReason.BEYOND_ROAD_NETWORK)
+            drop(ExclusionReason.BEYOND_PRIMARY_SECONDARY_ROADS)
             continue
         if cell.demand_bev > 0:
             ports_per_1k = cell.supply.dcfc_ports * 1000.0 / cell.demand_bev
@@ -240,6 +245,10 @@ class FrontierPoint:
     equity_covered: float
     selected: tuple[str, ...]
     status: str
+    #: The CBC solver's own MIP gap between its best bound and its incumbent. This is
+    #: the branch-and-bound sense of "optimality gap" and is a property of the SOLVE.
+    #: It is not, and must never be conflated with, how far the browser greedy falls
+    #: short of the optimum (:class:`GreedyShortfall`).
     optimality_gap: float | None
     solve_seconds: float
 
@@ -251,9 +260,9 @@ class FrontierPoint:
             "demand_covered": round(self.demand_covered, 4),
             "equity_population_covered": round(self.equity_covered, 2),
             "sites_selected": len(self.selected),
-            "status": self.status,
-            "optimality_gap": (None if self.optimality_gap is None
-                               else round(self.optimality_gap, 6)),
+            "cbc_status": self.status,
+            "cbc_optimality_gap": (None if self.optimality_gap is None
+                                   else round(self.optimality_gap, 6)),
             "solve_seconds": round(self.solve_seconds, 3),
         }
 
@@ -421,7 +430,7 @@ def greedy_select(
     shipped surface exposes objective weights and constraint toggles, which makes it a
     weighted multi-objective selection under additional constraints, and the guarantee
     does not carry over to it. Phase 4 therefore claims **no approximation bound
-    anywhere**, and reports measured optimality gaps against CBC instead. See the Phase 4
+    anywhere**, and reports the measured shortfall against CBC instead. See the Phase 4
     report for the full determination.
     """
     by_index = {c.h3_index: c for c in candidates.candidates}
@@ -465,8 +474,16 @@ def greedy_select(
 
 
 @dataclass(frozen=True)
-class OptimalityGap:
-    """Measured, never asserted: greedy against an exact CBC solve on the same problem."""
+class GreedyShortfall:
+    """How far the browser greedy falls short of an exact CBC solve on the same problem.
+
+    **This is not an "optimality gap".** A solver's optimality gap is the distance
+    between its own bound and its own incumbent, and it is reported separately, per
+    frontier point, as ``cbc_optimality_gap``. What this measures is a different
+    quantity: the objective a heuristic achieved, against the objective the optimum
+    achieved. Calling both "the gap" invites a reader to think the browser solver
+    carries a solver-style guarantee, and it carries none (§7.8, amendment A11).
+    """
 
     budget: int
     greedy_objective: float
@@ -475,7 +492,8 @@ class OptimalityGap:
     label: str = ""
 
     @property
-    def gap(self) -> float:
+    def shortfall(self) -> float:
+        """Fraction of the optimal objective the greedy solution did not achieve."""
         if self.exact_objective <= 0:
             return 0.0
         return (self.exact_objective - self.greedy_objective) / self.exact_objective
@@ -485,16 +503,21 @@ class OptimalityGap:
             "label": self.label,
             "budget_sites": self.budget,
             "greedy_objective": round(self.greedy_objective, 4),
-            "exact_objective": round(self.exact_objective, 4),
-            "exact_status": self.exact_status,
-            "empirical_optimality_gap": round(self.gap, 6),
+            "optimal_cbc_objective": round(self.exact_objective, 4),
+            "cbc_status": self.exact_status,
+            "greedy_objective_shortfall_vs_optimal_cbc": round(self.shortfall, 6),
+            "measures": (
+                "observed shortfall of the greedy objective against the optimal CBC "
+                "objective on the same problem. NOT a solver optimality gap and NOT an "
+                "approximation bound: no bound is claimed for the browser algorithm."
+            ),
         }
 
 
-def measure_optimality_gap(
+def measure_greedy_shortfall(
     candidates: CandidateSet, budget: int, label: str = "",
     time_limit_s: float = 60.0,
-) -> OptimalityGap:
+) -> GreedyShortfall:
     """Compare greedy against the exact solve, with epsilon relaxed to zero.
 
     Relaxing epsilon isolates the comparison to the objective the greedy actually
@@ -504,7 +527,7 @@ def measure_optimality_gap(
     exact = solve_epsilon_constraint(candidates, budget, 0.0, MAXIMISE_DEMAND,
                                      time_limit_s)
     approx = greedy_select(candidates, budget)
-    return OptimalityGap(
+    return GreedyShortfall(
         budget=budget,
         greedy_objective=approx.demand_covered,
         exact_objective=exact.demand_covered,
