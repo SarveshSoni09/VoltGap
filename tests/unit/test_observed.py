@@ -169,7 +169,7 @@ def test_two_snapshot_labels_flagged_latest_is_an_ambiguous_vintage(
 
 # --- Washington ---------------------------------------------------------------------
 
-def wa_json(path: Path, records: list[dict[str, str]]) -> Path:
+def wa_json(path: Path, records: list[dict[str, str | None]]) -> Path:
     path.write_text(json.dumps(records), encoding="utf-8")
     return path
 
@@ -319,3 +319,43 @@ def test_a_well_formed_geoid_naming_no_real_tract_is_excluded_by_name(
     assert observed.resolution.unresolved_in_jurisdiction == 1
     assert observed.resolution.fully_resolved is False
     assert observed.resolution.tract_not_in_jurisdiction_geography == 1
+
+
+def test_an_unknown_jurisdiction_fails_closed_and_refuses_zero_completion(
+    tmp_path: Path,
+) -> None:
+    """A row with a null jurisdiction must NOT be presumed out-of-jurisdiction.
+
+    It might belong here, and if it does it is unplaced, so it counts as unresolved and
+    the zero-completion licence is refused. Hardening requested by external review.
+    """
+    path = wa_json(tmp_path / "wa.json", [
+        {"_2020_census_tract": "53033000100",
+         "ev_type": "Battery Electric Vehicle (BEV)", "state": "WA"},
+        {"_2020_census_tract": None,
+         "ev_type": "Battery Electric Vehicle (BEV)", "state": None},
+    ])
+    observed = load_washington(path, known_tracts=["53033000100"])
+    resolution = observed.resolution
+    assert resolution is not None
+    assert resolution.unknown_jurisdiction_records == 1
+    assert resolution.out_of_jurisdiction_records == 0, "must not be written off"
+    assert resolution.unresolved_in_jurisdiction == 1
+    assert resolution.fully_resolved is False
+    resolution.assert_balanced()
+
+
+def test_a_known_out_of_jurisdiction_row_is_still_counted_as_such(
+    tmp_path: Path,
+) -> None:
+    path = wa_json(tmp_path / "wa.json", [
+        {"_2020_census_tract": "53033000100",
+         "ev_type": "Battery Electric Vehicle (BEV)", "state": "WA"},
+        {"_2020_census_tract": None,
+         "ev_type": "Battery Electric Vehicle (BEV)", "state": "BC"},
+    ])
+    resolution = load_washington(path, known_tracts=["53033000100"]).resolution
+    assert resolution is not None
+    assert resolution.out_of_jurisdiction_records == 1
+    assert resolution.unknown_jurisdiction_records == 0
+    assert resolution.fully_resolved is True

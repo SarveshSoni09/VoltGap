@@ -137,23 +137,34 @@ class GeographyResolution:
     out_of_jurisdiction_records: int
     invalid_tract_format: int
     tract_not_in_jurisdiction_geography: int
+    #: Records whose jurisdiction itself is null or ambiguous. **These fail closed.** A
+    #: row with no readable jurisdiction must never be presumed out-of-jurisdiction: it
+    #: might belong here, and if it does it is unplaced. Counting it as unresolved is the
+    #: conservative reading and refuses the zero-completion licence.
+    unknown_jurisdiction_records: int = 0
 
     @property
     def unresolved_in_jurisdiction(self) -> int:
-        """In-jurisdiction records the source could not place. Must be 0 for zero-completion."""
-        return self.in_jurisdiction_records - self.in_jurisdiction_placed
+        """Records that might belong here and were not placed. Must be 0 to zero-complete.
+
+        Unknown-jurisdiction rows are counted here, not written off as out-of-jurisdiction.
+        """
+        return (self.in_jurisdiction_records - self.in_jurisdiction_placed
+                + self.unknown_jurisdiction_records)
 
     @property
     def fully_resolved(self) -> bool:
         return self.unresolved_in_jurisdiction == 0
 
     def assert_balanced(self) -> None:
-        total = self.in_jurisdiction_records + self.out_of_jurisdiction_records
+        total = (self.in_jurisdiction_records + self.out_of_jurisdiction_records
+                 + self.unknown_jurisdiction_records)
         if total != self.total_records:
             raise ObservationError(
                 f"geography ledger does not balance: {self.total_records} records != "
                 f"{self.in_jurisdiction_records} in-jurisdiction + "
-                f"{self.out_of_jurisdiction_records} out-of-jurisdiction"
+                f"{self.out_of_jurisdiction_records} out-of-jurisdiction + "
+                f"{self.unknown_jurisdiction_records} unknown-jurisdiction"
             )
 
     def to_dict(self) -> dict[str, object]:
@@ -164,6 +175,7 @@ class GeographyResolution:
             "in_jurisdiction_placed_in_a_valid_tract": self.in_jurisdiction_placed,
             "unresolved_in_jurisdiction": self.unresolved_in_jurisdiction,
             "out_of_jurisdiction_records": self.out_of_jurisdiction_records,
+            "unknown_jurisdiction_records": self.unknown_jurisdiction_records,
             "invalid_tract_format": self.invalid_tract_format,
             "tract_not_in_jurisdiction_geography":
                 self.tract_not_in_jurisdiction_geography,
@@ -360,19 +372,27 @@ def load_washington(
     phev: dict[str, int] = {}
     counters = dict.fromkeys(
         ("bev_total", "in_jurisdiction", "in_jurisdiction_placed",
-         "out_of_jurisdiction", "invalid_format", "tract_not_real"), 0)
+         "out_of_jurisdiction", "unknown_jurisdiction", "invalid_format",
+         "tract_not_real"), 0)
 
     for record in records:
         tract = "".join(c for c in str(record.get("_2020_census_tract") or "")
                         if c.isdigit())
         kind = str(record.get("ev_type") or "")
-        addressed_here = str(record.get("state") or "").upper() == "WA"
+        jurisdiction = str(record.get("state") or "").strip().upper()
+        addressed_here = jurisdiction == "WA"
+        # Fail closed: an unreadable jurisdiction is NOT presumed to be elsewhere.
+        jurisdiction_unknown = not jurisdiction
         is_bev = "BEV" in kind
 
         if is_bev:
             counters["bev_total"] += 1
-            counters["in_jurisdiction" if addressed_here
-                     else "out_of_jurisdiction"] += 1
+            if jurisdiction_unknown:
+                counters["unknown_jurisdiction"] += 1
+            elif addressed_here:
+                counters["in_jurisdiction"] += 1
+            else:
+                counters["out_of_jurisdiction"] += 1
             if len(tract) != 11:
                 counters["invalid_format"] += 1
             elif valid_tracts is not None and tract not in valid_tracts:
@@ -423,6 +443,7 @@ def load_washington(
         out_of_jurisdiction_records=counters["out_of_jurisdiction"],
         invalid_tract_format=counters["invalid_format"],
         tract_not_in_jurisdiction_geography=counters["tract_not_real"],
+        unknown_jurisdiction_records=counters["unknown_jurisdiction"],
     )
     resolution.assert_balanced()
     return StateObservations("WA", SourceGeography.TRACT, "current snapshot",

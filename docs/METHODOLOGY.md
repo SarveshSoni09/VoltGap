@@ -229,3 +229,56 @@ every later phase:
   overstates national capacity by 2,104,242 kW (10.69%).
 - **Charging level comes from the source's own `charging_level` field**, never from a
   connector name. NEMA types are connector standards, not level designations.
+
+---
+
+## 4. Siting (Phase 4)
+
+### 4.1 The spatial unit
+
+H3 **resolution 6**, measured at 38.2 km² per cell and a ~3,834 m edge. Tract quantities
+reach it by **block-group population weights**, never by a centroid and never by area
+(§7.6). On real Washington data 41.0% of tracts span more than one cell, and a
+population-weighted centroid can land in a **third** cell containing neither of a tract's
+population clusters — so a centroid assignment can place 100% of a tract's demand where
+nobody lives.
+
+### 4.2 What a cell carries
+
+Demand, plus everything needed to judge it: the demand-weighted uncertainty score and
+**all five components**, the share of demand by evidence grain, confidence tier and value
+provenance, the sub-state-anchored share (§11.1), and the number of contributing tracts.
+Weighting is by demand rather than tract count, because a cell whose demand is 95% from a
+well-evidenced tract is mostly well evidenced.
+
+### 4.3 The offline frontier
+
+ε-constraint integer programming with PuLP and CBC, exactly as §7.8 specifies, swept over
+the **achievable** range of the secondary objective at the given budget — not over its
+theoretical total, which leaves most points infeasible. The objectives are then **reversed**
+as a check. Weighted-sum scalarisation cannot recover unsupported Pareto-efficient points
+on an integer program, which is why the published frontier comes from ε-constraint solves.
+
+Equity is **one named ACS indicator** — population in households below $35,000 — not a
+composite, so there are no weights to hand-pick.
+
+### 4.4 The interactive solver, and the bound question
+
+Greedy marginal gain per unit cost, ties broken on the cell index so the result is
+deterministic. With uniform costs, a single coverage objective and no side constraint this
+is cardinality-constrained maximum coverage and the classical monotone-submodular
+guarantee would apply. **The shipped surface is not that problem**: it exposes objective
+weights and constraint toggles, which is a different problem class. The guarantee's
+assumptions therefore cannot be verified for the algorithm actually implemented, so **no
+bound is claimed anywhere**, and measured optimality gaps against exact CBC solves are
+reported instead — worst 3.06%, slowest greedy solve 0.0288 s against a 2-second budget.
+
+### 4.5 Candidate filtering
+
+Two filters, both named in the output: **uninhabited** (standing in for the unavailable
+road-network filter, labelled a degradation) and **already saturated** (public operational
+DCFC ports per 1,000 BEV of demand above the configured threshold). **There is no
+substation-proximity filter**, because Phase 0 located no authoritative national dataset
+and §7.9 requires Core siting to function without one. Transmission proximity is not used
+at all; if it ever ships it is a labelled contextual proximity proxy and never an
+interconnection constraint (D6).

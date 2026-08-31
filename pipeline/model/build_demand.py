@@ -90,6 +90,13 @@ class TractEstimate:
     state_fips: str
     households: float
     population: float
+    #: Population in households below $35,000 a year, from ACS `income_share_under_35k`.
+    #: A **single named current ACS-derived socioeconomic indicator**, not a composite:
+    #: CLAUDE.md §8 requires the primary equity measure to be built from current ACS
+    #: indicators rather than the archived CEJST overlay, and §17 forbids shipping a
+    #: composite index without a weight-sensitivity control. One indicator needs no
+    #: weights, so there is nothing to hand-pick.
+    equity_population: float
     raw_estimate: float
     estimate: float
     evidence_grain: str
@@ -107,6 +114,7 @@ class TractEstimate:
             "state_fips": self.state_fips,
             "households": round(self.households, 1),
             "population": round(self.population, 1),
+            "equity_population": round(self.equity_population, 2),
             "bev_estimate": round(self.estimate, 4),
             "bev_estimate_unreconciled": round(self.raw_estimate, 4),
             "evidence_grain": self.evidence_grain,
@@ -540,6 +548,8 @@ def _to_estimate(
         state_fips=row.geoid[:2],
         households=row.households,
         population=row.population,
+        equity_population=row.population * float(
+            row.features.get("income_share_under_35k", 0.0)),
         raw_estimate=float(raw[position]),
         estimate=float(values[position]),
         evidence_grain=grain,

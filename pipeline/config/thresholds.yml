@@ -40,3 +40,35 @@ supply:
   dcfc_levels: ["dc_fast"]
   l2_levels: ["2"]
   l1_levels: ["1"]
+
+siting:
+  # CLAUDE.md 2: the national spatial unit is H3 resolution 6 (~36 km2 per cell).
+  resolution_national: 6
+
+  # A candidate covers its own cell and its k-ring neighbours. A driver need not be in
+  # the same 36 km2 cell as a charger for it to be useful. Configuration, not a finding.
+  coverage_k_ring: 1
+
+  # A cell is treated as already served above this many public operational DC fast
+  # ports per 1,000 BEV of estimated demand. Chosen as a reporting anchor, not as a
+  # claim about what density is sufficient, which is why the frontier is swept rather
+  # than a single portfolio published.
+  saturation_dcfc_ports_per_1k_demand: 2.0
+
+  # Minimum resident population for a cell to be buildable. This stands in for the road
+  # network proximity filter CLAUDE.md 7.8 specifies: NO ROAD NETWORK DATASET WAS
+  # RETRIEVED, and substituting one silently is what directive D8 forbids. An inhabited
+  # cell has roads; an uninhabited one is wilderness or water. Weaker than the specified
+  # filter, labelled as a degradation everywhere it appears.
+  minimum_population: 1.0
+
+  # The published frontier is computed PER STATE (CLAUDE.md 7.8 compute budget): a
+  # national solve at eight epsilon levels in two directions is sixteen national integer
+  # programs inside a six-hour CI ceiling.
+  epsilon_levels: 8
+  cbc_time_limit_seconds: 60.0
+
+  # Budget is expressed in SITES, not dollars. Charger economics is Optional tier
+  # (CLAUDE.md 7.11) and no cost model exists; inventing a dollar cost would fabricate
+  # an input the data does not support.
+  budget_sites_default: 20

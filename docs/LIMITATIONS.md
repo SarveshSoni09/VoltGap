@@ -206,3 +206,35 @@ nationally.
   density because no keyless tract-level Census classification was retrieved.
 - **New Jersey's observed total is 21.65% below the AFDC figure at the same vintage** and
   is flagged for review rather than marked low-confidence, per corrected domain rule G9.
+
+## 8. Siting limits (Phase 4)
+
+- **There is no road-network proximity filter.** CLAUDE.md §7.8 specifies one; no
+  road-network dataset was retrieved in any phase, and substituting one silently is what
+  directive D8 forbids. Candidates are filtered by **resident population** instead: an
+  inhabited cell has roads, an uninhabited one is wilderness or water. This is **strictly
+  weaker** than the specified filter, because it admits inhabited cells that are far from
+  any road. It is labelled a degradation in the configuration, the code, the published
+  artifact and the Phase 4 report.
+- **The budget is a site count, not money.** Charger economics is Optional tier (§7.11)
+  and no cost model exists, so every candidate costs one unit. Portfolios cannot be
+  compared on capital cost, and a cost-aware solve would choose differently.
+- **The published frontier covers six states, not the nation.** §7.8 permits a per-state
+  or stratified sample because a national solve at eight ε levels in two objective
+  directions is sixteen national integer programs inside a six-hour CI ceiling. The sample
+  spans jurisdiction size and all three evidence grains, and is labelled.
+- **Equity is one named indicator**, population in households below $35,000 a year from
+  ACS. Chosen to avoid a hand-weighted composite, at the cost of a narrower view of
+  disadvantage than several indicators would give.
+- **No approximation bound is claimed for the interactive greedy solver**, because the
+  classical guarantee's assumptions do not hold for the algorithm-and-constraint-set
+  actually shipped. Measured optimality gaps are reported instead: worst **3.06%** across
+  six states and three budgets.
+- **A-2.3 is still not settled at block level.** No Census block-level
+  population-weighted centroid product exists, so cells in large rural block groups
+  inherit the corner-population problem at smaller scale. What was measurable was
+  measured: a tract centroid places 18.66% of Washington demand in a different cell, and
+  can land in a cell containing none of a tract's population at all.
+- **A time-limited CBC solve reports no optimality gap.** PuLP does not expose the
+  solver's bound, so a solve that hits its limit reports `feasible_time_limit` and a null
+  gap rather than a fabricated number. No solve hit the limit in the published run.
