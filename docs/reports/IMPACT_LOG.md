@@ -13,6 +13,56 @@ results are invalid), **S2 Degrading** (usable but weaker than claimed), **S3 Co
 
 None.
 
+### I-16 — the published surface stopped reconciling to its own constraints
+
+| Field | Value |
+|---|---|
+| Opened | 2026-08-31, external review of the corrected national accounting |
+| Affected phase | 3 (`pipeline/model/build_demand.py`) |
+| Severity | **S2 Degrading** — the national and Washington figures were defensible numbers, but the surface violated the exact-reconciliation contract it claimed to satisfy |
+| Status | **RESOLVED 2026-08-31** |
+
+**Assumed.** That publishing a directly observed tract count in place of a modelled one,
+*after* reconciliation, was a harmless improvement — the observation is better evidence
+than the estimate, so substituting it can only help.
+
+**Actually true.** It left the surface reconciled to one set of totals and then altered so
+it no longer summed to them. Washington published **237,011.0328** against a stated
+operative constraint of **236,400**: a **+611.0328** term sitting outside the constraint
+system with no authority behind it. CLAUDE.md's exact-reconciliation contract is not
+satisfied by a number that is merely defensible; it requires the published surface to
+equal the totals it reconciles to.
+
+**The decomposition, proven rather than assumed.** Walking every tract and grouping the
+observed-minus-displaced difference by state produced **exactly one contributing state**:
+Washington, 1,769 tracts, observed 236,994.0000 against displaced 236,382.9672. Every
+other jurisdiction contributed zero.
+
+**Root cause.** Precedence was being applied at the wrong point in the pipeline. Deciding
+that observed tract counts outrank an external state total is correct; applying that
+decision *after* reconciliation instead of *as a constraint* is what broke the identity.
+
+**Response.** An explicit, ordered, testable precedence policy
+(`pipeline/model/precedence.py`): `native tract registry > county observations > external
+state total`. Observed values now enter as constraints **before** reconciliation, so they
+sit inside the system. Superseding is earned against four checked conditions - tract
+grain, balanced ledger, containment in the jurisdiction, and agreement with the external
+total within 10% - so a partial extract cannot silently become a constraint. Superseded
+totals are kept as provenance and never summed. Each jurisdiction publishes its chosen
+source, vintage, total and precedence reason.
+
+Result: `national == sum(chosen authoritative constraints)` with **exactly zero**
+imbalance, no substitution term, and a per-jurisdiction identity checked on every build.
+National 5,616,940.0328 → **5,616,923.0000**; Washington 237,011.0328 → **236,994.0000**;
+no other jurisdiction moved.
+
+**This does not change I-15**, which remains correct and separately tested: Montana and
+Virginia have *partial* county coverage, so their counties still decompose the state total
+rather than superseding it.
+
+**A negative test guards the regression.** `test_a_poisoned_post_reconciliation_substitution_is_caught`
+injects a +611.0328 alteration and requires the per-jurisdiction identity to fail.
+
 ### I-15 — partial county coverage double counted two states
 
 | Field | Value |

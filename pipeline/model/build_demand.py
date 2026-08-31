@@ -45,6 +45,11 @@ from pipeline.model.demand import (
 )
 from pipeline.model.observed import STATE_FIPS, StateObservations, StateTotal
 from pipeline.model.panel import AreaTable, StatePanel, prediction_rows
+from pipeline.model.precedence import (
+    ConstraintSource,
+    OperativeConstraint,
+    resolve_all,
+)
 from pipeline.model.reconcile import (
     ProportionalReconciler,
     ReconciledEstimates,
@@ -112,6 +117,7 @@ class DemandSurface:
     """The national surface plus everything needed to audit how it was made."""
 
     accounting: ConstraintAccounting
+    operative_constraints: dict[str, OperativeConstraint]
     estimates: tuple[TractEstimate, ...]
     estimator: str
     training_states: tuple[str, ...]
@@ -148,6 +154,9 @@ class DemandSurface:
                 k: round(v, 6) for k, v in sorted(self.weight_sensitivity.items())
             },
             "national_accounting": self.accounting.to_dict(),
+            "constraint_precedence": [
+                op.to_dict() for _, op in sorted(self.operative_constraints.items())
+            ],
             "reconciliation_method": self.reconciliation.method,
             "reconciliation_max_residual": self.reconciliation.max_residual,
             "unconstrained_tracts": len(self.reconciliation.unconstrained),
@@ -201,24 +210,19 @@ def build_surface(
     raw = model.predict_counts(targets)
 
     counties = county_constraint_states(observations)
+    observed_tracts = _observed_tract_counts(observations)
+    operative = resolve_all(observations, state_totals, counties,
+                            county_coverage_complete(observations))
     grains, group_of, totals, vintages = _constraint_plan(
-        targets, counties, state_totals
+        targets, counties, state_totals, operative, observed_tracts
     )
     constraints = constraints_from_totals(group_of, totals)
     reconciled = ProportionalReconciler().reconcile(raw, constraints)
     reconciled.assert_satisfied(constraints)
 
-    observed_tracts = _observed_tract_counts(observations)
+    # No post-reconciliation substitution. Observed values entered as constraints above,
+    # so the reconciled surface already carries them and still reconciles.
     values = np.array(reconciled.values, dtype=np.float64)
-    substitution_delta = 0.0
-    for position, row in enumerate(targets):
-        if row.geoid in observed_tracts:
-            # Publishing the observation in place of the estimate overrides that
-            # state's constraint on purpose. The amount is recorded so the national
-            # accounting can explain it rather than absorb it.
-            substitution_delta += observed_tracts[row.geoid] - float(values[position])
-            values[position] = observed_tracts[row.geoid]
-            grains[position] = NATIVE_TRACT
 
     components = _components(
         model=model, training=training, targets=targets, raw=raw,
@@ -235,19 +239,26 @@ def build_surface(
                      group_of, vintages, observed_tracts)
         for position, row in enumerate(targets)
     )
+    published_by_state: dict[str, float] = {}
+    for position, row in enumerate(targets):
+        state = row.geoid[:2]
+        published_by_state[state] = published_by_state.get(state, 0.0) + float(
+            values[position])
     accounting = ConstraintAccounting(
         national_published=float(values.sum()),
         constraint_sum=sum(c.total for c in constraints),
-        observed_substitution_delta=substitution_delta,
         unconstrained_sum=float(
-            sum(values[i] for i in reconciled.unconstrained
-                if targets[i].geoid not in observed_tracts)
+            sum(values[i] for i in reconciled.unconstrained)
         ),
         per_group={c.name: c.total for c in constraints},
+        per_jurisdiction={fips: op.total for fips, op in operative.items()
+                          if fips in published_by_state},
     )
     accounting.assert_balanced()
+    accounting.assert_every_jurisdiction_balances(published_by_state)
     return DemandSurface(
         accounting=accounting,
+        operative_constraints=dict(operative),
         estimates=estimates,
         estimator=estimator_name,
         training_states=model.training_states,
@@ -258,43 +269,90 @@ def build_surface(
     )
 
 
+def county_coverage_complete(
+    observations: Mapping[str, StateObservations],
+) -> tuple[str, ...]:
+    """States whose observed counties span every county their tracts fall in.
+
+    Complete coverage lets the counties supersede the state total; partial coverage
+    means they merely decompose it (impact I-15).
+    """
+    from pipeline.spatial.geography import county_fips_lookup
+
+    reference = county_fips_lookup()
+    complete: list[str] = []
+    for state, observed in observations.items():
+        if observed.source_geography is not SourceGeography.COUNTY:
+            continue
+        all_counties = {fips for (code, _name), fips in reference.items()
+                        if code == state}
+        seen = {c.geography_id for c in observed.counts}
+        if all_counties and seen >= all_counties:
+            complete.append(state)
+    return tuple(sorted(complete))
+
+
 def _constraint_plan(
     targets: Sequence[ModelRow],
     county_totals: Mapping[str, Mapping[str, float]],
     state_totals: Mapping[str, StateTotal],
+    operative: Mapping[str, OperativeConstraint],
+    observed_tracts: Mapping[str, float],
 ) -> tuple[list[str], list[str], dict[str, float], dict[str, str | None]]:
-    """Which constraint binds each tract: its county where observed, else its state.
+    """Which constraint binds each tract, following the resolved precedence.
 
-    Counties nest inside states and tracts inside counties, so whichever is chosen the
-    constraints partition the tracts and the reconciliation is exact.
+    Three shapes, one per operative source:
 
-    **Partial county coverage is the case that has to be got right.** A state whose DMV
-    reports only some of its counties leaves the rest of its tracts needing a constraint.
-    That constraint is the **residual** - the state total *minus* the county totals
-    already claimed - and not the full state total, which the observed counties have
-    already accounted for. Montana publishes 51 of 56 counties and Virginia 129 of 133,
-    so using the full state total there counted both states roughly twice: Montana summed
-    to 13,673 against a 6,900 total, Virginia to 266,876 against 134,900. See impact
-    I-15.
+    * **native tract registry** - each observed tract is its own constraint, holding its
+      observed count, and the jurisdiction's remaining tracts are constrained to **zero**.
+      A registry enumerates every registered vehicle, so a tract it does not name has
+      none. This is what puts the observed values *inside* the reconciliation rather than
+      overwriting it afterwards.
+    * **county observations** - one constraint per observed county. Where coverage is
+      incomplete the remaining tracts take the **residual** of the state total, never the
+      full total the counties have already claimed (impact I-15).
+    * **external state total** - one constraint for the jurisdiction.
     """
     by_state_fips = {STATE_FIPS[state]: totals for state, totals in county_totals.items()}
+    native_states = {
+        fips for fips, op in operative.items()
+        if op.chosen.source is ConstraintSource.NATIVE_TRACT_REGISTRY
+    }
     grains: list[str] = []
     group_of: list[str] = []
     totals: dict[str, float] = {}
     vintages: dict[str, str | None] = {}
-    claimed: dict[str, float] = {}
 
     for row in targets:
         state_fips = row.geoid[:2]
         county_fips = row.geoid[:5]
+
+        if state_fips in native_states:
+            op = operative[state_fips]
+            if row.geoid in observed_tracts:
+                name = f"tract:{row.geoid}"
+                group_of.append(name)
+                totals[name] = observed_tracts[row.geoid]
+                vintages[name] = op.chosen.vintage
+                grains.append(NATIVE_TRACT)
+            else:
+                name = f"{state_fips}:unobserved"
+                group_of.append(name)
+                # A registry names every registered vehicle, so a tract it omits holds
+                # none. Constrained to zero rather than left free.
+                totals.setdefault(name, 0.0)
+                vintages[name] = op.chosen.vintage
+                grains.append(NATIVE_TRACT)
+            continue
+
         counties = by_state_fips.get(state_fips)
         if counties is not None and county_fips in counties:
             group_of.append(county_fips)
             totals[county_fips] = counties[county_fips]
             vintages[county_fips] = "state DMV county observation"
             grains.append(COUNTY_ANCHORED)
-            claimed.setdefault(county_fips, counties[county_fips])
             continue
+
         group_of.append(state_fips)
         grains.append(STATE_TOTAL_ONLY)
         total = state_totals.get(state_fips)
@@ -302,10 +360,10 @@ def _constraint_plan(
             totals[state_fips] = float(total.bev_count)
             vintages[state_fips] = total.vintage
 
-    # Subtract what the observed counties already claim, per state.
+    # Partial county coverage: the leftover tracts take the residual, not the full total.
     for state, counties in county_totals.items():
         state_fips = STATE_FIPS[state]
-        if state_fips not in totals:
+        if state_fips not in totals or state_fips in native_states:
             continue
         already = sum(counties.values())
         residual = totals[state_fips] - already
@@ -329,16 +387,18 @@ class ConstraintAccounting:
 
     The identity is::
 
-        national_published == constraint_sum
-                            + observed_substitution_delta
-                            + unconstrained_sum
+        national_published == constraint_sum + unconstrained_sum
 
-    ``observed_substitution_delta`` is non-zero only where a **directly observed** tract
-    count is published in place of a modelled one, which overrides that state's
-    constraint by design. ``unconstrained_sum`` is the raw model output of tracts no
-    constraint binds - a jurisdiction with no published registration total - and it is
-    reported rather than absorbed because it is the share of the national figure that
-    rests on **no observed total at all**. Everything balances to floating point.
+    **There is no substitution term, and there must never be one again.** Observed tract
+    values are constraints, resolved by precedence *before* reconciliation, so they sit
+    inside the constraint system rather than being applied on top of it. A published
+    surface that is reconciled to one set of totals and then altered so it no longer sums
+    to them breaks the exact-reconciliation contract; that is what the former +611.03
+    Washington term was.
+
+    ``unconstrained_sum`` is the raw model output of tracts no constraint binds - a
+    jurisdiction with no published total - reported rather than absorbed because it is
+    the share of the national figure resting on **no observed total at all**.
 
     This exists because a two-vehicle national discrepancy once went unexplained, and
     "floating-point noise" is not a defensible answer when the reconciliation residual is
@@ -349,15 +409,14 @@ class ConstraintAccounting:
 
     national_published: float
     constraint_sum: float
-    observed_substitution_delta: float
     unconstrained_sum: float
     per_group: dict[str, float]
+    per_jurisdiction: dict[str, float]
 
     @property
     def imbalance(self) -> float:
         return (self.national_published
                 - self.constraint_sum
-                - self.observed_substitution_delta
                 - self.unconstrained_sum)
 
     def assert_balanced(self, tolerance: float = 1e-6) -> None:
@@ -365,8 +424,7 @@ class ConstraintAccounting:
             raise ValueError(
                 f"national accounting does not balance: published "
                 f"{self.national_published:,.6f} != constraints "
-                f"{self.constraint_sum:,.6f} + observed substitution "
-                f"{self.observed_substitution_delta:,.6f} + unconstrained "
+                f"{self.constraint_sum:,.6f} + unconstrained "
                 f"{self.unconstrained_sum:,.6f}. Unexplained: "
                 f"{self.imbalance:,.6f}. A national total that does not equal the "
                 "totals it reconciles to is wrong, however small the gap."
@@ -377,12 +435,35 @@ class ConstraintAccounting:
         return {
             "national_published": round(self.national_published, 6),
             "constraint_sum": round(self.constraint_sum, 6),
-            "observed_substitution_delta": round(self.observed_substitution_delta, 6),
             "unconstrained_sum": round(self.unconstrained_sum, 6),
+            "observed_substitution_delta": 0.0,
             "imbalance": round(self.imbalance, 9),
             "constraint_groups": len(self.per_group),
+            "jurisdictions": len(self.per_jurisdiction),
             "balances": True,
         }
+
+    def assert_every_jurisdiction_balances(
+        self, published: Mapping[str, float], tolerance: float = 1e-6
+    ) -> None:
+        """Each jurisdiction's surface must equal its own operative constraint.
+
+        A national identity can hold while individual states are wrong in offsetting
+        directions, so the per-jurisdiction identity is checked too.
+        """
+        offenders = {
+            fips: (published[fips], expected)
+            for fips, expected in self.per_jurisdiction.items()
+            if abs(published.get(fips, 0.0) - expected) > tolerance
+        }
+        if offenders:
+            worst = max(offenders.items(), key=lambda kv: abs(kv[1][0] - kv[1][1]))
+            raise ValueError(
+                f"{len(offenders)} jurisdiction(s) do not sum to their operative "
+                f"constraint; worst is {worst[0]}: published {worst[1][0]:,.6f} against "
+                f"constraint {worst[1][1]:,.6f}. A state surface that does not equal the "
+                "total it reconciles to is wrong."
+            )
 
 
 def _observed_tract_counts(
