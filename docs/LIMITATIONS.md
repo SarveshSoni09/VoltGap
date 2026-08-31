@@ -123,7 +123,7 @@ what is unverified is the meaning of the label, not the mechanics of the check.
 | Census ACS API | Now requires a key | The keyless bulk summary file is the primary path |
 | EIA API | Requires a key; no demo credential | Optional tier; keyless bulk workbook is the fallback |
 | AFDC DEMO_KEY | Rate limited to 10 requests per window | A free personal key is required for repeated probing or scheduled refresh |
-| Block-level population-weighted centroids | Do not exist. CenPop publishes county, tract and block group only | Genuine block-level weighting must be constructed from TIGER blocks + P.L. 94-171 |
+| Block-level population-weighted centroids | **No prebuilt product.** CenPop publishes population-weighted centroids at county, tract and block-group grain only. The block *inputs* do exist — TIGER `TABBLOCK20` geometry and P.L. 94-171 block population counts are both retrievable and both carry contract entries — so this is a missing artifact, not missing data | Block-grain weighting would have to be constructed from TIGER blocks + P.L. 94-171. The pipeline does not construct it, and block-group weighting ships instead |
 
 Live HIFLD transmission holds **52,244** features against **94,216** in the delivered
 seed GeoJSON. The two extracts do not agree and the publisher does not document why.
@@ -228,13 +228,17 @@ nationally.
   disadvantage than several indicators would give.
 - **No approximation bound is claimed for the interactive greedy solver**, because the
   classical guarantee's assumptions do not hold for the algorithm-and-constraint-set
-  actually shipped. Measured optimality gaps are reported instead: worst **3.06%** across
+  actually shipped. Measured optimality gaps are reported instead: worst **3.14%** across
   six states and three budgets.
-- **A-2.3 is still not settled at block level.** No Census block-level
-  population-weighted centroid product exists, so cells in large rural block groups
-  inherit the corner-population problem at smaller scale. What was measurable was
-  measured: a tract centroid places 18.66% of Washington demand in a different cell, and
-  can land in a cell containing none of a tract's population at all.
+- **A-2.3 is still not settled at block level.** The shipped weighting is
+  block-group population-weighted centroids, so cells in large rural block groups inherit
+  the corner-population problem at smaller scale. The reason is a missing *artifact*, not
+  missing data: Census publishes no prebuilt population-weighted centroid at block grain,
+  though TIGER block geometry and P.L. 94-171 block population counts both exist and
+  could be combined into one. Constructing it was out of Phase 2 and Phase 4 scope and is
+  recorded in `docs/FUTURE_WORK.md`. What was measurable was measured: a tract centroid
+  places 18.66% of Washington demand in a different cell, and can land in a cell
+  containing none of a tract's population at all.
 - **A time-limited CBC solve reports no optimality gap.** PuLP does not expose the
   solver's bound, so a solve that hits its limit reports `feasible_time_limit` and a null
   gap rather than a fabricated number. No solve hit the limit in the published run.

@@ -24,6 +24,7 @@ from typing import Any
 
 from pipeline.config.settings import PATHS
 from pipeline.model.build_demand import TractEstimate, build_surface
+from pipeline.model.clustering_sensitivity import CONDITIONS, compare_conditions
 from pipeline.model.hexes import (
     HexCell,
     assert_demand_conserved,
@@ -44,14 +45,18 @@ from pipeline.model.siting import (
 )
 from pipeline.model.siting_preflight import (
     assert_no_categorical_urban_rural,
-    assess_cluster_sensitivity,
     assess_rounding_sensitivity,
     benchmark_centroid_resolution,
 )
+from pipeline.sources.tiger_roads import read_road_vertices
 from pipeline.spatial.h3_grid import (
     RESOLUTION_NATIONAL,
     load_population_points,
     tract_cell_weights,
+)
+from pipeline.spatial.road_proximity import (
+    DEFAULT_ROAD_PROXIMITY_KM,
+    measure_road_distances,
 )
 
 DEFAULT_OUT = PATHS.evidence / "P4-1_siting.json"
@@ -106,6 +111,13 @@ def run(states: Sequence[str] = (), frontier_states: Sequence[str] = (),
         source_statuses=("confirmed",) * 8, bootstrap_replicates=20,
     )
     supply = load_hex_supply()
+    # The bounded alternatives for the A-2.1 sensitivity. The shipped path never
+    # clusters; these place a whole DBSCAN site's ports at its centroid, which is the
+    # mechanism by which clustering could move ports across a cell boundary.
+    supply_by_condition = {
+        name: (supply if eps is None else load_hex_supply(cluster_eps_m=eps))
+        for name, eps in CONDITIONS
+    }
 
     per_state: list[dict[str, Any]] = []
     frontier_points: list[dict[str, Any]] = []
@@ -118,7 +130,18 @@ def run(states: Sequence[str] = (), frontier_states: Sequence[str] = (),
         if state_fips not in wanted:
             continue
         cells = state_cells(surface.estimates, state_fips, supply)
-        candidates = build_candidates(cells, SATURATION_PORTS_PER_1K)
+        roads = read_road_vertices(state_fips)
+        distances = measure_road_distances(
+            [c.h3_index for c in cells], roads.latitudes, roads.longitudes,
+            DEFAULT_ROAD_PROXIMITY_KM)
+        candidates = build_candidates(cells, SATURATION_PORTS_PER_1K, distances)
+        # The honest before/after baseline: the SAME filters minus road proximity, which
+        # is what Phase 4 shipped before this correction. An infinite threshold admits
+        # every cell the road filter would have judged, without changing anything else.
+        unfiltered = measure_road_distances(
+            [c.h3_index for c in cells], roads.latitudes, roads.longitudes,
+            float("inf"))
+        before_roads = build_candidates(cells, SATURATION_PORTS_PER_1K, unfiltered)
         name, why = labels.get(state_fips, (state_fips, "unlabelled"))
 
         started = time.perf_counter()
@@ -131,6 +154,15 @@ def run(states: Sequence[str] = (), frontier_states: Sequence[str] = (),
             "tracts": sum(1 for r in surface.estimates if r.state_fips == state_fips),
             "cells": len(cells),
             "candidate_set": candidates.to_dict(),
+            "road_source": roads.to_dict(),
+            "candidates_before_road_filter": len(before_roads.candidates),
+            "candidates_after_road_filter": len(candidates.candidates),
+            "candidates_removed_by_road_filter": (
+                len(before_roads.candidates) - len(candidates.candidates)),
+            "clustering_sensitivity_A_2_1": [
+                r.to_dict() for r in compare_conditions(
+                    cells, supply_by_condition, distances, SATURATION_PORTS_PER_1K,
+                    budgets)],
             "demand_total": round(sum(c.demand_bev for c in cells), 4),
             "equity_population_total": round(
                 sum(c.equity_population for c in cells), 2),
@@ -148,8 +180,8 @@ def run(states: Sequence[str] = (), frontier_states: Sequence[str] = (),
         rounding.append({
             "state": name,
             **assess_rounding_sensitivity(
-                cells, budgets[1],
-                sum(c.demand_bev for c in cells) or 1.0).to_dict()})
+                cells, budgets[1], sum(c.demand_bev for c in cells) or 1.0,
+                road_distances=distances).to_dict()})
 
     sample_state = frontier[0] if frontier else wanted[0]
     points = load_population_points(sample_state)
@@ -181,6 +213,17 @@ def run(states: Sequence[str] = (), frontier_states: Sequence[str] = (),
             "toggles, which is a different problem class, so the guarantee does not "
             "carry over. Measured optimality gaps are reported instead."
         ),
+        "road_filter": {
+            "source": "TIGER/Line 2024 primary and secondary roads, per state",
+            "road_classes": ["S1100", "S1200"],
+            "threshold_km": DEFAULT_ROAD_PROXIMITY_KM,
+            "pre_registered": "docs/evidence/P4-0_road_filter_preregistration.md",
+            "note": (
+                "Resident population is NOT a substitute for road proximity and is no "
+                "longer presented as one. The uninhabited filter is retained on its own "
+                "merits: a cell with nobody in it is not a siting candidate."
+            ),
+        },
         "substation_filter": (
             "NONE. Phase 0 located no authoritative national substation dataset, so "
             "Core siting functions without one and no cell is excluded for lacking grid "
@@ -198,7 +241,23 @@ def run(states: Sequence[str] = (), frontier_states: Sequence[str] = (),
         "greedy_budget_seconds": GREEDY_BUDGET_SECONDS,
         "greedy_within_budget": slowest_greedy <= GREEDY_BUDGET_SECONDS,
         "preflight": {
-            "A-2.1_site_clustering": assess_cluster_sensitivity().to_dict(),
+            "A-2.1_site_clustering": {
+                "assumption": "A-2.1",
+                "method": (
+                    "Measured, not argued from cell geometry. The shipped supply path "
+                    "places each station at its own coordinates and never clusters; the "
+                    "alternatives place a whole DBSCAN site's ports at its centroid, "
+                    "which is how clustering could move ports across a cell boundary. "
+                    "Per state and per condition: candidate-set Jaccard, cells whose "
+                    "saturation classification changes, portfolio overlap at each "
+                    "budget, and the demand and equity objective deltas."
+                ),
+                "per_state": [
+                    {"state": s["state"],
+                     "conditions": s["clustering_sensitivity_A_2_1"]}
+                    for s in per_state
+                ],
+            },
             "A-2.2_rung_two_masked_power": {
                 "assumption": "A-2.2",
                 "triggered": False,

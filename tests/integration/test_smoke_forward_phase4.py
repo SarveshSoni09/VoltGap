@@ -35,6 +35,11 @@ from pipeline.model.siting import (
     solve_epsilon_constraint,
 )
 from pipeline.sources.census_acs import ACS_YEAR
+from pipeline.sources.tiger_roads import read_road_vertices
+from pipeline.spatial.road_proximity import (
+    DEFAULT_ROAD_PROXIMITY_KM,
+    measure_road_distances,
+)
 
 FIXTURE_STATES = ("50", "53")
 
@@ -49,7 +54,11 @@ def candidates() -> CandidateSet:
         constraint_totals(observations), penalty, "poisson_glm",
         source_statuses=("confirmed",) * 8, bootstrap_replicates=4)
     cells = state_cells(surface.estimates, "53", load_hex_supply())
-    return build_candidates(cells, saturation_ports_per_1k_demand=2.0)
+    roads = read_road_vertices("53")
+    distances = measure_road_distances(
+        [c.h3_index for c in cells], roads.latitudes, roads.longitudes,
+        DEFAULT_ROAD_PROXIMITY_KM)
+    return build_candidates(cells, 2.0, distances)
 
 
 def test_a_portfolio_optimised_on_one_objective_can_be_scored_on_another(

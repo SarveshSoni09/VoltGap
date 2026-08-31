@@ -168,8 +168,33 @@ def test_p4_e_there_is_no_mandatory_substation_filter(
     for state in evidence["per_state"]:
         candidates = state["candidate_set"]
         assert candidates["no_mandatory_substation_filter"] is True
+        # The road filter §7.8 requires IS present. What must not appear is a
+        # substation or interconnection exclusion, which §7.9 forbids as a Core filter.
         assert set(candidates["excluded_by_reason"]) <= {
-            "uninhabited", "already_saturated"}
+            "uninhabited", "already_saturated", "beyond_road_network"}
+        assert not any("substation" in r or "interconnect" in r
+                       for r in candidates["excluded_by_reason"])
+
+
+def test_p4_e_the_road_proximity_filter_actually_ran_in_every_state(
+    evidence: dict[str, Any],
+) -> None:
+    """§7.8 requires it. Phase 4 first shipped without it and substituted a resident
+    population filter, which is not a road filter. This asserts it is back and that it
+    removed cells rather than passing everything through."""
+    for state in evidence["per_state"]:
+        candidates = state["candidate_set"]
+        assert candidates["cells_admitted_without_road_filter"] == 0, state["state"]
+        road = candidates["road_network_filter"]
+        assert isinstance(road, dict), state["state"]
+        assert road["threshold_km"] == 5.0
+        assert road["road_vertices"] > 0
+        assert state["candidates_removed_by_road_filter"] > 0, state["state"]
+        assert (state["candidates_before_road_filter"]
+                - state["candidates_after_road_filter"]
+                == state["candidates_removed_by_road_filter"])
+        assert state["road_source"]["road_classes_included"] == ["S1100", "S1200"]
+        assert state["road_source"]["vintage"] == "2024"
 
 
 def test_p4_e_transmission_is_never_an_interconnection_constraint(
@@ -189,9 +214,54 @@ def test_p4_e_every_state_retains_candidates_after_filtering(
 # --- P4-F: the prerequisites ----------------------------------------------------------
 
 def test_p4_f_a21_site_clustering_was_measured(evidence: dict[str, Any]) -> None:
+    """A-2.1 must be MEASURED, not argued from the ratio of cluster diameter to cell
+    edge. That ratio establishes clusters are small relative to cells; it establishes
+    nothing about whether a cluster straddling a boundary flips a saturation
+    classification. External review rejected the geometric argument, correctly."""
     result = evidence["preflight"]["A-2.1_site_clustering"]
-    assert result["resolution"] == 6
-    assert result["diameter_as_share_of_cell_edge"] < 0.2
+    assert "Measured, not argued from cell geometry" in result["method"]
+    assert "diameter_as_share_of_cell_edge" not in result
+
+    states = result["per_state"]
+    assert len(states) == 6
+    for state in states:
+        conditions = {c["condition"]: c for c in state["conditions"]}
+        assert set(conditions) == {
+            "shipped_no_clustering", "dbscan_eps_50m", "dbscan_eps_200m"}
+        # The baseline is compared against itself, so it must show no difference.
+        baseline = conditions["shipped_no_clustering"]
+        assert baseline["material"] is False
+        assert baseline["candidate_set_jaccard"] == 1.0
+        for name in ("dbscan_eps_50m", "dbscan_eps_200m"):
+            measured = conditions[name]
+            # Whatever the verdict, every portfolio at every budget must be reported.
+            assert set(measured["portfolio_overlap_by_budget"]) == {"5", "20", "50"}
+            assert measured["material"] in (True, False)
+
+
+def test_p4_f_a21_the_shipped_clustering_configuration_changes_nothing(
+    evidence: dict[str, Any],
+) -> None:
+    """The Phase 1 site-resolution configuration (eps = 50 m) is the one that would be
+    used if clustering were adopted. It is immaterial in all six states."""
+    for state in evidence["preflight"]["A-2.1_site_clustering"]["per_state"]:
+        measured = {c["condition"]: c for c in state["conditions"]}["dbscan_eps_50m"]
+        assert measured["material"] is False, state["state"]
+        assert measured["candidate_set_jaccard"] == 1.0
+        assert measured["cells_whose_saturation_classification_changes"] == 0
+
+
+def test_p4_f_a21_no_portfolio_changes_under_any_clustering_condition(
+    evidence: dict[str, Any],
+) -> None:
+    """The consequential question. A candidate-set difference that never reaches a
+    portfolio does not change a siting recommendation; one that does, would."""
+    for state in evidence["preflight"]["A-2.1_site_clustering"]["per_state"]:
+        for measured in state["conditions"]:
+            for budget, overlap in measured["portfolio_overlap_by_budget"].items():
+                assert overlap == 1.0, (state["state"], measured["condition"], budget)
+            assert measured["demand_objective_delta"] == 0.0
+            assert measured["equity_objective_delta"] == 0.0
 
 
 def test_p4_f_a22_is_not_triggered_and_cannot_be_violated(

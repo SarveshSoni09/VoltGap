@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import cast
+
 import pytest
 
 from pipeline.model.hexes import HexCell, HexSupply
@@ -23,6 +25,7 @@ from pipeline.model.siting import (
 )
 from pipeline.model.uncertainty import COMPONENT_NAMES
 from pipeline.spatial.h3_grid import cells_for_points
+from pipeline.spatial.road_proximity import RoadDistances, measure_road_distances
 
 # Six well-separated points, so each lands in its own res-6 cell with no shared k-ring.
 POINTS = [(47.6, -122.3), (40.7, -74.0), (34.0, -118.2), (41.8, -87.6),
@@ -43,12 +46,26 @@ def hexcell(index: int, demand: float, equity: float = 0.0,
         uncertainty_components=dict.fromkeys(COMPONENT_NAMES, 0.2),
         evidence_grain_share={"native_tract": 1.0}, confidence_tier_share={"A": 1.0},
         value_provenance_share={"modeled_reconciled": 1.0},
-        supply=HexSupply(site_count=1 if dcfc else 0, dcfc_ports=dcfc),
+        supply=HexSupply(station_count=1 if dcfc else 0, dcfc_ports=dcfc),
     )
 
 
-def candidates_from(cells: list[HexCell], saturation: float = 2.0) -> CandidateSet:
-    return build_candidates(cells, saturation)
+def roads_covering(cells: list[HexCell], km: float = 5.0) -> RoadDistances:
+    """A road vertex at every cell centroid: the filter passes everything.
+
+    Tests that are about the solver should not silently become tests about the road
+    filter, so the road input is explicit and trivially satisfied unless a test says
+    otherwise.
+    """
+    return measure_road_distances(
+        [c.h3_index for c in cells], [c.latitude for c in cells],
+        [c.longitude for c in cells], km)
+
+
+def candidates_from(cells: list[HexCell], saturation: float = 2.0,
+                    roads: RoadDistances | None = None) -> CandidateSet:
+    return build_candidates(cells, saturation,
+                            roads if roads is not None else roads_covering(cells))
 
 
 # --- candidate filtering --------------------------------------------------------------
@@ -59,7 +76,49 @@ def test_there_is_no_substation_filter() -> None:
     payload = candidates_from([hexcell(0, 100.0)]).to_dict()
     assert payload["no_mandatory_substation_filter"] is True
     assert set(ExclusionReason) == {ExclusionReason.UNINHABITED,
+                                    ExclusionReason.BEYOND_ROAD_NETWORK,
                                     ExclusionReason.ALREADY_SATURATED}
+
+
+def test_a_cell_beyond_the_road_network_is_excluded_by_name() -> None:
+    """CLAUDE.md §7.8's actual filter, restored. Resident population is NOT a substitute
+    for road proximity and is no longer presented as one."""
+    cells = [hexcell(0, 100.0), hexcell(1, 100.0)]
+    # A road only near the first cell.
+    roads = measure_road_distances(
+        [c.h3_index for c in cells], [cells[0].latitude], [cells[0].longitude], 5.0)
+    result = build_candidates(cells, 2.0, roads)
+    assert [c.h3_index for c in result.candidates] == [cell_at(0)]
+    assert result.excluded == {"beyond_road_network": 1}
+    road = cast(dict[str, object], result.to_dict()["road_network_filter"])
+    assert road["threshold_km"] == 5.0
+
+
+def test_candidate_construction_without_roads_raises_rather_than_dropping_the_filter(
+) -> None:
+    """D8: passing every cell through would silently drop the §7.8 constraint."""
+    with pytest.raises(SitingError, match="needs road distances"):
+        build_candidates([hexcell(0, 100.0)], 2.0)
+
+
+def test_degraded_mode_admits_cells_but_says_so_loudly() -> None:
+    result = build_candidates([hexcell(0, 100.0)], 2.0, allow_missing_roads=True)
+    assert len(result.candidates) == 1
+    assert result.admitted_without_road_filter == 1
+    payload = result.to_dict()
+    assert "DEGRADED" in str(payload["road_network_filter"])
+    assert payload["cells_admitted_without_road_filter"] == 1
+
+
+def test_the_road_threshold_sensitivity_curve_ships_with_the_result() -> None:
+    """So the threshold is visible as a choice rather than presented as a finding."""
+    cells = [hexcell(i, 100.0) for i in range(3)]
+    roads = measure_road_distances(
+        [c.h3_index for c in cells], [cells[0].latitude], [cells[0].longitude], 5.0)
+    curve = cast(dict[str, int], roads.to_dict([c.h3_index for c in cells])[
+        "sensitivity_cells_within_threshold_by_km"])
+    assert set(curve) == {"1", "2", "3", "5", "8", "12", "20"}
+    assert curve["1"] <= curve["20"]
 
 
 def test_an_uninhabited_cell_is_excluded_by_name() -> None:

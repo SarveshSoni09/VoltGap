@@ -1023,6 +1023,62 @@ sources:
         block population from census_pl94171_blocks.
       - "147,565,957 bytes for Minnesota alone; national coverage is a large download."
 
+  - id: census_tiger_prisecroads
+    name: TIGER/Line primary and secondary roads
+    tier: core
+    retrieval:
+      method: bulk_download
+      endpoint: "https://www2.census.gov/geo/tiger/TIGER{year}/PRISECROADS/tl_{year}_{state_fips}_prisecroads.zip"
+      auth: none
+      rate_limit: "none advertised"
+    coverage:
+      geographic: "per state, all US states and territories"
+      temporal: "annual vintages"
+      historical_vintages_available: true
+      vintage_field: "year in the path"
+      vintage_semantics: "road centrelines as of the named TIGER vintage"
+    schema:
+      join_keys: [LINEARID]
+      stable_keys: false
+      schema_version: null
+      expected_field_count: null
+      discovered_fields: [LINEARID, FULLNAME, RTTYP, MTFCC, geometry]
+    quality:
+      expected_row_count: [200, 40000]
+      drift_tolerance: 0.20
+      expected_range_derivation: >-
+        Measured for Washington (FIPS 53) only: 3,006 features carrying 376,007
+        vertices, of which MTFCC S1200 = 2,800 features and S1100 = 206. The range is a
+        plausibility band across states, not a per-state expectation.
+    license: "US Government work, public domain"
+    update_cadence: "annual"
+    fallback_source: none
+    used_by: [siting]
+    backtest_eligible: true
+    known_limitations:
+      - >-
+        Only MTFCC S1100 (primary) and S1200 (secondary) are included. At H3 resolution 6
+        (38.2 km per cell) nearly every inhabited cell contains some S1400 local street,
+        so including local roads would make the candidate filter a near no-op rather than
+        the siting constraint CLAUDE.md section 7.8 asks for. The consequence is recorded
+        rather than hidden: a cell served only by local streets is excluded even though
+        something could physically be built there.
+      - >-
+        Distance is measured from the H3 cell centroid to the nearest road VERTEX, not to
+        the nearest point on a road segment. TIGER geometries are densely vertexed (about
+        125 vertices per Washington feature) so the error is small, but it is an
+        approximation, recorded as assumption A-4.6.
+      - >-
+        Road presence is proximity, not access. A cell within 5 km of a secondary road
+        may still have no legal, physical or commercially available site on it. This is a
+        proximity proxy in exactly the sense directive D6 applies to grid proximity.
+      - >-
+        No stable feature identity across vintages: LINEARID is not guaranteed stable, so
+        no longitudinal road-segment tracking is claimed.
+      - >-
+        Fetched per state. There is no national PRISECROADS file; the six frontier states
+        were retrieved, and a national candidate universe would need the remaining 45.
+
   - id: census_cenpop_tract
     name: Census 2020 population-weighted tract centroids
     tier: core

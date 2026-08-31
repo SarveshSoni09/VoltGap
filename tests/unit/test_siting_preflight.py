@@ -6,7 +6,6 @@ import pytest
 
 from pipeline.model.siting_preflight import (
     assert_no_categorical_urban_rural,
-    assess_cluster_sensitivity,
     assess_rounding_sensitivity,
     benchmark_centroid_resolution,
 )
@@ -14,27 +13,10 @@ from pipeline.spatial.h3_grid import PopulationPoint
 from tests.unit.test_hexes import SEATTLE, SPOKANE, point
 from tests.unit.test_siting import hexcell
 
-# --- A-2.1 ---------------------------------------------------------------------------
-
-def test_a21_measures_cluster_diameter_against_the_actual_cell_edge() -> None:
-    result = assess_cluster_sensitivity()
-    assert result.resolution == 6
-    assert 20.0 < result.cell_area_km2 < 60.0
-    assert 3000.0 < result.approximate_cell_edge_m < 4500.0
-    # Phase 2 found no cluster over 500 m; a res-6 cell edge is ~3.8 km.
-    assert result.diameter_as_share_of_edge < 0.2
-    payload = result.to_dict()
-    assert payload["assumption"] == "A-2.1"
-    # The honest answer is that it CAN straddle, with the magnitude stated.
-    assert payload["could_straddle_a_cell_boundary"] is True
-    assert "k-ring coverage" in str(payload["interpretation"])
-
-
-def test_a21_reports_a_larger_share_for_a_larger_cluster() -> None:
-    small = assess_cluster_sensitivity(max_cluster_diameter_m=100.0)
-    large = assess_cluster_sensitivity(max_cluster_diameter_m=2000.0)
-    assert large.diameter_as_share_of_edge > small.diameter_as_share_of_edge
-
+# --- A-2.1 is measured in tests/unit/test_clustering_sensitivity.py -------------------
+# The ratio argument that used to live here was rejected by external review, correctly:
+# a cluster being small relative to a cell says nothing about whether it can cross a
+# boundary and change a cell's saturation status. That is now measured.
 
 # --- A-2.3 ---------------------------------------------------------------------------
 
