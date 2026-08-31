@@ -110,7 +110,7 @@ def test_calibration_needs_washington_rows_to_report_anything() -> None:
     from pipeline.model.build_demand import ConstraintAccounting, DemandSurface
     from pipeline.model.reconcile import ProportionalReconciler
 
-    empty = DemandSurface(ConstraintAccounting(0.0, 0.0, 0.0, 0.0, {}), (), "e", (), 0,
+    empty = DemandSurface(ConstraintAccounting(0.0, 0.0, 0.0, {}, {}), {}, (), "e", (), 0,
                           ProportionalReconciler().reconcile(
                               __import__("numpy").zeros(0), []),
                           {}, 0.0)

@@ -29,9 +29,12 @@ from pipeline.validation.scope import ExclusionLedger
 
 # Two states: 53 (Washington, tract-observed) and 30 (Montana, county-observed).
 WA_TRACTS = ["53033000100", "53033000200", "53061000100"]
+# In Washington's ACS geography but absent from its registry: a tract the enumeration
+# does not name, which therefore holds no registered BEVs.
+WA_UNOBSERVED = ["53061000200"]
 MT_TRACTS = ["30049000100", "30049000200", "30031000100"]
 OTHER_TRACTS = ["06037000100", "06037000200"]
-ALL_TRACTS = WA_TRACTS + MT_TRACTS + OTHER_TRACTS
+ALL_TRACTS = WA_TRACTS + WA_UNOBSERVED + MT_TRACTS + OTHER_TRACTS
 
 
 def acs_row(geoid: str, households: int) -> dict[str, str]:
@@ -263,7 +266,8 @@ def test_partial_county_coverage_constrains_the_rest_to_the_residual() -> None:
     ]
     counties = {"MT": {"30049": 40.0, "30031": 25.0}}
     totals = {"30": StateTotal("30", "Montana", "2025", 100, 0)}
-    grains, group_of, plan, vintages = _constraint_plan(rows, counties, totals)
+    grains, group_of, plan, vintages = _constraint_plan(
+        rows, counties, totals, {}, {})
     assert group_of == ["30049", "30031", "30"]
     assert plan["30049"] == 40.0 and plan["30031"] == 25.0
     # The residual, not the full 100: the observed counties already claim 65.
@@ -281,7 +285,7 @@ def test_complete_county_coverage_creates_no_state_group() -> None:
     rows = [ModelRow("TN", "tracts", "47001000100", 100.0, 200.0, {})]
     grains, group_of, plan, _ = _constraint_plan(
         rows, {"TN": {"47001": 40.0}},
-        {"47": StateTotal("47", "Tennessee", "2025", 100, 0)})
+        {"47": StateTotal("47", "Tennessee", "2025", 100, 0)}, {}, {})
     assert group_of == ["47001"]
     assert set(plan) == {"47001"}
     assert grains == [COUNTY_ANCHORED]
@@ -298,16 +302,24 @@ def test_county_totals_exceeding_the_state_total_are_refused_not_clamped() -> No
     ]
     with pytest.raises(ValueError, match="exceeds"):
         _constraint_plan(rows, {"MT": {"30049": 500.0}},
-                         {"30": StateTotal("30", "Montana", "2025", 100, 0)})
+                         {"30": StateTotal("30", "Montana", "2025", 100, 0)}, {}, {})
 
 
-def test_the_national_accounting_balances_and_names_the_substitution() -> None:
+def payload_zero_substitution(accounting: object) -> bool:
+    from pipeline.model.build_demand import ConstraintAccounting
+
+    assert isinstance(accounting, ConstraintAccounting)
+    return accounting.to_dict()["observed_substitution_delta"] == 0.0
+
+
+def test_the_national_accounting_balances_with_no_substitution_term() -> None:
     built = surface()
     accounting = built.accounting
     accounting.assert_balanced()
     assert abs(accounting.imbalance) < 1e-6
     # Washington's observed tracts override its constraint by design.
-    assert accounting.observed_substitution_delta != 0.0
+    # There is no substitution term any more: observed values are constraints.
+    assert payload_zero_substitution(accounting)
     payload = accounting.to_dict()
     assert payload["balances"] is True
     assert payload["constraint_groups"] > 0
@@ -317,7 +329,89 @@ def test_an_unbalanced_accounting_raises_rather_than_publishing() -> None:
     from pipeline.model.build_demand import ConstraintAccounting
 
     broken = ConstraintAccounting(national_published=100.0, constraint_sum=90.0,
-                                  observed_substitution_delta=0.0,
-                                  unconstrained_sum=0.0, per_group={"a": 90.0})
+                                  unconstrained_sum=0.0, per_group={"a": 90.0},
+                                  per_jurisdiction={})
     with pytest.raises(ValueError, match="does not balance"):
         broken.assert_balanced()
+
+
+# --- the exact-reconciliation contract, after precedence resolution -------------------
+
+def test_a_native_registry_state_reconciles_to_its_own_observed_total() -> None:
+    """Washington's observed values are CONSTRAINTS now, not a post-hoc overwrite, so
+    its surface still equals the total it reconciles to."""
+    built = surface()
+    wa = [row for row in built.estimates if row.state_fips == "53"]
+    operative = built.operative_constraints["53"]
+    assert operative.chosen.source.value == "native_tract_registry"
+    assert sum(row.estimate for row in wa) == pytest.approx(operative.total, abs=1e-6)
+    # Each observed tract carries exactly its observation.
+    for row in wa:
+        if row.estimate_method == "directly_observed":
+            assert row.evidence_grain == NATIVE_TRACT
+
+
+def test_a_tract_the_registry_does_not_name_is_constrained_to_zero() -> None:
+    """A registry enumerates every registered vehicle, so a tract it omits holds none."""
+    built = surface()
+    unnamed = next(r for r in built.estimates if r.geoid == WA_UNOBSERVED[0])
+    assert unnamed.estimate == pytest.approx(0.0, abs=1e-9)
+    assert unnamed.evidence_grain == NATIVE_TRACT
+    # And Washington still sums to its own observed total, not to that total plus a
+    # stray modelled remainder.
+    wa = sum(r.estimate for r in built.estimates if r.state_fips == "53")
+    assert wa == pytest.approx(built.operative_constraints["53"].total, abs=1e-6)
+
+
+def test_there_is_no_substitution_term_left_in_the_accounting() -> None:
+    """A surface reconciled to one set of totals and then altered so it no longer sums
+    to them breaks the exact-reconciliation contract."""
+    payload = surface().accounting.to_dict()
+    assert payload["observed_substitution_delta"] == 0.0
+    assert payload["balances"] is True
+
+
+def test_every_jurisdiction_balances_individually_not_just_nationally() -> None:
+    """A national identity can hold while states are wrong in offsetting directions."""
+    built = surface()
+    published: dict[str, float] = {}
+    for row in built.estimates:
+        published[row.state_fips] = published.get(row.state_fips, 0.0) + row.estimate
+    built.accounting.assert_every_jurisdiction_balances(published)
+    for fips, expected in built.accounting.per_jurisdiction.items():
+        assert published[fips] == pytest.approx(expected, abs=1e-6)
+
+
+def test_a_poisoned_post_reconciliation_substitution_is_caught() -> None:
+    """The negative test: if anything ever alters the surface after reconciliation, the
+    per-jurisdiction identity must fail rather than the number quietly shipping."""
+    built = surface()
+    published: dict[str, float] = {}
+    for row in built.estimates:
+        published[row.state_fips] = published.get(row.state_fips, 0.0) + row.estimate
+    poisoned = dict(published)
+    poisoned["53"] = poisoned["53"] + 611.0328
+    with pytest.raises(ValueError, match="do not sum to their operative"):
+        built.accounting.assert_every_jurisdiction_balances(poisoned)
+
+
+def test_superseded_constraints_are_preserved_but_never_summed() -> None:
+    built = surface()
+    operative = built.operative_constraints
+    superseded_total = sum(c.total for op in operative.values() for c in op.superseded)
+    assert superseded_total > 0, "Washington's state total should be recorded"
+    # The accounting sums only the chosen constraints.
+    assert built.accounting.constraint_sum == pytest.approx(
+        sum(op.total for op in operative.values()
+            if op.state_fips in {r.state_fips for r in built.estimates}), abs=1e-6)
+
+
+def test_every_jurisdiction_has_exactly_one_operative_constraint() -> None:
+    built = surface()
+    states = {row.state_fips for row in built.estimates}
+    for state in states:
+        operative = built.operative_constraints[state]
+        assert operative.state_fips == state
+        assert operative.chosen.source.value in {
+            "native_tract_registry", "county_observation", "state_registration_total"}
+        assert operative.reason

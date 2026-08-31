@@ -154,3 +154,13 @@ review, and A-0.5 moved forward to Phase 1. Phase 1's gate re-checks all open en
 |---|---|---|---|
 | A-3.7 | ACS 2024 is a like-for-like replacement | **CONFIRMED with a correction to the claim.** ZCTA and county sets are identical nationally; the **tract set gained one** (36111954401, Ulster County NY, absent from ACS 2023 with HTTP 204). The earlier "identical area counts at every grain" rested on a bounded Rhode Island check and is withdrawn | `tract_set_reconciliation` |
 | A-3.4 | AFDC totals rounded to the nearest 100 are precise enough as exact constraints | **STILL OPEN, and now measurable.** The national accounting makes the constraint sum explicit (5,616,329) so rounding error is visible rather than buried | Phase 4 |
+
+---
+
+## Opened by the constraint-precedence correction (2026-08-31)
+
+| ID | Falsifiable statement | Depends on | Tested in | Status |
+|---|---|---|---|---|
+| A-3.13 | A census tract that Washington's vehicle registry does not name holds **zero** registered BEVs, rather than an unknown number. | This is what makes it defensible to constrain those 15 tracts to zero instead of leaving them modelled. It rests on the source being a registry-grade enumeration: every registered vehicle appears, so absence is a zero rather than a gap. If instead some records fail to geocode into a tract, those vehicles are counted in the ledger's exclusions and the assumption still holds; if a whole tract were systematically dropped, it would not. | Phase 5 | OPEN |
+| A-3.14 | A 10% agreement tolerance is the right bar for a native source to supersede an external total. | `NATIVE_SUPERSEDE_TOLERANCE`. Washington sits at 0.25%, so the threshold is not close to binding today and has never been tuned against a result. A future state nearer the boundary would make the choice load-bearing. | Phase 4 | OPEN |
+| A-3.15 | Tennessee's complete county coverage genuinely superseding its state total is right, and the 2,371-vehicle difference is a definitional gap rather than missing coverage. | Tennessee publishes all 95 counties totalling 53,029 against a 2025 AFDC total of 55,400. CLAUDE.md §7.3 makes county totals authoritative where they exist, so the national figure omits 2,371 vehicles the state series reports. | Phase 5 | OPEN |

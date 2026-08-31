@@ -1439,3 +1439,191 @@ partial-county-coverage defect, and seven for the fragility description and trac
 reconciliation. **The gate failed twice during this pass** — once because the completed
 accounting identity caught its own missing `unconstrained_sum` term, once on the untested
 branches of the new fragility helper — and both were fixed rather than accommodated.
+
+---
+
+# 16. External Review Correction — constraint precedence and the substitution residual (2026-08-31)
+
+External review identified the remaining correctness problem: the published surface was
+reconciled to one set of totals and then **altered by an observed-substitution step that
+left it no longer summing to them**. A free-floating +611.0328 outside the constraint
+system breaks the exact-reconciliation contract. This section decomposes that term, fixes
+it, and records the precedence rule that replaces it.
+
+**Nothing accepted in earlier reviews was reopened.** The ACS 2024 refresh, the tract-set
+reconciliation, the New Jersey sensitivity, I-15's Montana/Virginia correction,
+Washington's training-versus-validation role, the ZIP-constraint decision and the
+uncertainty wording all stand unchanged.
+
+## 16.1 The 611.0328, decomposed and proven
+
+Computed by walking every tract, comparing its observed value against the reconciled value
+it displaced, and grouping by state — **not** by assuming Washington:
+
+| Field | Value |
+|---|---|
+| **State** | **53 — Washington** |
+| External constraint source | AFDC state EV registration total (`Electric (EV)` column) |
+| External constraint vintage | **2025** |
+| External constraint total | **236,400** |
+| Native / observed source | Washington State DOL *Electric Vehicle Population* (`data.wa.gov` resource `f6w7-q2d2`) |
+| Native source vintage | current snapshot |
+| Observed tracts substituted | **1,769** |
+| Observed total substituted | **236,994.0000** |
+| Modelled values displaced | **236,382.9672** |
+| **Net substitution delta** | **+611.0328** |
+| Final state surface total (before fix) | **237,011.0328** |
+
+**Every other jurisdiction contributed exactly zero.** The state-level deltas sum to
+**611.0328**, matching the national term to four decimal places, and only one state
+appears in the decomposition. The identity closes twice over:
+
+- `236,994.0000 − 236,382.9672 = 611.0328` — observed minus displaced;
+- `237,011.0328 − 236,400 = 611.0328` — final state surface minus its nominal constraint,
+  where the extra `17.0328` is the 15 Washington ACS tracts the registry never named,
+  which kept modelled values.
+
+## 16.2 The constraint hierarchy, chosen and encoded
+
+**Option B: a qualifying native sub-state source supersedes a coarser external total.**
+
+This is not a new rule. CLAUDE.md §7.3 already says tract estimates "reconcile exactly to
+**reliable county totals where they exist** and to state totals everywhere else" — finer,
+more reliable evidence displaces a coarser external total. Tennessee already demonstrates
+it in the shipped surface: its complete county observations displace its AFDC state total,
+53,029 against 55,400. §7.4.1 puts `native_tract` at the top of the same evidence
+hierarchy. Extending the existing rule one rung to the grain it already ranks highest is
+the coherent choice; inventing a special case for Washington would not be.
+
+**It was chosen on source quality, coverage, vintage and the existing hierarchy — not on
+which option preserved a preferred number.** The corrected national total is in fact
+*lower* than the defective one.
+
+```
+native tract registry  >  county observations  >  external state total
+```
+
+**"Complete" is defined and tested.** A native source supersedes only when **all four**
+hold, checked by `native_source_qualifies`:
+
+1. it reports **natively at tract grain**;
+2. its **record ledger balances** — every retrieved record accounted for;
+3. **every observed tract lies inside the jurisdiction**;
+4. its total agrees with the external total within **10%** (`NATIVE_SUPERSEDE_TOLERANCE`).
+
+Condition 4 is what stops a partial or broken extract silently becoming a jurisdiction's
+constraint: a large gap means one of the two is measuring a different population.
+Washington sits at **0.25%** (236,994 against 236,400). A source failing any condition
+remains valuable evidence — it still trains the model and still validates — but it does not
+become the constraint.
+
+**Resolution across all 51 jurisdictions:**
+
+| Operative source | Jurisdictions |
+|---|---:|
+| `state_registration_total` | 49 |
+| `county_observation` | 1 (Tennessee) |
+| `native_tract_registry` | 1 (Washington) |
+
+| State | Chose | Total | Superseded, kept as provenance |
+|---|---|---:|---|
+| **53 WA** | `native_tract_registry` | **236,994** | `state_registration_total` 236,400 (AFDC 2025) |
+| **47 TN** | `county_observation` | **53,029** | `state_registration_total` 55,400 (AFDC 2025) |
+| 30 MT | `state_registration_total` | 6,900 | — (counties *decompose* it; coverage 51 of 56 is incomplete) |
+| 51 VA | `state_registration_total` | 134,900 | — (counties decompose it; 129 of 133) |
+
+**A superseded total is provenance, never rubbish and never summed.** Each jurisdiction
+publishes `chosen_constraint_source`, `chosen_constraint_vintage`,
+`chosen_constraint_total`, `constraint_precedence_reason` and its
+`superseded_constraints`.
+
+**The AFDC total is no longer called Washington's operative constraint anywhere.**
+
+## 16.3 The substitution residual is gone
+
+Observed values are now **constraints resolved before reconciliation**, not an overwrite
+applied afterwards. Each observed Washington tract is its own constraint holding its
+observed count; the 15 tracts the registry does not name are constrained to **zero**,
+because a registry enumerates every registered vehicle and a tract it omits holds none.
+
+| | Before | After |
+|---|---:|---:|
+| `constraint_sum` | 5,616,329.0000 | **5,616,923.0000** |
+| `observed_substitution_delta` | **611.0328** | **0.0** |
+| `unconstrained_sum` | 0.0 | 0.0 |
+| **`national_published`** | 5,616,940.0328 | **5,616,923.0000** |
+| **Imbalance** | 1e-09 | **0.0** |
+| Constraint groups | 325 | **2,094** |
+
+The national identity is now `national == sum(chosen authoritative constraints)` with
+**exactly zero** imbalance. The constraint sum rose by 594 because Washington's operative
+total moved from 236,400 to 236,994; the national total *fell* by 17.0328 because the 15
+unnamed Washington tracts are now constrained to zero instead of keeping modelled values.
+
+**Per-jurisdiction identities are checked too**, not just the national one — a national
+figure can balance while individual states are wrong in offsetting directions.
+`assert_every_jurisdiction_balances` runs on every build.
+
+| | Old | Corrected |
+|---|---:|---:|
+| **National total** | 5,616,940.0328 | **5,616,923.0000** |
+| **Washington** | 237,011.0328 | **236,994.0000** |
+| Every other jurisdiction | unchanged | unchanged |
+
+Washington is the **only** state whose total moved. Confidence tiers shift by 15 tracts
+(A 5,973 → **5,988**, B 58,821 → **58,809**, C 19,607 → **19,604**) and evidence grain
+`native_tract` goes 1,769 → **1,784**, because the 15 unnamed Washington tracts are now
+covered by the registry's evidence — it reports zero for them — rather than resting on the
+state total. Their `estimate_method` remains `modeled`: the registry did not name them, so
+they are not `directly_observed`. The two orthogonal fields do exactly the work amendment
+A2 requires of them.
+
+## 16.4 Not reopened
+
+| Decision | Status |
+|---|---|
+| ACS 2024 5-year production vintage | unchanged |
+| Estimator selection (`poisson_glm`, pre-registered rule) | unchanged — re-run, same winner |
+| New Jersey sensitivity and `flagged_for_review` status | unchanged, delta −0.016396 |
+| ZIP totals out of Core v1 | unchanged |
+| Uncertainty weights, components and diagnostic wording | unchanged |
+| Measured transformation ladder | unchanged |
+| I-15 Montana/Virginia partial-county correction | intact and still tested |
+| Washington training-vs-validation separation | intact |
+
+The estimator, LOSO metrics, ablation and ladder do not depend on the constraint plan and
+are numerically identical.
+
+## 16.5 Regression coverage added
+
+| Requirement | Test |
+|---|---|
+| Partial county coverage cannot double-count | `test_partial_county_coverage_constrains_the_rest_to_the_residual` |
+| Native substitution cannot break a jurisdiction's identity | `test_a_native_registry_state_reconciles_to_its_own_observed_total` |
+| Exactly one operative constraint per jurisdiction | `test_every_jurisdiction_has_exactly_one_operative_constraint`, `test_resolve_all_gives_every_jurisdiction_exactly_one_authority` |
+| Superseded constraints preserved but not summed | `test_superseded_constraints_are_preserved_but_never_summed` |
+| State identities hold individually | `test_every_jurisdiction_balances_individually_not_just_nationally` |
+| National identity equals the chosen constraints | `test_there_is_no_substitution_term_left_in_the_accounting` |
+| **A poisoned post-reconciliation substitution fails** | `test_a_poisoned_post_reconciliation_substitution_is_caught` |
+| Superseding is earned, not assumed | seven tests in `tests/unit/test_precedence.py` covering each of the four conditions |
+| A tract the registry omits holds zero | `test_a_tract_the_registry_does_not_name_is_constrained_to_zero` |
+
+## 16.6 Gate evidence
+
+| Step | Result |
+|---|---|
+| 1. lint | ruff clean; `mypy --strict` clean over 101 source files |
+| 2. full test suite | **930 passed, 47 deselected** in 99.64s |
+| 3. coverage | **100% line and branch on every tier**: 4,253 statements, 1,040 branches, zero missed |
+| 4. prior gate suites (Phase 0, 1, 2) | pass; probe determinism byte-identical |
+| 5. Phase 3 acceptance criteria | **20 passed** |
+| 6. D3 copy lint | clean, 143 files |
+| 7. semantic determinism | pass |
+| 8. one-command rebuild | canonical tables and every Phase 3 number rebuilt |
+| **Verdict** | **PASS** |
+
+The suite grew 903 → **930**: sixteen tests for the precedence policy, seven for the
+reconciliation identity and the poisoned-substitution negative test, and four updating the
+audit checks to the corrected invariants. **No acceptance criterion was weakened.** The
+gate failed twice during this pass — a typing error in a new test, then two audit checks
+still asserting the pre-correction values — and both were fixed rather than accommodated.

@@ -355,14 +355,19 @@ def test_check_b_the_national_total_balances_against_its_constraints(
     assert abs(rebuilt - accounting["national_published"]) < 1e-6
 
 
-def test_check_b_the_only_override_of_a_constraint_is_an_observed_tract(
+def test_check_b_nothing_overrides_a_constraint_from_outside_the_system(
     evidence: dict[str, Any],
 ) -> None:
+    """Observed values are constraints, resolved by precedence BEFORE reconciliation.
+
+    The former +611.03 Washington term was a post-reconciliation overwrite that left the
+    surface no longer summing to the totals it reconciled to (impact I-16).
+    """
     accounting = evidence["national_surface"]["national_accounting"]
-    # Washington's 1,769 observed tracts are published in place of estimates.
-    assert accounting["observed_substitution_delta"] != 0.0
-    # Every jurisdiction has a published registration total, so nothing is unconstrained.
+    assert accounting["observed_substitution_delta"] == 0.0
     assert accounting["unconstrained_sum"] == 0.0
+    assert accounting["national_published"] == accounting["constraint_sum"]
+    assert accounting["imbalance"] == 0.0
 
 
 def test_check_b_no_state_is_counted_twice_by_partial_county_coverage(
@@ -370,12 +375,62 @@ def test_check_b_no_state_is_counted_twice_by_partial_county_coverage(
 ) -> None:
     """Impact I-15: Montana publishes 51 of 56 counties and Virginia 129 of 133.
     Reconciling the leftover tracts to the FULL state total counted both roughly twice."""
-    accounting = evidence["national_surface"]["national_accounting"]
-    # 51 state groups + 274 observed county groups, none overlapping.
-    assert accounting["constraint_groups"] == 325
-    # The constraint sum is the sum of state totals MINUS Tennessee's difference, since
-    # Tennessee's complete county coverage displaces its state total entirely.
-    assert accounting["constraint_sum"] == 5616329.0
+    precedence = {p["state_fips"]: p
+                  for p in evidence["national_surface"]["constraint_precedence"]}
+    for fips, expected in (("30", 6900.0), ("51", 134900.0)):
+        entry = precedence[fips]
+        # Partial coverage: the state total stays operative and the counties decompose it.
+        assert entry["chosen_constraint_source"] == "state_registration_total"
+        assert entry["chosen_constraint_total"] == expected
+        assert "partition the state total rather than superseding" in (
+            entry["constraint_precedence_reason"])
+
+
+def test_check_b_every_jurisdiction_has_exactly_one_operative_constraint(
+    evidence: dict[str, Any],
+) -> None:
+    precedence = evidence["national_surface"]["constraint_precedence"]
+    assert len(precedence) == 51
+    assert len({p["state_fips"] for p in precedence}) == 51
+    for entry in precedence:
+        assert entry["chosen_constraint_source"] in {
+            "native_tract_registry", "county_observation", "state_registration_total"}
+        assert entry["constraint_precedence_reason"]
+        assert entry["chosen_constraint_vintage"]
+
+
+def test_check_b_superseded_constraints_are_provenance_and_are_not_summed(
+    evidence: dict[str, Any],
+) -> None:
+    surface = evidence["national_surface"]
+    precedence = surface["constraint_precedence"]
+    chosen = sum(p["chosen_constraint_total"] for p in precedence)
+    superseded = sum(c["total"] for p in precedence
+                     for c in p["superseded_constraints"])
+    assert superseded > 0, "Washington's and Tennessee's state totals are superseded"
+    assert surface["national_accounting"]["constraint_sum"] == pytest.approx(
+        chosen, abs=1e-6)
+    # The superseded totals are recorded but contribute nothing to the national figure.
+    assert surface["national_accounting"]["constraint_sum"] != pytest.approx(
+        chosen + superseded, abs=1e-6)
+
+
+def test_check_b_the_native_registry_supersedes_only_where_it_qualifies(
+    evidence: dict[str, Any],
+) -> None:
+    precedence = {p["state_fips"]: p
+                  for p in evidence["national_surface"]["constraint_precedence"]}
+    washington = precedence["53"]
+    assert washington["chosen_constraint_source"] == "native_tract_registry"
+    assert washington["chosen_constraint_total"] == 236994.0
+    assert [c["source"] for c in washington["superseded_constraints"]] == [
+        "state_registration_total"]
+    assert [c["total"] for c in washington["superseded_constraints"]] == [236400.0]
+    # Tennessee's COMPLETE county coverage supersedes its state total too.
+    assert precedence["47"]["chosen_constraint_source"] == "county_observation"
+    # No other jurisdiction supersedes anything.
+    superseding = [f for f, p in precedence.items() if p["superseded_constraints"]]
+    assert sorted(superseding) == ["47", "53"]
 
 
 # --- C. the New Jersey sensitivity, across every candidate --------------------------
