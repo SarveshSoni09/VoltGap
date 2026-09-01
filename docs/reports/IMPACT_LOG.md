@@ -969,6 +969,51 @@ Seven tests cover the new path, including Ohio end to end.
 incomplete. A reader that fails loudly on the unexpected is what made this a
 five-minute finding in Phase 6 rather than a wrong map.
 
+### I-28 — two Phase 6 performance criteria were deferred instead of measured
+
+| Field | Value |
+|---|---|
+| Opened | 2026-09-01, external review of the Phase 6 submission |
+| Discovering phase | 6 (external review) |
+| Affected phase | 6 (`docs/reports/PHASE_6_REPORT.md`, `docs/reports/ASSUMPTION_LEDGER.md`) |
+| Severity | **S2 Degrading** — the phase was submitted with two declared acceptance criteria unmeasured, and the first honest measurement then found a real performance defect |
+| Status | **RESOLVED 2026-09-01** |
+
+**Claimed.** That cold time-to-interactive and sustained frame rate could be recorded as
+assumptions A-6.1 and A-6.2 and closed in Phase 7 against a deployed site.
+
+**Actually true.** §15.5 makes *"All performance budgets met and CI-enforced"* a **Phase 6**
+criterion, and §11.3 names three. Moving two of them into assumptions is relabelling an
+unmet criterion, not deferring a measurement. My own report said "headroom is not a
+measurement" about exactly the thing I should have been measuring.
+
+**What the measurement then found.** A real defect, not a formality. Cold TTI was **4.94 s**
+against a 3.0 s budget under a 4x CPU slowdown, and **29.2 s** on Lighthouse's default
+mobile profile, with largest-contentful-paint pinned to time-to-interactive: nothing
+meaningful painted until 53,208 rows had been decoded and materialised **on the main
+thread**. Had these criteria stayed deferred, that would have shipped.
+
+**Response taken.** The work was removed rather than the measurement softened: parquet
+decoding moved to a Web Worker; results transferred as columnar typed arrays so 53,208 row
+objects are never allocated; H3 boundaries computed in a second worker and transferred as
+binary; the map moved to deck.gl's binary `SolidPolygonLayer` path, which also let
+`@deck.gl/geo-layers` be dropped. Shell size fell from 307.4 KB to **218.9 KB** gzipped as a
+side effect.
+
+Two reproducible harnesses now enforce the budgets in the gate, each exiting non-zero on
+breach: `web/scripts/perf-tti.mjs` (Lighthouse `interactive`, pinned simulated-desktop
+profile, median of five cold runs) and `web/scripts/perf-fps.mjs` (presented animation
+frames over a deterministic 6-second pan-and-zoom across all 53,208 cells, reporting the
+**worst 1-second window** rather than the mean, refusing to report from a software
+rasteriser, and asserting the layer is not empty).
+
+**Results.** TTI **2.84 s** of 3.0 s; sustained **58.0 fps** against 55 fps; shell
+**218.9 KB** of 600 KB. A-6.1 and A-6.2 **closed by measurement**. A-6.5 opened for the thin
+5.5% TTI margin, to be re-measured in Phase 7 against the deployed site.
+
+**Not resolved by this entry.** The unmoderated usability check remains outstanding and is
+not to be simulated, automated or self-administered.
+
 ---
 
 ## Phase 0 note

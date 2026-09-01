@@ -1,31 +1,33 @@
 "use client";
 
-import { H3HexagonLayer } from "@deck.gl/geo-layers";
-import { ScatterplotLayer } from "@deck.gl/layers";
+import { ScatterplotLayer, SolidPolygonLayer } from "@deck.gl/layers";
 import { MapboxOverlay } from "@deck.gl/mapbox";
 import maplibregl from "maplibre-gl";
 import { useEffect, useRef, useState } from "react";
 
 import "maplibre-gl/dist/maplibre-gl.css";
 
+import type { Boundaries } from "../lib/data/geometry";
+
 /**
  * The map. Imported dynamically by every view that uses it, so deck.gl and MapLibre stay
  * out of the app shell and the §11.3 600 KB shell budget is met by construction rather
  * than by hoping the bundler splits them.
  *
+ * **Binary rendering path.** Cell geometry arrives as a `Float64Array` of vertices with
+ * polygon start indices, computed in a worker, and colours as a `Uint8Array`. deck.gl
+ * uploads both straight to the GPU without walking 53,208 objects. That is what the
+ * sustained frame-rate budget needs, and it is why this uses `SolidPolygonLayer` from
+ * `@deck.gl/layers` rather than `H3HexagonLayer` from the much larger
+ * `@deck.gl/geo-layers` - the latter's job is precisely the conversion the worker does.
+ *
  * The basemap is **OpenFreeMap**, which needs no key (§2: "No keyed provider"). §12 records
  * that it is a single point of failure and that a self-hosted Protomaps fallback belongs on
- * R2; that fallback is Phase 7 infrastructure, and its absence is recorded rather than
- * papered over - if the basemap fails to load the data layer still renders.
+ * R2; that fallback is Phase 7 infrastructure. Until it exists, a basemap failure is
+ * surfaced rather than swallowed: the data layer still renders, and the page says the
+ * geographic context is missing instead of showing an empty country.
  */
 const BASEMAP = "https://tiles.openfreemap.org/styles/positron";
-
-export interface HexDatum {
-  readonly h3_index: string;
-  readonly color: [number, number, number, number];
-  readonly value: number;
-  readonly tier: string;
-}
 
 export interface SiteDatum {
   readonly longitude: number;
@@ -34,20 +36,13 @@ export interface SiteDatum {
 }
 
 export interface HexMapProps {
-  readonly hexes: readonly HexDatum[];
+  readonly boundaries: Boundaries | null;
+  /** RGBA per cell, length = boundaries.length * 4. */
+  readonly colors: Uint8Array | null;
   readonly sites?: readonly SiteDatum[];
-  readonly highlighted?: ReadonlySet<string>;
-  readonly onHover?: (datum: HexDatum | null) => void;
   readonly initialViewState?: { longitude: number; latitude: number; zoom: number };
 }
 
-/**
- * Whether the basemap failed. §12 records that OpenFreeMap's public instance is a single
- * point of failure and that a self-hosted fallback belongs on R2 - that fallback is Phase 7
- * infrastructure. Until it exists, a basemap failure must be *visible*: the data layer
- * still renders on its own, and a user needs to know they are looking at cells without
- * geographic context rather than at an empty country.
- */
 function BasemapWarning() {
   return (
     <div
@@ -67,10 +62,9 @@ function BasemapWarning() {
 const DEFAULT_VIEW = { longitude: -98.6, latitude: 39.8, zoom: 3.4 };
 
 export default function HexMap({
-  hexes,
+  boundaries,
+  colors,
   sites,
-  highlighted,
-  onHover,
   initialViewState = DEFAULT_VIEW,
 }: HexMapProps) {
   const container = useRef<HTMLDivElement | null>(null);
@@ -89,8 +83,6 @@ export default function HexMap({
     });
     instance.addControl(new maplibregl.NavigationControl({ showCompass: false }));
     instance.on("error", (event) => {
-      // Style or tile failure. Reported, never swallowed: the map would otherwise show an
-      // empty country and look like a data problem.
       // eslint-disable-next-line no-console
       console.warn("basemap:", event.error?.message ?? event);
       setBasemapFailed(true);
@@ -99,58 +91,64 @@ export default function HexMap({
     instance.addControl(deck);
     map.current = instance;
     overlay.current = deck;
+    // Exposed for the reproducible frame-rate benchmark, which needs to drive the camera
+    // deterministically. Reading a handle is inert; nothing in the app uses it.
+    (window as unknown as { __voltgapMap?: maplibregl.Map }).__voltgapMap = instance;
     return () => {
       deck.finalize();
       instance.remove();
       map.current = null;
       overlay.current = null;
     };
-    // Mount once. View state changes are pushed through the map instance, not by
-    // rebuilding it: recreating the map on every prop change would reset the user's pan.
+    // Mount once. Recreating the map on a prop change would reset the user's pan.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
     if (overlay.current === null) return;
-    const layers = [
-      new H3HexagonLayer<HexDatum>({
-        id: "hex6",
-        data: hexes as HexDatum[],
-        getHexagon: (d) => d.h3_index,
-        getFillColor: (d) =>
-          highlighted && highlighted.size > 0
-            ? highlighted.has(d.h3_index)
-              ? [255, 214, 102, 245]
-              : [d.color[0], d.color[1], d.color[2], 60]
-            : d.color,
-        getLineColor: [0, 0, 0, 0],
-        extruded: false,
-        stroked: false,
-        filled: true,
-        pickable: onHover !== undefined,
-        onHover: onHover
-          ? (info) => onHover((info.object as HexDatum | undefined) ?? null)
-          : undefined,
-        updateTriggers: { getFillColor: [hexes, highlighted] },
-      }),
-      ...(sites && sites.length > 0
-        ? [
-            new ScatterplotLayer<SiteDatum>({
-              id: "sites",
-              data: sites as SiteDatum[],
-              getPosition: (d) => [d.longitude, d.latitude],
-              getFillColor: (d) =>
-                d.serves_dcfc ? [79, 191, 127, 200] : [154, 163, 178, 130],
-              getRadius: (d) => (d.serves_dcfc ? 900 : 500),
-              radiusMinPixels: 1.2,
-              radiusMaxPixels: 5,
-              stroked: false,
-            }),
-          ]
-        : []),
-    ];
+    const layers = [];
+    if (boundaries !== null && colors !== null) {
+      layers.push(
+        new SolidPolygonLayer({
+          id: "hex6",
+          data: {
+            length: boundaries.length,
+            startIndices: boundaries.startIndices,
+            attributes: {
+              getPolygon: { value: boundaries.positions, size: 2 },
+              getFillColor: { value: colors, size: 4, normalized: false },
+            },
+          },
+          _normalize: false,
+          positionFormat: "XY",
+          extruded: false,
+          filled: true,
+          stroked: false,
+          pickable: false,
+        }),
+      );
+    }
+    if (sites && sites.length > 0) {
+      layers.push(
+        new ScatterplotLayer<SiteDatum>({
+          id: "sites",
+          data: sites as SiteDatum[],
+          getPosition: (d) => [d.longitude, d.latitude],
+          getFillColor: (d) =>
+            d.serves_dcfc ? [79, 191, 127, 200] : [154, 163, 178, 130],
+          getRadius: (d) => (d.serves_dcfc ? 900 : 500),
+          radiusMinPixels: 1.2,
+          radiusMaxPixels: 5,
+          stroked: false,
+        }),
+      );
+    }
     overlay.current.setProps({ layers });
-  }, [hexes, sites, highlighted, onHover]);
+    // Published so the frame-rate benchmark can assert it is measuring a full layer
+    // rather than an empty map, which would otherwise hit vsync trivially.
+    (window as unknown as { __voltgapLayerCells?: number }).__voltgapLayerCells =
+      boundaries?.length ?? 0;
+  }, [boundaries, colors, sites]);
 
   return (
     <>

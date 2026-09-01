@@ -87,6 +87,29 @@ user, which is the assumption the criterion was written to test rather than trus
 it would remove the only check in the whole plan that involves a person who is not already
 persuaded.
 
+## Amendment — 2026-09-01
+
+External review, on the first Phase 6 submission, made two things explicit that this
+document had blurred.
+
+**The performance budgets are Phase 6 criteria and were not deferrable.** I had recorded
+cold time-to-interactive and sustained frame rate as assumptions A-6.1 and A-6.2 to be
+closed in Phase 7. That was wrong: §15.5 requires "All performance budgets met and
+CI-enforced" *in Phase 6*, and moving an unmet criterion into an assumption is relabelling,
+not measuring. Both are now measured by reproducible harnesses that fail the gate when
+exceeded, and **both pass**. A-6.1 and A-6.2 are closed by measurement. Details in
+`PHASE_6_REPORT.md` §12.
+
+**The usability criterion stays genuinely outstanding.** The protocol below is unchanged
+and is not to be simulated, automated or self-administered. The record sheet a facilitator
+fills in now lives at `docs/usability/UNMODERATED_CHECK_PROTOCOL.md`, covering participant
+eligibility, the verbatim task, whether a recommendation was produced without instruction,
+completion time, blocking confusion, and pass/fail against the predeclared criterion. It
+also fixes the order of operations if the check fails: record the failure first, then
+correct, then re-run with a **new** unfamiliar participant.
+
+Options A, B and C below stand as written. **A remains my recommendation.**
+
 ## What I did in the meantime
 
 Built the task the protocol needs, so whichever option is chosen the check is ready to run:

@@ -3,9 +3,10 @@
 import dynamic from "next/dynamic";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-import type { HexDatum } from "../../components/HexMap";
+import { cellBoundaries, type Boundaries } from "../../lib/data/geometry";
 import { STATE_NAMES } from "../../lib/data/states";
-import { loadHexes, type HexRow } from "../../lib/data/hexes";
+import { hexRow, loadHexTable, type HexRow } from "../../lib/data/hexes";
+import type { ColumnTable } from "../../lib/data/table";
 import { downloadBlob, toCsv, toGeoJson, type PortfolioRow } from "../../lib/exporters";
 import { buildCandidates } from "../../lib/optimizer/candidates";
 import type { Outgoing, SolvedMessage } from "../../lib/optimizer/worker";
@@ -24,7 +25,7 @@ const HexMap = dynamic(() => import("../../components/HexMap"), {
 const FRONTIER_STATES = ["53", "47", "30", "50", "48", "06"] as const;
 
 export default function SitingStudio() {
-  const [rows, setRows] = useState<HexRow[] | null>(null);
+  const [table, setTable] = useState<ColumnTable | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [state, setState] = useState<string>("53");
   const [budget, setBudget] = useState(20);
@@ -34,7 +35,7 @@ export default function SitingStudio() {
   const worker = useRef<Worker | null>(null);
 
   useEffect(() => {
-    loadHexes().then(setRows).catch((e: Error) => setError(e.message));
+    loadHexTable().then(setTable).catch((e: Error) => setError(e.message));
   }, []);
 
   useEffect(() => {
@@ -52,10 +53,16 @@ export default function SitingStudio() {
     };
   }, []);
 
-  const stateRows = useMemo(
-    () => (rows === null ? [] : rows.filter((r) => r.state_fips === state)),
-    [rows, state],
-  );
+  // Materialise only this state's cells - a few thousand, not the national 53,208.
+  const stateRows = useMemo<HexRow[]>(() => {
+    if (table === null) return [];
+    const states = table.strs("state_fips");
+    const out: HexRow[] = [];
+    for (let i = 0; i < table.length; i += 1) {
+      if (states[i] === state) out.push(hexRow(table, i));
+    }
+    return out;
+  }, [table, state]);
 
   const candidateSet = useMemo(
     () => (stateRows.length === 0 ? null : buildCandidates(stateRows, excludeSaturated ? 2.0 : Infinity)),
@@ -109,15 +116,41 @@ export default function SitingStudio() {
     });
   }, [result, byIndex]);
 
-  const hexes = useMemo<HexDatum[]>(() => {
-    const scale = quantileScale(stateRows.map((r) => r.demand_bev));
-    return stateRows.map((row) => ({
-      h3_index: row.h3_index,
-      color: cellColor(scale(row.demand_bev), row.confidence_tier),
-      value: row.demand_bev,
-      tier: row.confidence_tier,
-    }));
+  const [boundaries, setBoundaries] = useState<Boundaries | null>(null);
+
+  useEffect(() => {
+    if (stateRows.length === 0) {
+      setBoundaries(null);
+      return;
+    }
+    let cancelled = false;
+    cellBoundaries(stateRows.map((r) => r.h3_index)).then((result) => {
+      if (!cancelled) setBoundaries(result);
+    });
+    return () => {
+      cancelled = true;
+    };
   }, [stateRows]);
+
+  // Selected cells are highlighted by recolouring the buffer, not by a second layer.
+  const colors = useMemo<Uint8Array | null>(() => {
+    if (stateRows.length === 0) return null;
+    const scale = quantileScale(stateRows.map((r) => r.demand_bev));
+    const out = new Uint8Array(stateRows.length * 4);
+    for (let i = 0; i < stateRows.length; i += 1) {
+      const row = stateRows[i]!;
+      const chosen = selected.has(row.h3_index);
+      const [r, g, b, a] = chosen
+        ? ([255, 214, 102, 245] as const)
+        : cellColor(scale(row.demand_bev), row.confidence_tier);
+      const dim = selected.size > 0 && !chosen;
+      out[i * 4] = r;
+      out[i * 4 + 1] = g;
+      out[i * 4 + 2] = b;
+      out[i * 4 + 3] = dim ? 60 : a;
+    }
+    return out;
+  }, [stateRows, selected]);
 
   const centre = useMemo(() => {
     if (stateRows.length === 0) return undefined;
@@ -243,10 +276,14 @@ export default function SitingStudio() {
 
       <div className="canvas" style={{ display: "grid", gridTemplateRows: "1fr auto" }}>
         <div style={{ position: "relative" }}>
-          {rows === null ? (
+          {table === null ? (
             <div className="loading">Loading cells…</div>
           ) : (
-            <HexMap hexes={hexes} highlighted={selected} initialViewState={centre} />
+            <HexMap
+              boundaries={boundaries}
+              colors={colors}
+              initialViewState={centre}
+            />
           )}
         </div>
         <div style={{ maxHeight: "40vh", overflowY: "auto", borderTop: "1px solid var(--line)", padding: "0.75rem 1rem" }}>

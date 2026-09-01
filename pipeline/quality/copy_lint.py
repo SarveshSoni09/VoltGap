@@ -45,6 +45,7 @@ ALLOWLISTED_PATHS: frozenset[str] = frozenset({
     "docs/reports/PHASE_1_PLAN.md",
     "docs/reports/PHASE_6_PLAN.md",
     "docs/reports/PLAN_CHANGE_6.md",
+    "docs/usability/UNMODERATED_CHECK_PROTOCOL.md",
     "docs/reports/PLAN_CHANGE_0.md",
     "docs/reports/IMPACT_LOG.md",
     "docs/reports/ASSUMPTION_LEDGER.md",

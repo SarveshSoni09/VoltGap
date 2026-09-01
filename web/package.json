@@ -9,10 +9,14 @@
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
     "test": "vitest run",
-    "budget": "node scripts/bundle-budget.mjs"
+    "budget": "node scripts/bundle-budget.mjs",
+    "perf:tti": "node scripts/perf-tti.mjs",
+    "perf:fps": "node scripts/perf-fps.mjs"
   },
   "dependencies": {
-    "deck.gl": "^9.3.11",
+    "@deck.gl/core": "^9.3.11",
+    "@deck.gl/layers": "^9.3.11",
+    "@deck.gl/mapbox": "^9.3.11",
     "h3-js": "^4.5.0",
     "hyparquet": "^1.17.1",
     "hyparquet-compressors": "^1.1.1",
@@ -25,6 +29,8 @@
     "@types/node": "^24.5.2",
     "@types/react": "^19.1.13",
     "@types/react-dom": "^19.1.9",
+    "lighthouse": "^12.8.2",
+    "puppeteer": "^24.43.1",
     "typescript": "^5.9.2",
     "vitest": "^3.2.4"
   }

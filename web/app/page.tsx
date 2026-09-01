@@ -4,12 +4,19 @@ import dynamic from "next/dynamic";
 import { useEffect, useMemo, useState } from "react";
 
 import { EvidencePanel } from "../components/EvidencePanel";
-import type { HexDatum } from "../components/HexMap";
-import { loadHexes, summarise, type HexRow } from "../lib/data/hexes";
+import { cellBoundaries, type Boundaries } from "../lib/data/geometry";
+import { loadHexTable, summarise } from "../lib/data/hexes";
+import type { ColumnTable } from "../lib/data/table";
 import { cellColor, formatCompact, quantileScale, rampColor } from "../lib/scales";
-import { METRIC_LABELS, NOT_OPTIMALITY_NOTE, type MetricKey } from "../lib/vocabulary";
+import {
+  METRIC_LABELS,
+  NOT_OPTIMALITY_NOTE,
+  TIER_LABELS,
+  type MetricKey,
+  type Tier,
+} from "../lib/vocabulary";
 
-// deck.gl and MapLibre are ~500 KB gzipped between them. Loading them dynamically keeps
+// deck.gl and MapLibre are ~460 KB gzipped between them. Loading them dynamically keeps
 // them out of the app shell, which is what makes the §11.3 600 KB shell budget achievable.
 const HexMap = dynamic(() => import("../components/HexMap"), {
   ssr: false,
@@ -23,47 +30,44 @@ const METRICS: MetricKey[] = [
   "priority",
 ];
 
-/** Priority is a transparent weighted blend of published components, never a new model. */
-function priorityOf(row: HexRow, demandWeight: number): number {
-  const equityWeight = 1 - demandWeight;
-  return demandWeight * row.demand_bev + equityWeight * row.equity_population;
-}
-
 export default function NationalOverview() {
-  const [rows, setRows] = useState<HexRow[] | null>(null);
+  const [table, setTable] = useState<ColumnTable | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [metric, setMetric] = useState<MetricKey>("demand_bev");
   const [demandWeight, setDemandWeight] = useState(0.6);
-  const [hovered, setHovered] = useState<HexDatum | null>(null);
+  const [boundaries, setBoundaries] = useState<Boundaries | null>(null);
 
   useEffect(() => {
-    loadHexes().then(setRows).catch((e: Error) => setError(e.message));
+    loadHexTable()
+      .then((loaded) => {
+        setTable(loaded);
+        // Geometry is computed in its own worker, so neither the decode nor the ~320,000
+        // vertices it produces sit on the main thread between paint and interactive.
+        return cellBoundaries(loaded.strs("h3_index")).then(setBoundaries);
+      })
+      .catch((e: Error) => setError(e.message));
   }, []);
 
-  const values = useMemo(() => {
-    if (rows === null) return [];
-    if (metric === "priority") return rows.map((r) => priorityOf(r, demandWeight));
-    return rows.map((r) => r[metric]);
-  }, [rows, metric, demandWeight]);
+  // A flat RGBA buffer, built straight from the columns and handed to the GPU. No row
+  // objects, and no per-cell array allocated for the renderer to walk.
+  const colors = useMemo<Uint8Array | null>(() => {
+    if (table === null) return null;
+    const tiers = table.strs("confidence_tier");
+    const values =
+      metric === "priority" ? priorityColumn(table, demandWeight) : table.nums(metric);
+    const scale = quantileScale(Array.from(values));
+    const out = new Uint8Array(table.length * 4);
+    for (let i = 0; i < table.length; i += 1) {
+      const [r, g, b, a] = cellColor(scale(values[i] ?? 0), (tiers[i] ?? "C") as Tier);
+      out[i * 4] = r;
+      out[i * 4 + 1] = g;
+      out[i * 4 + 2] = b;
+      out[i * 4 + 3] = a;
+    }
+    return out;
+  }, [table, metric, demandWeight]);
 
-  const hexes = useMemo<HexDatum[]>(() => {
-    if (rows === null) return [];
-    const scale = quantileScale(values.filter(Number.isFinite));
-    return rows.map((row, i) => {
-      const raw = values[i] ?? 0;
-      // Access distance reads the other way round: far from a charger is the notable
-      // condition, so the ramp is inverted rather than the number being negated.
-      const t = metric === "km_to_nearest_dcfc_site" ? scale(raw) : scale(raw);
-      return {
-        h3_index: row.h3_index,
-        color: cellColor(t, row.confidence_tier),
-        value: raw,
-        tier: row.confidence_tier,
-      };
-    });
-  }, [rows, values, metric]);
-
-  const summary = useMemo(() => (rows === null ? null : summarise(rows)), [rows]);
+  const summary = useMemo(() => (table === null ? null : summarise(table)), [table]);
 
   if (error !== null) {
     return (
@@ -82,8 +86,8 @@ export default function NationalOverview() {
       <aside className="sidebar">
         <h1>National Overview</h1>
         <p className="sub">
-          Estimated demand, existing supply, and DCFC access across {" "}
-          {rows === null ? "…" : formatCompact(rows.length)} H3 resolution-6 cells.
+          Estimated demand, existing supply, and DCFC access across{" "}
+          {table === null ? "…" : formatCompact(table.length)} H3 resolution-6 cells.
         </p>
 
         <div className="field">
@@ -130,7 +134,7 @@ export default function NationalOverview() {
 
         {summary !== null && <EvidencePanel summary={summary} />}
 
-        {summary !== null && (
+        {summary !== null && table !== null && (
           <>
             <h3>National totals</h3>
             <div className="stat">
@@ -139,44 +143,54 @@ export default function NationalOverview() {
             </div>
             <div className="stat">
               <span className="k">Cells</span>
-              <span className="v">{formatCompact(rows?.length ?? 0)}</span>
+              <span className="v">{formatCompact(table.length)}</span>
             </div>
           </>
         )}
       </aside>
 
       <div className="canvas">
-        {rows === null ? (
+        {table === null ? (
           <div className="loading">Loading {METRIC_LABELS[metric]}…</div>
         ) : (
           <>
-            <HexMap hexes={hexes} onHover={setHovered} />
+            <HexMap boundaries={boundaries} colors={colors} />
             <div className="legend">
               <div>{METRIC_LABELS[metric]}</div>
               <div className="scale">
                 {Array.from({ length: 24 }, (_, i) => {
                   const [r, g, b] = rampColor(i / 23);
-                  return (
-                    <i key={i} style={{ background: `rgb(${r},${g},${b})` }} />
-                  );
+                  return <i key={i} style={{ background: `rgb(${r},${g},${b})` }} />;
                 })}
               </div>
               <div className="ends">
                 <span>low</span>
                 <span>high</span>
               </div>
-              {hovered !== null && (
-                <div style={{ marginTop: "0.4rem" }}>
-                  <span className={`tier ${hovered.tier.toLowerCase()}`}>
+              <div className="tierkey">
+                {(["A", "B", "C"] as Tier[]).map((tier) => (
+                  <span key={tier} className={`tier ${tier.toLowerCase()}`}>
                     <span className="dot" />
-                    {formatCompact(hovered.value)}
+                    {TIER_LABELS[tier]}
                   </span>
-                </div>
-              )}
+                ))}
+              </div>
             </div>
           </>
         )}
       </div>
     </div>
   );
+}
+
+/** Priority is a transparent weighted blend of published components, never a new model. */
+function priorityColumn(table: ColumnTable, demandWeight: number): Float64Array {
+  const demand = table.nums("demand_bev");
+  const equity = table.nums("equity_population");
+  const equityWeight = 1 - demandWeight;
+  const out = new Float64Array(table.length);
+  for (let i = 0; i < table.length; i += 1) {
+    out[i] = demandWeight * (demand[i] ?? 0) + equityWeight * (equity[i] ?? 0);
+  }
+  return out;
 }

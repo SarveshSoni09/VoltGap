@@ -6,6 +6,7 @@ REPLAY := tests/fixtures/replay
 
 .PHONY: help setup test coverage lint copy-lint probe probe-live gate gate-0 gate-1 \
 	artifacts web-install web-build web-test web-budget web-typecheck \
+	web-perf web-perf-tti web-perf-fps \
 	gate-2 gate-3 gate-4 gate-5 build build-fixture phase3 phase4 phase5 \
 	determinism \
 	determinism-1 clean \
@@ -17,6 +18,7 @@ help:
 	@echo "web-build   static export of the frontend"
 	@echo "web-test    frontend unit tests"
 	@echo "web-budget  CI-enforced bundle budget (CLAUDE.md 11.3)"
+	@echo "web-perf    CI-enforced TTI and sustained frame-rate budgets (11.3)"
 	@echo "test        run the full test suite"
 	@echo "coverage    run tests with coverage thresholds enforced"
 	@echo "lint        ruff + mypy strict"
@@ -126,9 +128,24 @@ web-test:
 web-build:
 	@cd web && npx next build
 
-# CLAUDE.md 11.3: "CI fails on bundle budget violation." This exits non-zero on breach.
+# CLAUDE.md 11.3: "CI fails on bundle budget violation." Each of these exits non-zero on
+# breach, which is what makes them enforcement rather than reporting.
 web-budget:
 	@cd web && node scripts/bundle-budget.mjs
+
+# 11.3: time to interactive, cold, national view <= 3.0 s. Lighthouse `interactive` under
+# a pinned simulated-desktop profile (40 ms RTT, 10 Mbps, 4x CPU), median of five runs.
+web-perf-tti:
+	@cd web && node scripts/perf-tti.mjs --runs=5
+
+# 11.3: national hex layer >= 55 fps sustained pan and zoom. Presented animation frames
+# during a deterministic 6-second camera path over all 53,208 cells; the reported figure
+# is the worst 1-second window, not the average.
+web-perf-fps:
+	@cd web && node scripts/perf-fps.mjs
+
+.PHONY: web-perf
+web-perf: web-perf-tti web-perf-fps
 
 # Phase 5. Reads only cached responses: no network, no credentials.
 phase5:
@@ -448,7 +465,9 @@ gate-5:
 #   6. D3 / UI copy lint, which now covers web/ as well
 #   7. determinism        (semantic, CLAUDE.md 14.1)
 #   8. one-command rebuild of the canonical tables, Phases 3-5, the artifacts, and the
-#      static export; then the frontend test suite and the CI-enforced bundle budget
+#      static export; then the frontend test suite
+#   9. the three performance budgets of 11.3, each failing the gate when exceeded:
+#      app shell size, cold time-to-interactive, and sustained frame rate
 gate-6:
 	@echo "=== Phase 6 gate ==="
 	@echo "--- 0. build the inputs the acceptance tests read ---"
@@ -480,5 +499,8 @@ gate-6:
 	@$(MAKE) --no-print-directory phase4
 	@$(MAKE) --no-print-directory phase5
 	@$(MAKE) --no-print-directory web-test
+	@echo "--- 9. performance budgets (11.3), all CI-enforced ---"
 	@$(MAKE) --no-print-directory web-budget
+	@$(MAKE) --no-print-directory web-perf-tti
+	@$(MAKE) --no-print-directory web-perf-fps
 	@echo "=== Phase 6 gate: PASS ==="

@@ -4,37 +4,27 @@
  * The per-point distances ship rather than a precomputed curve, so the threshold control
  * is genuinely live: the browser recomputes the affected population at whatever value the
  * user picks instead of interpolating between server-chosen points.
+ *
+ * Columnar, and decoded in a worker. 239,780 points is where materialising row objects
+ * would hurt most - the sensitivity curve sweeps every point once per threshold, and it
+ * does that over typed arrays.
  */
 
-import { asNumber, asString, readArtifact, type Row } from "./parquet";
+import { type ColumnSpec, ColumnTable, loadTable } from "./table";
 
-export interface AccessPoint {
-  readonly population: number;
-  readonly km_to_nearest_dcfc_site: number;
-  readonly km_to_nearest_l2_site: number;
-  readonly income_share_under_35k: number;
-  readonly state_fips: string;
-}
+export const ACCESS_SPEC: ColumnSpec = {
+  columns: [
+    "population", "km_to_nearest_dcfc_site", "km_to_nearest_l2_site",
+    "income_share_under_35k",
+  ],
+  stringColumns: [],
+  boolColumns: [],
+};
 
-const COLUMNS = [
-  "population", "km_to_nearest_dcfc_site", "km_to_nearest_l2_site",
-  "income_share_under_35k", "state_fips",
-] as const;
+let cache: Promise<ColumnTable> | null = null;
 
-let cache: Promise<AccessPoint[]> | null = null;
-
-export function loadAccessPoints(): Promise<AccessPoint[]> {
-  cache ??= readArtifact("access_points.parquet", COLUMNS).then((rows) =>
-    rows.map(
-      (row: Row): AccessPoint => ({
-        population: asNumber(row.population),
-        km_to_nearest_dcfc_site: asNumber(row.km_to_nearest_dcfc_site),
-        km_to_nearest_l2_site: asNumber(row.km_to_nearest_l2_site),
-        income_share_under_35k: asNumber(row.income_share_under_35k),
-        state_fips: asString(row.state_fips),
-      }),
-    ),
-  );
+export function loadAccessTable(): Promise<ColumnTable> {
+  cache ??= loadTable("access_points.parquet", ACCESS_SPEC);
   return cache;
 }
 
@@ -47,25 +37,29 @@ export interface GapSummary {
 
 /** Population beyond the threshold. The same arithmetic the pipeline publishes. */
 export function gapAtThreshold(
-  points: readonly AccessPoint[],
+  table: ColumnTable,
   thresholdKm: number,
   column: "km_to_nearest_dcfc_site" | "km_to_nearest_l2_site" = "km_to_nearest_dcfc_site",
 ): GapSummary {
-  let population = 0;
+  const population = table.nums("population");
+  const distance = table.nums(column);
+  const income = table.nums("income_share_under_35k");
+  let inGap = 0;
   let total = 0;
   let count = 0;
   let equity = 0;
-  for (const point of points) {
-    total += point.population;
-    if (point[column] > thresholdKm) {
-      population += point.population;
-      equity += point.population * point.income_share_under_35k;
+  for (let i = 0; i < table.length; i += 1) {
+    const people = population[i] ?? 0;
+    total += people;
+    if ((distance[i] ?? 0) > thresholdKm) {
+      inGap += people;
+      equity += people * (income[i] ?? 0);
       count += 1;
     }
   }
   return {
-    population,
-    share: total > 0 ? population / total : 0,
+    population: inGap,
+    share: total > 0 ? inGap / total : 0,
     points: count,
     equityPopulation: equity,
   };

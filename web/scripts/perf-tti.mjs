@@ -1,0 +1,134 @@
+#!/usr/bin/env node
+/**
+ * Time-to-interactive budget, CI-enforced. CLAUDE.md §11.3:
+ *
+ *   | Time to interactive, cold, national view | ≤ 3.0 s |
+ *
+ * **What is measured, exactly.** Lighthouse's `interactive` audit — Time to Interactive:
+ * the point after First Contentful Paint at which the main thread has been quiet enough,
+ * for long enough, that the page reliably responds to input. That is the metric the
+ * budget names, and it is the one asserted. FCP, LCP and TBT are reported alongside as
+ * context, not as substitutes.
+ *
+ * **Under what conditions.** A cold load of the National Overview — the view the budget
+ * names — from a local static server serving the production `next build` export, in
+ * headless Chrome, with Lighthouse's **simulated desktop throttling**: 40 ms RTT,
+ * 10 Mbps, and a **4x CPU slowdown**. The profile is fixed here rather than taken from
+ * the machine, so the number means the same thing on a laptop and in CI.
+ *
+ * The 4x CPU slowdown is deliberate and is the reason this is a real gate. Unthrottled,
+ * this page reaches interactive in about 1.4 s on the development machine, which would
+ * make the budget unfalsifiable on any modern hardware. The 4x profile is Lighthouse's
+ * own desktop default and approximates a mid-range machine rather than a developer's.
+ *
+ * `--runs=N` takes the MEDIAN of N runs. Lighthouse's simulation is deterministic given a
+ * trace, but the trace comes from a real browser on a shared machine, so a single run can
+ * be perturbed by whatever else is happening. Three runs is the default.
+ */
+
+import { spawn } from "node:child_process";
+import { fileURLToPath } from "node:url";
+
+import lighthouse from "lighthouse";
+import puppeteer from "puppeteer";
+
+const BUDGET_SECONDS = 3.0;
+const PORT = Number(process.env.PERF_PORT ?? 4399);
+const URL_UNDER_TEST = `http://localhost:${PORT}/`;
+const RUNS = Number(
+  process.argv.find((a) => a.startsWith("--runs="))?.split("=")[1] ?? 3,
+);
+
+/** Lighthouse's desktop profile, pinned so the number is comparable across machines. */
+const CONFIG = {
+  extends: "lighthouse:default",
+  settings: {
+    formFactor: "desktop",
+    throttlingMethod: "simulate",
+    throttling: {
+      rttMs: 40,
+      throughputKbps: 10 * 1024,
+      cpuSlowdownMultiplier: 4,
+      requestLatencyMs: 0,
+      downloadThroughputKbps: 0,
+      uploadThroughputKbps: 0,
+    },
+    screenEmulation: {
+      mobile: false, width: 1440, height: 900, deviceScaleFactor: 1, disabled: false,
+    },
+    onlyCategories: ["performance"],
+    // A cold load every time: no disk cache, no service worker, no prior state.
+    disableStorageReset: false,
+  },
+};
+
+const server = spawn("node", [fileURLToPath(new URL("../serve-static.mjs", import.meta.url))], {
+  env: { ...process.env, PORT: String(PORT) },
+  stdio: "ignore",
+});
+const stop = () => server.kill();
+process.on("exit", stop);
+
+await new Promise((resolve) => setTimeout(resolve, 700));
+
+// A FRESH browser per run. Lighthouse tears down the page it navigated, and reusing one
+// browser across runs makes the next run race that teardown - which surfaced as
+// `ConnectionClosedError` rather than as a number, i.e. a harness failure that could be
+// mistaken for a budget breach. A cold browser is also what "cold load" should mean.
+const results = [];
+for (let run = 1; run <= RUNS; run += 1) {
+  const browser = await puppeteer.launch({
+    headless: true,
+    args: ["--no-sandbox", "--disable-dev-shm-usage"],
+  });
+  try {
+    const port = Number(new URL(browser.wsEndpoint()).port);
+    const report = await lighthouse(
+      URL_UNDER_TEST, { port, output: "json", logLevel: "silent" }, CONFIG,
+    );
+    const audits = report.lhr.audits;
+    results.push({
+      tti: audits.interactive.numericValue / 1000,
+      fcp: audits["first-contentful-paint"].numericValue / 1000,
+      lcp: audits["largest-contentful-paint"].numericValue / 1000,
+      tbt: audits["total-blocking-time"].numericValue,
+    });
+    console.log(
+      `  run ${run}/${RUNS}   TTI ${results.at(-1).tti.toFixed(2)}s   ` +
+        `FCP ${results.at(-1).fcp.toFixed(2)}s   LCP ${results.at(-1).lcp.toFixed(2)}s   ` +
+        `TBT ${results.at(-1).tbt.toFixed(0)}ms`,
+    );
+  } finally {
+    await browser.close().catch(() => {});
+  }
+}
+stop();
+
+const median = (values) => {
+  const sorted = [...values].sort((a, b) => a - b);
+  const mid = Math.floor(sorted.length / 2);
+  return sorted.length % 2 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
+};
+
+const tti = median(results.map((r) => r.tti));
+console.log("");
+console.log("Cold load of the National Overview, Lighthouse simulated desktop");
+console.log("throttling: 40 ms RTT, 10 Mbps, 4x CPU slowdown.");
+console.log("");
+console.log(`  median Time to Interactive   ${tti.toFixed(2)} s   (budget ${BUDGET_SECONDS.toFixed(1)} s)`);
+console.log(`  median First Contentful Paint ${median(results.map((r) => r.fcp)).toFixed(2)} s`);
+console.log(`  median Largest Contentful Paint ${median(results.map((r) => r.lcp)).toFixed(2)} s`);
+console.log(`  median Total Blocking Time    ${median(results.map((r) => r.tbt)).toFixed(0)} ms`);
+console.log("");
+
+if (tti > BUDGET_SECONDS) {
+  console.error(
+    `FAIL: Time to Interactive ${tti.toFixed(2)} s exceeds the ${BUDGET_SECONDS.toFixed(1)} s budget ` +
+      `by ${(tti - BUDGET_SECONDS).toFixed(2)} s.`,
+  );
+  process.exit(1);
+}
+console.log(
+  `PASS: Time to Interactive ${tti.toFixed(2)} s of ${BUDGET_SECONDS.toFixed(1)} s ` +
+    `(${((tti / BUDGET_SECONDS) * 100).toFixed(1)}% of budget).`,
+);

@@ -2,20 +2,21 @@
 
 import { useEffect, useMemo, useState } from "react";
 
-import { gapAtThreshold, loadAccessPoints, type AccessPoint } from "../../lib/data/access";
+import { gapAtThreshold, loadAccessTable } from "../../lib/data/access";
+import type { ColumnTable } from "../../lib/data/table";
 import { formatCompact } from "../../lib/scales";
 import { CEJST_NOTE } from "../../lib/vocabulary";
 
 const THRESHOLDS = [1, 2, 3, 5, 8, 10, 16.1, 20, 25, 30, 40, 50];
 
 export default function AccessAndEquity() {
-  const [points, setPoints] = useState<AccessPoint[] | null>(null);
+  const [points, setPoints] = useState<ColumnTable | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [threshold, setThreshold] = useState(16.1);
   const [showCejst, setShowCejst] = useState(false);
 
   useEffect(() => {
-    loadAccessPoints().then(setPoints).catch((e: Error) => setError(e.message));
+    loadAccessTable().then(setPoints).catch((e: Error) => setError(e.message));
   }, []);
 
   const summary = useMemo(

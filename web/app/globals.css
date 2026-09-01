@@ -144,3 +144,6 @@ td.num, th.num { text-align: right; font-family: var(--mono); }
 .prose code { font-family: var(--mono); font-size: 0.85em; background: var(--panel-2);
               padding: 0.1em 0.35em; border-radius: 4px; }
 .prose table { margin: 1rem 0; }
+
+.tierkey { display: flex; flex-direction: column; gap: 0.15rem; margin-top: 0.4rem;
+           padding-top: 0.35rem; border-top: 1px solid var(--line); }

@@ -333,3 +333,152 @@ MultiLineString; no Phase 4 result affected).
 
 **Still open from earlier phases:** A-0.5 and A-5.3 remain documented limitations, untouched.
 A-5.6 remains open. No prior-phase output was changed by Phase 6.
+
+---
+
+## 12. Correction — 2026-09-01: the performance budgets were Phase 6's, not Phase 7's
+
+Appended, not merged. §§1–11 stand as written except where this section corrects them.
+
+### 12.1 What I got wrong
+
+I recorded cold time-to-interactive and sustained frame rate as assumptions **A-6.1** and
+**A-6.2**, to be closed in Phase 7 against a deployed site. External review rejected that,
+correctly.
+
+§15.5's Phase 6 criterion is *"All performance budgets met and **CI-enforced**"*, and §11.3
+names three: app shell ≤ 600 KB gzipped, **time to interactive ≤ 3.0 s**, and **≥ 55 fps
+sustained pan and zoom**. I measured the one that was easy to measure and moved the two that
+were not into assumptions. That is relabelling an unmet criterion, not deferring a
+measurement — and my §9 sentence "headroom is not a measurement" was true of exactly the
+thing I should have been measuring.
+
+Both are now measured by reproducible harnesses that **fail the gate when exceeded**. Both
+pass. A-6.1 and A-6.2 are closed by measurement rather than by deferral.
+
+### 12.2 The defect the measurement exposed
+
+The first honest measurement was **4.94 s** against a 3.0 s budget, with
+largest-contentful-paint pinned to time-to-interactive: nothing meaningful painted until
+53,208 rows had been decoded and materialised **on the main thread**. On Lighthouse's
+default mobile profile it was 29.2 s.
+
+That is a real defect, and the fix was to remove the work rather than to find a kinder
+measurement:
+
+| Change | Why |
+|---|---|
+| Parquet decoding moved into a **Web Worker** | Decoding 3 MB on the main thread sat directly between first paint and interactive |
+| Results cross as **columnar typed arrays**, transferred not copied | 53,208 row objects are never allocated at all; the views read `Float64Array`s by index |
+| H3 cell boundaries computed in a **second worker**, transferred as binary | ~320,000 vertices, off the main thread |
+| Map switched from `H3HexagonLayer` to `SolidPolygonLayer` on deck.gl's **binary attribute path** | `@deck.gl/geo-layers` existed in the bundle to do the conversion the worker now does; dropping it removed a dependency, and binary attributes are what the frame-rate budget needs |
+
+Consequence for the shell budget, which was not the point but is a real gain: **307.4 KB →
+218.9 KB gzipped**, 36.5% of the 600 KB budget, because `hyparquet` moved into a worker chunk.
+
+### 12.3 What is measured, and under what conditions
+
+**Time to interactive — `web/scripts/perf-tti.mjs`.** Lighthouse's `interactive` audit: the
+point after first contentful paint at which the main thread is quiet enough, for long
+enough, that the page reliably responds to input. That is the metric §11.3 names, and it is
+the one asserted; FCP, LCP and TBT are printed as context and are not substitutes.
+
+Conditions, pinned in the script so the number means the same thing on any machine: a cold
+load of the **National Overview** — the view the budget names — from the production
+`next build` export served locally, in headless Chrome, under Lighthouse's simulated
+desktop profile: **40 ms RTT, 10 Mbps, 4× CPU slowdown**. Median of five runs, each in a
+fresh browser.
+
+The 4× CPU slowdown is what makes this a real gate. Unthrottled, this page reaches
+interactive in about **1.4 s** on the development machine, which would make the budget
+unfalsifiable on any modern hardware.
+
+**Sustained frame rate — `web/scripts/perf-fps.mjs`.** Presented animation frames, counted
+with `requestAnimationFrame`, during a deterministic 6-second camera path — a continuous
+pan across the contiguous United States with a superimposed zoom oscillation — over all
+53,208 cells at 1600×1000.
+
+Three things the harness refuses to do, because each would let it pass while measuring
+nothing:
+
+- **It does not report an average.** "Sustained" is the **minimum frame rate over any
+  1-second sliding window**. An average lets a half-second stall hide behind fast frames
+  either side of it, which is precisely what a user notices when dragging a map.
+- **It refuses to report from a software rasteriser.** It reads the WebGL renderer string
+  and exits non-zero on SwiftShader or llvmpipe, where a frame rate would describe the
+  harness rather than the application.
+- **It asserts the layer actually holds the national surface** (≥ 50,000 cells). Without
+  that, an empty basemap would hit vsync trivially and report a perfect score.
+
+Bundle size, first-render success and script execution time are **not** used as proxies for
+frame performance anywhere.
+
+### 12.4 Results, from the gate run
+
+```
+    218.9 KB  TOTAL  (budget 600.0 KB)
+PASS: app shell 218.9 KB of 600.0 KB (36.5% of budget).
+
+  median Time to Interactive   2.84 s   (budget 3.0 s)
+  median First Contentful Paint 0.20 s
+  median Largest Contentful Paint 2.48 s
+  median Total Blocking Time    257 ms
+PASS: Time to Interactive 2.84 s of 3.0 s (94.5% of budget).
+
+  renderer: ANGLE (Apple, ANGLE Metal Renderer: Apple M4, Unspecified Version)
+  cells in the rendered layer: 53,208
+  frames presented              359
+  mean frame rate               59.7 fps
+  SUSTAINED (worst 1 s window)  58.0 fps   (budget 55 fps)
+  frame time p50 / p95 / p99    16.7 / 16.8 / 16.8 ms
+  longest single frame          50.0 ms
+PASS: sustained 58.0 fps against a 55 fps budget.
+```
+
+| Budget (§11.3) | Measured | Headroom |
+|---|---|---|
+| App shell ≤ 600 KB gzipped | **218.9 KB** | 63.5% |
+| Time to interactive ≤ 3.0 s | **2.84 s** | 5.5% |
+| National hex layer ≥ 55 fps sustained | **58.0 fps** | 5.5% |
+
+**The TTI margin is thin and I am not going to dress it up.** 2.84 s of 3.0 s is 5.5%
+headroom, and the run-to-run spread is about ±0.02 s, so the gate is stable — but a slower
+device or a slower link than 10 Mbps would exceed it. Recorded as assumption **A-6.5**, to
+be re-measured in Phase 7 against the deployed site.
+
+### 12.5 Two things measurement contradicted
+
+**A preload made it worse.** Adding `<link rel="preload" as="fetch">` for the 3 MB artifact,
+on the reasoning that the worker cannot start fetching until React hydrates, took TTI from
+2.85 s to **4.76 s** — on a 10 Mbps link the data competes for bandwidth with the JavaScript
+that renders it. Reverted. The intuition was reasonable and wrong, and the harness caught it
+in one run.
+
+**A harness crash is not a budget breach.** The first gate run failed at the TTI step with
+`ConnectionClosedError`, because I shared one browser across Lighthouse runs and the next
+run raced the previous run's teardown. That is a harness bug reported as a failure, which is
+the right direction to fail in, but it must not be recorded as a performance result. Fixed
+by launching a fresh browser per run — which is also what "cold load" should mean.
+
+### 12.6 The usability criterion is unchanged and still outstanding
+
+Not simulated, not automated, not self-administered. The protocol is preserved in
+`PLAN_CHANGE_6.md`, and the record sheet a facilitator fills in is now
+`docs/usability/UNMODERATED_CHECK_PROTOCOL.md`: participant eligibility, the verbatim task,
+whether a recommendation was produced without instruction, completion time, blocking
+confusion, and pass/fail against the predeclared criterion.
+
+It also fixes the order of operations if the check fails — **record the failure first, then
+correct, then re-run with a new unfamiliar participant** — and forbids changing the
+interface in response to a participant who nonetheless passed, which would be tuning the
+product to one person and would invalidate the result just obtained.
+
+### 12.7 Phase 6 status
+
+**Not fully PASS.** Eight declared acceptance criteria: **seven pass**, including all three
+performance budgets, each CI-enforced. The eighth, the unmoderated usability check, is
+outstanding and requires a human participant.
+
+`make gate PHASE=6` exits zero — it verifies everything that can be verified automatically —
+but the gate passing is not the same as the phase's declared criteria all being met, and
+this report does not claim otherwise.

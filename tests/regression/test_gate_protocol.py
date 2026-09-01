@@ -190,7 +190,7 @@ def test_the_phase_5_gate_runs_its_own_acceptance_and_smoke_forward_suites() -> 
     "step", ["web-install", "artifacts", "web-build", "lint", "web-typecheck",
              "coverage", "prior-gate-suites", "determinism", "copy-lint",
              "determinism-1", "build-fixture", "phase4", "phase5", "web-test",
-             "web-budget"],
+             "web-budget", "web-perf-tti", "web-perf-fps"],
 )
 def test_the_phase_6_gate_runs_every_step_it_declares(step: str) -> None:
     assert f"--no-print-directory {step}" in GATE_6, step
@@ -240,3 +240,49 @@ def test_the_generated_artifacts_are_not_committed() -> None:
     ignored = (PATHS.root / ".gitignore").read_text(encoding="utf-8")
     assert "web/public/data/" in ignored
     assert "web/out" in ignored
+
+
+# --- 11.3: three performance budgets, each enforced ----------------------------------
+
+@pytest.mark.parametrize(
+    ("script", "must_contain"),
+    [
+        ("bundle-budget.mjs", "600 * 1024"),
+        ("perf-tti.mjs", "BUDGET_SECONDS = 3.0"),
+        ("perf-fps.mjs", "BUDGET_FPS = 55"),
+    ],
+)
+def test_each_performance_budget_is_the_one_the_specification_states(
+    script: str, must_contain: str
+) -> None:
+    """11.3 fixes the numbers. A harness that measured honestly against a budget it had
+    quietly relaxed would pass while meaning nothing."""
+    text = (PATHS.root / "web" / "scripts" / script).read_text(encoding="utf-8")
+    assert must_contain in text, f"{script} does not carry the specified budget"
+    assert "process.exit(1)" in text, f"{script} does not fail on breach"
+
+
+def test_the_frame_rate_benchmark_measures_frames_not_a_proxy() -> None:
+    """The one substitution that would be easy and wrong: reporting bundle size, render
+    success or script time instead of presented frames."""
+    text = (PATHS.root / "web" / "scripts" / "perf-fps.mjs").read_text(encoding="utf-8")
+    assert "requestAnimationFrame" in text
+    # "Sustained" must be the worst window, not the mean: an average lets a half-second
+    # stall hide behind fast frames either side of it.
+    assert "worstWindow" in text
+    assert "sliding window" in text or "worst 1 s window" in text
+    # And it must refuse to report a number from a software rasteriser.
+    assert "swiftshader" in text.lower()
+    # And it must confirm the layer actually holds the national surface.
+    assert "MIN_CELLS" in text
+
+
+def test_the_tti_measurement_names_what_it_measures() -> None:
+    """The budget says "time to interactive". Lighthouse's `interactive` audit is that
+    metric; LCP, FCP and TBT are context and must not stand in for it."""
+    text = (PATHS.root / "web" / "scripts" / "perf-tti.mjs").read_text(encoding="utf-8")
+    assert "audits.interactive.numericValue" in text
+    # The throttling profile must be pinned, or the number means something different on
+    # every machine that runs it.
+    assert "cpuSlowdownMultiplier: 4" in text
+    assert "throttlingMethod: \"simulate\"" in text
