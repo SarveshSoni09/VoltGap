@@ -37,9 +37,15 @@ test:
 	$(PY) -m pytest
 
 coverage:
-	@# G-B. One instrumented test run, then per-module thresholds read from the same
-	@# coverage data. Running pytest once per threshold would multiply a multi-minute
-	@# suite by the number of tiers for no additional signal.
+	@# G-A + G-B in ONE invocation. This runs the COMPLETE test suite — the same
+	@# selection `make test` runs, no deselection — under coverage instrumentation, so
+	@# it fails on any test failure AND enforces every threshold. Running the suite a
+	@# second time without instrumentation proved nothing the instrumented run does not
+	@# already prove, and doubled every gate. See CLAUDE.md 19, amendment A25.
+	@#
+	@# Then per-module thresholds are read from the same coverage data. Running pytest
+	@# once per threshold would multiply a multi-minute suite by the number of tiers
+	@# for no additional signal.
 	@# 100% line AND branch on result-computing code; 85% on sources/transform;
 	@# 70% repository wide. pipeline/validation was created in Phase 3 (the record
 	@# ledger and the measured allocation error), so its 100% tier binds from Phase 3.
@@ -110,13 +116,50 @@ determinism:
 		|| (echo "determinism: OUTPUT DIFFERS" && exit 1)
 	@rm -f /tmp/voltgap_det_a.json /tmp/voltgap_det_b.json
 
+# --- G-C: the prior-phase regression suites --------------------------------------------
+# Every earlier phase's PHASE-SPECIFIC gate suite, replayed by the current gate. This is
+# what CLAUDE.md 15.1 G-C requires: "every prior phase's gate suite re-run and passing".
+#
+# It does NOT mean recursively running `make gate PHASE=n` for each earlier n. Doing that
+# re-runs the identical whole-repository suite, coverage, lint and determinism work once
+# per phase, which adds no validation evidence — the repository has one test suite and one
+# set of coverage thresholds, and this gate already ran both. See CLAUDE.md 19, A26.
+#
+# Each entry is run as its own pytest invocation so the output names the suite and its
+# PASS/FAIL individually, rather than merging into one anonymous dot stream.
+PRIOR_GATE_SUITES := \
+	tests/regression/test_source_findings.py \
+	tests/regression/test_domain_rules.py \
+	tests/regression/test_phase2_gates.py \
+	tests/regression/test_phase3_gates.py \
+	tests/regression/test_phase3_corrections.py \
+	tests/integration/test_smoke_forward.py \
+	tests/integration/test_smoke_forward_phase2.py \
+	tests/integration/test_smoke_forward_phase3.py
+
+.PHONY: prior-gate-suites
+prior-gate-suites:
+	@failed=0; \
+	for suite in $(PRIOR_GATE_SUITES); do \
+		printf '    %-52s ' "$$suite"; \
+		if $(PY) -m pytest "$$suite" -p no:cacheprovider \
+			> /tmp/voltgap_prior.txt 2>&1; then \
+			printf 'PASS  %s\n' "$$(grep -oE '[0-9]+ passed' /tmp/voltgap_prior.txt | tail -1)"; \
+		else \
+			printf 'FAIL\n'; tail -25 /tmp/voltgap_prior.txt; failed=1; \
+		fi; \
+	done; \
+	rm -f /tmp/voltgap_prior.txt; \
+	if [ $$failed -ne 0 ]; then echo "prior gate suites: FAIL"; exit 1; fi; \
+	echo "    all prior-phase gate suites PASS"
+
 gate:
 	@$(MAKE) --no-print-directory gate-$(PHASE)
 
 # Phase 0 gate. Runs, in order:
 #   1. lint            ruff + mypy strict
-#   2. full test suite
-#   3. coverage thresholds
+#   2+3. the COMPLETE test suite run ONCE under coverage, which satisfies both the
+#        full-suite requirement and the coverage thresholds. CLAUDE.md A25.
 #   4. prior gate suites  (none: Phase 0 is the first phase)
 #   5. smoke-forward test for Phase 1, offline against real Phase 0 output
 #   6. D3 / UI copy lint  (created in Phase 1 per spec amendment A9; not applicable
@@ -126,9 +169,7 @@ gate-0:
 	@echo "=== Phase 0 gate ==="
 	@echo "--- 1. lint (ruff + mypy strict) ---"
 	@$(MAKE) --no-print-directory lint
-	@echo "--- 2. full test suite ---"
-	@$(PY) -m pytest
-	@echo "--- 3. coverage thresholds ---"
+	@echo "--- 2+3. full test suite under coverage, and coverage thresholds ---"
 	@$(MAKE) --no-print-directory coverage
 	@echo "--- 4. prior gate suites: none, Phase 0 is the first phase ---"
 	@echo "--- 5. smoke-forward test for Phase 1 ---"
@@ -140,9 +181,9 @@ gate-0:
 
 # Phase 1 gate. Runs, in order:
 #   1. lint            ruff + mypy strict
-#   2. full test suite
-#   3. coverage thresholds (100% spatial/quality/discovery, 85% sources/transform,
-#                           70% repository wide)
+#   2+3. the COMPLETE test suite run ONCE under coverage, which satisfies both the
+#        full-suite requirement and the coverage thresholds (100% spatial/quality/
+#        discovery, 85% sources/transform, 70% repository wide). CLAUDE.md A25.
 #   4. prior gate suites  (Phase 0: probe replay, contract validity, findings)
 #   5. smoke-forward test for Phase 2, offline against real Phase 1 output
 #   6. D3 / UI copy lint  (created this phase, amendment A9)
@@ -153,9 +194,7 @@ gate-1:
 	@echo "=== Phase 1 gate ==="
 	@echo "--- 1. lint (ruff + mypy strict) ---"
 	@$(MAKE) --no-print-directory lint
-	@echo "--- 2. full test suite ---"
-	@$(PY) -m pytest
-	@echo "--- 3. coverage thresholds ---"
+	@echo "--- 2+3. full test suite under coverage, and coverage thresholds ---"
 	@$(MAKE) --no-print-directory coverage
 	@echo "--- 4. prior gate suite (Phase 0) ---"
 	@$(PY) -m pytest tests/regression/test_source_findings.py \
@@ -214,8 +253,9 @@ integration-assurance:
 
 # Phase 2 gate. Runs, in order:
 #   1. lint            ruff + mypy strict
-#   2. full test suite
-#   3. coverage thresholds (100% on model/spatial/quality/discovery/schemas)
+#   2+3. the COMPLETE test suite run ONCE under coverage, which satisfies both the
+#        full-suite requirement and the coverage thresholds (100% on model/spatial/
+#        quality/discovery/schemas). CLAUDE.md A25.
 #   4. prior gate suites  (Phase 0 and Phase 1)
 #   5. Phase 2 gate checks P2-A to P2-H
 #   6. D3 / UI copy lint
@@ -225,9 +265,7 @@ gate-2:
 	@echo "=== Phase 2 gate ==="
 	@echo "--- 1. lint (ruff + mypy strict) ---"
 	@$(MAKE) --no-print-directory lint
-	@echo "--- 2. full test suite ---"
-	@$(PY) -m pytest
-	@echo "--- 3. coverage thresholds ---"
+	@echo "--- 2+3. full test suite under coverage, and coverage thresholds ---"
 	@$(MAKE) --no-print-directory coverage
 	@echo "--- 4. prior gate suites (Phase 0 and Phase 1) ---"
 	@$(PY) -m pytest tests/regression/test_source_findings.py \
@@ -256,8 +294,9 @@ clean:
 
 # Phase 3 gate. Runs, in order:
 #   1. lint            ruff + mypy strict
-#   2. full test suite
-#   3. coverage thresholds (100% on model/spatial/quality/discovery/schemas/validation)
+#   2+3. the COMPLETE test suite run ONCE under coverage, which satisfies both the
+#        full-suite requirement and the coverage thresholds (100% on model/spatial/
+#        quality/discovery/schemas/validation). CLAUDE.md A25.
 #   4. prior gate suites  (Phase 0, 1 and 2)
 #   5. Phase 3 acceptance criteria P3-A to P3-H
 #   6. D3 / UI copy lint
@@ -267,9 +306,7 @@ gate-3:
 	@echo "=== Phase 3 gate ==="
 	@echo "--- 1. lint (ruff + mypy strict) ---"
 	@$(MAKE) --no-print-directory lint
-	@echo "--- 2. full test suite ---"
-	@$(PY) -m pytest
-	@echo "--- 3. coverage thresholds ---"
+	@echo "--- 2+3. full test suite under coverage, and coverage thresholds ---"
 	@$(MAKE) --no-print-directory coverage
 	@echo "--- 4. prior gate suites (Phase 0, 1 and 2) ---"
 	@$(PY) -m pytest tests/regression/test_source_findings.py \
@@ -291,8 +328,8 @@ gate-3:
 
 # Phase 4 gate. Runs, in order:
 #   1. lint            ruff + mypy strict
-#   2. full test suite
-#   3. coverage thresholds
+#   2+3. the COMPLETE test suite run ONCE under coverage, which satisfies both the
+#        full-suite requirement and the coverage thresholds. CLAUDE.md A25.
 #   4. prior gate suites  (Phase 0, 1, 2 and 3)
 #   5. Phase 4 acceptance criteria P4-A to P4-G
 #   6. D3 / UI copy lint
@@ -302,19 +339,10 @@ gate-4:
 	@echo "=== Phase 4 gate ==="
 	@echo "--- 1. lint (ruff + mypy strict) ---"
 	@$(MAKE) --no-print-directory lint
-	@echo "--- 2. full test suite ---"
-	@$(PY) -m pytest
-	@echo "--- 3. coverage thresholds ---"
+	@echo "--- 2+3. full test suite under coverage, and coverage thresholds ---"
 	@$(MAKE) --no-print-directory coverage
-	@echo "--- 4. prior gate suites (Phase 0, 1, 2 and 3) ---"
-	@$(PY) -m pytest tests/regression/test_source_findings.py \
-		tests/regression/test_domain_rules.py \
-		tests/regression/test_phase2_gates.py \
-		tests/regression/test_phase3_gates.py \
-		tests/regression/test_phase3_corrections.py \
-		tests/integration/test_smoke_forward.py \
-		tests/integration/test_smoke_forward_phase2.py \
-		tests/integration/test_smoke_forward_phase3.py -q
+	@echo "--- 4. prior-phase gate suites replayed (Phase 0, 1, 2 and 3) ---"
+	@$(MAKE) --no-print-directory prior-gate-suites
 	@$(MAKE) --no-print-directory determinism
 	@echo "--- 4b. smoke-forward test for Phase 5 ---"
 	@$(PY) -m pytest tests/integration/test_smoke_forward_phase4.py -v

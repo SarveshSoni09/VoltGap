@@ -863,3 +863,143 @@ uniform site cost and the saturation threshold are unchanged.
 
 Gates 0, 1, 2, 3 and 4 in full, from a regenerated `docs/evidence/P4-1_siting.json`.
 Nothing in this section is carried forward from an earlier run.
+
+---
+
+## 13. Gate-runtime optimisation and the A-4.8 validation — 2026-08-31 (third round)
+
+Appended, not merged. Two pieces of work: the gate was made to stop doing the same thing
+twice, and assumption **A-4.8** — opened in §12 — was validated and closed.
+
+### 13.1 Gate runtime: 13 min 11 s → 8 min 22 s
+
+**What was wrong.** Every gate ran the complete test suite **twice**: once plain
+(`pytest`), then the identical selection again under coverage (`pytest --cov`). And
+validating Phase 4 was being done by invoking `make gate PHASE=0` … `PHASE=4` in sequence,
+which repeated that doubled work five times — the repository has *one* test suite and
+*one* set of coverage thresholds, so four of those five passes added no evidence at all.
+
+**What changed.** Recorded as CLAUDE.md amendments **A25** and **A26**:
+
+| | Was | Now |
+|---|---|---|
+| Full suite + coverage | two invocations of the same selection | **one** coverage-instrumented invocation, which runs the same complete selection with no deselection, fails on any test failure, produces the report, and enforces every threshold |
+| G-C | read as "run each earlier phase's whole gate ceremony" | **replay each earlier phase's phase-specific gate suite**, each as its own invocation, printing its name, PASS/FAIL and test count |
+
+**Nothing was removed.** Not a test, not a test selection, not a coverage threshold, not
+the determinism check, not a smoke-forward check, not the lint, not a regression suite.
+`tests/regression/test_gate_protocol.py` (34 tests) asserts exactly that, and would fail if
+any of it were quietly dropped later:
+
+- every required prior-phase suite appears in the Makefile's `PRIOR_GATE_SUITES`, **and**
+  the Makefile carries nothing the test does not know about — the check runs in both
+  directions, so a suite cannot be dropped *and* an added one cannot go unrecorded;
+- every replayed suite path actually exists;
+- no gate runs a bare whole-repository `pytest` any more;
+- every gate still runs the suite under coverage;
+- the coverage invocation carries no path argument and no `-k`/`-m` deselection, so
+  merging the two runs could not have lost coverage of any test;
+- all nine coverage thresholds are still enforced, by tier;
+- no gate recursively invokes another gate;
+- the Phase 4 gate still runs all eight of its steps and both of its own suites;
+- a failing prior suite fails the gate rather than being printed and ignored — the loop
+  continues after a failure so every suite is reported, which makes forgetting the exit
+  status an easy mistake, so `failed=1` and `exit 1` are asserted.
+
+**What the Phase 4 gate now prints for G-C:**
+
+```
+--- 4. prior-phase gate suites replayed (Phase 0, 1, 2 and 3) ---
+    tests/regression/test_source_findings.py             PASS  23 passed
+    tests/regression/test_domain_rules.py                PASS  39 passed
+    tests/regression/test_phase2_gates.py                PASS  37 passed
+    tests/regression/test_phase3_gates.py                PASS  20 passed
+    tests/regression/test_phase3_corrections.py          PASS  32 passed
+    tests/integration/test_smoke_forward.py              PASS  11 passed
+    tests/integration/test_smoke_forward_phase2.py       PASS  5 passed
+    tests/integration/test_smoke_forward_phase3.py       PASS  5 passed
+    all prior-phase gate suites PASS
+```
+
+**The expensive fixture.** Profiling contradicted the obvious guess. `build_surface` costs
+**0.47 s**; the real cost was `load_hex_supply` at **19.3 s of a 28 s prelude** — three
+DBSCAN passes over the national station export, once per A-2.1 clustering condition, repeated
+by every driver test. It is now memoised with `functools.lru_cache`, exactly as
+`allocation_penalty` already was, on the same reasoning: a pure function of an immutable
+on-disk snapshot. It returns a **read-only mapping** (`MappingProxyType`) of frozen
+`HexSupply` values, so no caller can mutate a shared entry and change what a later caller
+sees — which is what keeps tests order-independent. Temporary snapshots keep their own cache
+key, so test-local paths stay test-local. The genuine end-to-end reconstruction test —
+`test_the_artifact_is_written_where_asked`, which drives `main()` through the real Phase 3
+pipeline from its normal inputs — is untouched and still builds everything for real. Nothing
+was replaced with a mock.
+
+**Measured, on the same machine, `make gate PHASE=4` end to end:**
+
+| | Wall clock |
+|---|---:|
+| Before | **13 min 11 s** |
+| After | **8 min 22 s** |
+| Saving | **4 min 49 s, 37%** |
+| Before, as Phase 4 was actually being validated (gates 0–4 in sequence) | **~66 min** |
+| After (one authoritative gate) | **8 min 22 s**, ~87% less |
+
+The wall-clock acceptance criterion is unaffected by instrumentation: the ≤2 s greedy
+budget is measured by `python -m pipeline.model.run_phase4`, which the gate runs
+**uninstrumented** at its rebuild step, and the criterion is asserted against the figure
+that run recorded. No second repository-wide `pytest` exists for timing and none may be
+reintroduced for it.
+
+### 13.2 A-4.8 validated and closed
+
+**The assumption.** §12 corrected road distance to measure to the nearest *point on* a
+segment, locating that point in a tangent plane centred on the query point. The reported
+distance is then measured with haversine, so it is always a real geodesic distance to a
+real place on a road — a rigorous upper bound on the truth whatever the projection does.
+What the projection *could* do is pick a slightly different point, making the reported
+distance a little larger than the true minimum. That was A-4.8, and §12 deferred it.
+
+**How it was tested.** `pipeline/validation/road_geometry.py`. Both methods parameterise
+the **same curve** — `lerp(A, B, t)` in (latitude, longitude) — so the only thing under test
+is which `t` is chosen. The reference minimises the true haversine distance along that curve
+by **golden-section search on t**, with no projection anywhere; the distance from a fixed
+point to points along the curve is unimodal in `t`, which is what makes the search exact to
+convergence, and the endpoints are checked explicitly because the interior optimum can lie
+outside [0, 1]. The error is `reported − exact`, which cannot be negative: the reported value
+is the distance at one `t`, the reference is the minimum over every `t`.
+
+**Result — 200 cells per state, all six frontier states:**
+
+| State | Comparisons | Mean error | p99 | **Max** | Negative errors | Cells reclassified at 5 km |
+|---|---:|---:|---:|---:|---:|---:|
+| Washington | 200 | 0.096 mm | 2.459 mm | **4.917 mm** | 0 | **0** |
+| Tennessee | 200 | 0.004 mm | 0.079 mm | **0.185 mm** | 0 | **0** |
+| Montana | 200 | 0.181 mm | 1.414 mm | **17.539 mm** | 0 | **0** |
+| Vermont | 200 | 0.002 mm | 0.030 mm | **0.042 mm** | 0 | **0** |
+| Texas | 200 | 0.016 mm | 0.109 mm | **2.107 mm** | 0 | **0** |
+| California | 200 | 0.013 mm | 0.302 mm | **0.810 mm** | 0 | **0** |
+
+Worst disagreement anywhere: **17.5 mm**, against a **5,000,000 mm** filter threshold.
+
+**And an adversarial case, because six real states is not a proof.** Searching over
+latitude, segment span, offset and tilt for the worst case inside the regime the method is
+actually used in — distances within the refinement cap — gives a 6-degree-span segment at
+**78° north** with the query point ~15 km away, where a tangent plane distorts most. Error
+there: **95 mm**. Still four orders of magnitude below the threshold.
+`test_even_an_adversarial_projection_case_errs_by_under_ten_centimetres` locks it.
+
+**One honest detail.** The first run reported four "impossible" negative errors. They were
+**1e-13 km — 0.1 nanometres** — last-unit-in-the-last-place disagreement between the
+vectorised numpy haversine used for the reported value and the scalar `math` one used for
+the reference, with both values identical to every printed digit. The tolerance was set to
+1e-9 km (a micrometre), which is far above float noise and far below anything geometrically
+meaningful, and the reasoning is recorded in the code and in the artifact rather than the
+number being quietly adjusted until it passed.
+
+**A-4.8 is CLOSED.** Both assumptions opened by the road-filter work — A-4.6 and A-4.8 —
+are now resolved by measurement rather than by argument.
+
+### 13.3 What was re-run
+
+`make gate PHASE=4`, the authoritative Phase 4 gate, which replays all four prior phases'
+gate suites (see the output quoted in §13.1). Not Phase 5.

@@ -334,7 +334,17 @@ was 666.9 m (Texas) and 34 cells in total were overstated by more than 100 m. Th
 error sits far below the 2.96 km worst case because the longest segments happen not to lie
 near candidate cells — a property of this snapshot, not a guarantee, which is why the
 method was fixed rather than the outcome accepted. Assumption **A-4.6** is closed by
-replacing the method; **A-4.8** records what the tangent-plane step still assumes.
+replacing the method.
+
+**The tangent-plane step was then validated too (A-4.8).** Locating the nearest point in a
+projected plane could in principle pick a slightly different point than the sphere would,
+making the reported distance a little larger than the true minimum. Measured rather than
+assumed: both methods parameterise the same curve, so only the choice of point was under
+test, and the reference minimises true haversine along that curve by golden-section search
+with no projection anywhere. Across 200 cells in each of the six frontier states the worst
+disagreement is **17.5 mm** — against a 5 km threshold — with **zero** cells reclassified
+in any state. The worst adversarial case constructible in the regime the method is used in,
+a 6-degree segment at 78°N, errs by 95 mm. A-4.8 is closed.
 
 **Road proximity is proximity, not buildability — and it is proximity to arterials, not to
 roads in general.** The quantity is proximity to TIGER/Line primary and secondary roads

@@ -60,6 +60,7 @@ from pipeline.spatial.road_proximity import (
     DEFAULT_ROAD_PROXIMITY_KM,
     measure_road_distances,
 )
+from pipeline.validation.road_geometry import validate_tangent_plane_pick
 
 DEFAULT_OUT = PATHS.evidence / "P4-1_siting.json"
 
@@ -76,6 +77,9 @@ FRONTIER_STATES: tuple[tuple[str, str, str], ...] = (
 )
 
 BUDGETS: tuple[int, ...] = (5, 20, 50)
+#: Cells per state in the A-4.8 geometric validation. Bounded because the
+#: reference is a golden-section search per candidate segment per cell.
+A_4_8_SAMPLE = 200
 SATURATION_PORTS_PER_1K = 2.0
 GREEDY_BUDGET_SECONDS = 2.0
 
@@ -163,6 +167,13 @@ def run(states: Sequence[str] = (), frontier_states: Sequence[str] = (),
                 len(before_roads.candidates) - len(candidates.candidates)),
             "distance_method_comparison_vertex_vs_segment": compare_distance_methods(
                 name, cells, geometry, SATURATION_PORTS_PER_1K, budgets).to_dict(),
+            # A-4.8: the tangent-plane argmin against the exact spherical minimum along
+            # the same curve. Run on a bounded sample of this state's own cells, because
+            # a golden-section search per cell per segment is not free.
+            "A_4_8_tangent_plane_pick": validate_tangent_plane_pick(
+                name, [c.latitude for c in cells[:A_4_8_SAMPLE]],
+                [c.longitude for c in cells[:A_4_8_SAMPLE]], geometry,
+                DEFAULT_ROAD_PROXIMITY_KM).to_dict(),
             "clustering_sensitivity_A_2_1": [
                 r.to_dict() for r in compare_conditions(
                     cells, supply_by_condition, distances, SATURATION_PORTS_PER_1K,
