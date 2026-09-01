@@ -331,3 +331,22 @@ def test_an_isolated_vertex_with_no_segment_still_reports_its_own_distance() -> 
 
     nearby = roads.nearest_km([lonely[0] + 0.01], [lonely[1]])[0]
     assert nearby == pytest.approx(1.11, abs=0.02)
+
+
+def test_a_feature_with_no_geometry_is_counted_out_rather_than_skipped_silently(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """D8: a feature the source could not draw is a reportable gap, not a silent skip."""
+    import pyogrio.raw
+
+    def fake_read(_source: str, **_kwargs: object) -> tuple[
+        object, object, list[bytes | None], list[list[str]]]:
+        return None, None, [wkb_linestring([SEATTLE, SPOKANE]), None], [
+            ["S1100", "S1100"]]
+
+    monkeypatch.setattr(pyogrio.raw, "read", fake_read)
+    roads = read_road_vertices("53")
+    assert roads.features == 1
+    assert roads.excluded_classes["missing_geometry"] == 1
+    assert len(roads) == 2
+    assert roads.offsets == (0, 2)

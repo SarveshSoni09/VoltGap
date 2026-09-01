@@ -2475,6 +2475,8 @@
   "feature_vintage": {
     "current_production": "ACS 2024 5-year",
     "historical_retained_for_phase_5": [
+      "ACS 2018 5-year",
+      "ACS 2019 5-year",
       "ACS 2023 5-year"
     ],
     "note": "Directive D1 requires feature_vintage <= prediction_cutoff. The production surface uses the latest release; Phase 5's rolling origins must use the ACS release contemporaneous with each cutoff, which is why the older vintages stay cached and are never overwritten."

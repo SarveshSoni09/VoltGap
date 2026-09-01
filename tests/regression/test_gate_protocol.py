@@ -30,6 +30,9 @@ REQUIRED_PRIOR_SUITES = (
     "tests/integration/test_smoke_forward.py",        # Phase 0 -> 1
     "tests/integration/test_smoke_forward_phase2.py",  # Phase 1 -> 2
     "tests/integration/test_smoke_forward_phase3.py",  # Phase 2 -> 3
+    "tests/regression/test_phase4_gates.py",           # Phase 4, P4-A to P4-G
+    "tests/regression/test_gate_protocol.py",          # the gate's own invariants
+    "tests/integration/test_smoke_forward_phase4.py",  # Phase 3 -> 4
 )
 
 def gate_body(gate: str) -> str:
@@ -40,6 +43,7 @@ def gate_body(gate: str) -> str:
 
 
 GATE_4 = gate_body("gate-4")
+GATE_5 = gate_body("gate-5")
 
 
 def prior_suite_block() -> str:
@@ -50,7 +54,7 @@ def prior_suite_block() -> str:
 # --- G-C: the prior-phase suites are all replayed -------------------------------------
 
 @pytest.mark.parametrize("suite", REQUIRED_PRIOR_SUITES)
-def test_the_phase_4_gate_replays_every_prior_phase_gate_suite(suite: str) -> None:
+def test_the_current_gate_replays_every_prior_phase_gate_suite(suite: str) -> None:
     """G-C. Dropping one from the Makefile would silently stop replaying a phase."""
     assert suite in prior_suite_block(), suite
 
@@ -90,7 +94,7 @@ def test_a_failing_prior_suite_fails_the_gate_rather_than_being_reported_and_ign
 
 # --- A25: one coverage-instrumented run satisfies both requirements -------------------
 
-@pytest.mark.parametrize("gate", ["gate-0", "gate-1", "gate-2", "gate-3", "gate-4"])
+@pytest.mark.parametrize("gate", ["gate-0", "gate-1", "gate-2", "gate-3", "gate-4", "gate-5"])
 def test_no_gate_runs_the_full_suite_twice(gate: str) -> None:
     """A25. The suite ran once plain and once under coverage; the plain run proved
     nothing the instrumented one does not. It must not come back."""
@@ -99,7 +103,7 @@ def test_no_gate_runs_the_full_suite_twice(gate: str) -> None:
     assert not bare, f"{gate} runs a bare whole-repository pytest: {bare}"
 
 
-@pytest.mark.parametrize("gate", ["gate-0", "gate-1", "gate-2", "gate-3", "gate-4"])
+@pytest.mark.parametrize("gate", ["gate-0", "gate-1", "gate-2", "gate-3", "gate-4", "gate-5"])
 def test_every_gate_still_runs_the_full_suite_under_coverage(gate: str) -> None:
     """The other half of A25: merging the two must not have dropped either."""
     assert "--no-print-directory coverage" in gate_body(gate), gate
@@ -137,9 +141,9 @@ def test_every_coverage_threshold_is_still_enforced() -> None:
 def test_no_gate_recursively_invokes_another_phase_gate() -> None:
     """A26. `make gate PHASE=n` inside a gate re-runs the identical whole-repository
     suite and coverage work for every earlier phase, adding no evidence."""
-    for gate in ("gate-0", "gate-1", "gate-2", "gate-3", "gate-4"):
+    for gate in ("gate-0", "gate-1", "gate-2", "gate-3", "gate-4", "gate-5"):
         body = gate_body(gate)
-        for other in ("gate-0", "gate-1", "gate-2", "gate-3", "gate-4"):
+        for other in ("gate-0", "gate-1", "gate-2", "gate-3", "gate-4", "gate-5"):
             assert f"--no-print-directory {other}" not in body, (gate, other)
 
 
@@ -157,3 +161,16 @@ def test_the_phase_4_gate_still_runs_its_own_acceptance_and_smoke_forward_suites
 ) -> None:
     assert "tests/regression/test_phase4_gates.py" in GATE_4
     assert "tests/integration/test_smoke_forward_phase4.py" in GATE_4
+
+
+@pytest.mark.parametrize(
+    "step", ["lint", "coverage", "prior-gate-suites", "determinism", "copy-lint",
+             "determinism-1", "build-fixture", "phase4", "phase5"],
+)
+def test_the_phase_5_gate_runs_every_required_step(step: str) -> None:
+    assert f"--no-print-directory {step}" in GATE_5, step
+
+
+def test_the_phase_5_gate_runs_its_own_acceptance_and_smoke_forward_suites() -> None:
+    assert "tests/regression/test_phase5_gates.py" in GATE_5
+    assert "tests/integration/test_smoke_forward_phase5.py" in GATE_5

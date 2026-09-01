@@ -187,3 +187,62 @@ def test_all_three_dash_forms_of_the_bound_are_caught() -> None:
 
 def test_the_bound_rule_does_not_fire_on_unrelated_arithmetic() -> None:
     assert "MATH-BOUND-01" not in rule_ids("the value 1 - 1/exp(x) is used")
+
+
+# --- Phase 5 extension: sanctioned disclaimers ----------------------------------------
+
+def test_the_project_can_state_its_own_central_caveat() -> None:
+    """Extended in Phase 5 (§15.5). The rules match phrases, not meaning, so they cannot
+    tell a claim from its denial. Without this the project could not write down the one
+    sentence CLAUDE.md D3 requires it to write down, and the pressure would be to soften
+    the disclaimer to appease the linter - exactly backwards."""
+    from pipeline.quality.copy_lint import lint_text
+
+    caveat = "Ground truth for optimal siting does not exist."
+    assert lint_text(caveat, Path("docs/VALIDATION.md")) == []
+
+
+def test_a_real_optimality_claim_is_still_caught() -> None:
+    """The disclaimer list must not become a way to smuggle a claim through."""
+    from pipeline.quality.copy_lint import lint_text
+
+    violations = lint_text("This is the optimal site for a charger.",
+                           Path("docs/VALIDATION.md"))
+    assert [v.rule_id for v in violations] == ["D3-OPT-01"]
+
+
+def test_a_claim_on_the_same_line_as_a_disclaimer_is_still_caught() -> None:
+    """Stripping the sanctioned phrase must leave the rest of the line under scrutiny,
+    or a caveat would become a shield for whatever sits beside it."""
+    from pipeline.quality.copy_lint import lint_text
+
+    line = ("Ground truth for optimal siting does not exist, but this is the optimal "
+            "site anyway.")
+    assert [v.rule_id for v in lint_text(line, Path("docs/x.md"))] == ["D3-OPT-01"]
+
+
+def test_every_sanctioned_disclaimer_is_actually_needed() -> None:
+    """A phrase that trips no rule does not belong on the list: it would be dead weight
+    that a reader would mistake for a permitted claim."""
+    from pipeline.quality.copy_lint import RULES, SANCTIONED_DISCLAIMERS
+
+    for phrase in SANCTIONED_DISCLAIMERS:
+        assert any(rule.pattern.search(phrase) for rule in RULES), phrase
+
+
+def test_stripping_replaces_rather_than_deletes_so_offsets_survive() -> None:
+    from pipeline.quality.copy_lint import strip_sanctioned
+
+    phrase = "Ground truth for optimal siting does not exist"
+    line = f"a {phrase} b"
+    stripped = strip_sanctioned(line)
+    assert len(stripped) == len(line), "offsets must survive so messages stay accurate"
+    assert stripped == "a " + " " * len(phrase) + " b"
+
+
+def test_a_disclaimer_repeated_on_one_line_is_stripped_every_time() -> None:
+    from pipeline.quality.copy_lint import lint_text
+
+    line = ("Ground truth for optimal siting does not exist. "
+            "Ground truth for optimal siting does not exist.")
+    assert lint_text(line, Path("docs/x.md")) == []

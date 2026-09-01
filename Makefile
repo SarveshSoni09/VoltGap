@@ -5,7 +5,8 @@ PY := .venv/bin/python
 REPLAY := tests/fixtures/replay
 
 .PHONY: help setup test coverage lint copy-lint probe probe-live gate gate-0 gate-1 \
-	gate-2 gate-3 gate-4 build build-fixture phase3 phase4 determinism \
+	gate-2 gate-3 gate-4 gate-5 build build-fixture phase3 phase4 phase5 \
+	determinism \
 	determinism-1 clean \
 	live-smoke live-integration integration-assurance
 
@@ -21,6 +22,7 @@ help:
 	@echo "build-fixture  rebuild the MN + IL two-state fixture"
 	@echo "phase3      reproduce every Phase 3 number from cached inputs"
 	@echo "phase4      reproduce every Phase 4 siting number from cached inputs"
+	@echo "phase5      reproduce every Phase 5 validation number from cached inputs"
 	@echo "gate        full phase gate: make gate PHASE=n (never touches the network)"
 	@echo ""
 	@echo "  LIVE commands below DO require network access and credentials."
@@ -99,6 +101,10 @@ phase3:
 phase4:
 	$(PY) -m pipeline.model.run_phase4
 
+# Phase 5. Reads only cached responses: no network, no credentials.
+phase5:
+	$(PY) -m pipeline.model.run_phase5
+
 probe:
 	$(PY) -m pipeline.discovery.probe --offline --cache-root $(REPLAY)
 
@@ -136,6 +142,12 @@ PRIOR_GATE_SUITES := \
 	tests/integration/test_smoke_forward.py \
 	tests/integration/test_smoke_forward_phase2.py \
 	tests/integration/test_smoke_forward_phase3.py
+
+#: Phase 4's own suites, replayed from Phase 5 onward.
+PRIOR_GATE_SUITES += \
+	tests/regression/test_phase4_gates.py \
+	tests/regression/test_gate_protocol.py \
+	tests/integration/test_smoke_forward_phase4.py
 
 .PHONY: prior-gate-suites
 prior-gate-suites:
@@ -356,3 +368,36 @@ gate-4:
 	@$(MAKE) --no-print-directory build-fixture
 	@$(MAKE) --no-print-directory phase4
 	@echo "=== Phase 4 gate: PASS ==="
+
+# Phase 5 gate. Runs, in order:
+#   1. lint            ruff + mypy strict
+#   2+3. the COMPLETE test suite run ONCE under coverage, which satisfies both the
+#        full-suite requirement and the coverage thresholds. CLAUDE.md A25.
+#   4. prior-phase gate suites replayed (Phase 0, 1, 2, 3 and 4). CLAUDE.md A26.
+#   4b. smoke-forward test for Phase 6
+#   5. Phase 5 acceptance criteria P5-A to P5-F
+#   6. D3 / UI copy lint
+#   7. determinism        (semantic, CLAUDE.md 14.1)
+#   8. one-command rebuild of the canonical tables, Phase 3, Phase 4 and Phase 5
+gate-5:
+	@echo "=== Phase 5 gate ==="
+	@echo "--- 1. lint (ruff + mypy strict) ---"
+	@$(MAKE) --no-print-directory lint
+	@echo "--- 2+3. full test suite under coverage, and coverage thresholds ---"
+	@$(MAKE) --no-print-directory coverage
+	@echo "--- 4. prior-phase gate suites replayed (Phase 0, 1, 2, 3 and 4) ---"
+	@$(MAKE) --no-print-directory prior-gate-suites
+	@$(MAKE) --no-print-directory determinism
+	@echo "--- 4b. smoke-forward test for Phase 6 ---"
+	@$(PY) -m pytest tests/integration/test_smoke_forward_phase5.py -v
+	@echo "--- 5. Phase 5 acceptance criteria P5-A to P5-F ---"
+	@$(PY) -m pytest tests/regression/test_phase5_gates.py -v
+	@echo "--- 6. D3 copy lint ---"
+	@$(MAKE) --no-print-directory copy-lint
+	@echo "--- 7. determinism (semantic, CLAUDE.md 14.1) ---"
+	@$(MAKE) --no-print-directory determinism-1
+	@echo "--- 8. one-command rebuild ---"
+	@$(MAKE) --no-print-directory build-fixture
+	@$(MAKE) --no-print-directory phase4
+	@$(MAKE) --no-print-directory phase5
+	@echo "=== Phase 5 gate: PASS ==="

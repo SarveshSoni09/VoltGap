@@ -39,10 +39,24 @@ ACS_JAM_VALUES: frozenset[str] = frozenset({
     "-555555555", "*", "**", "-",
 })
 
+_RAW = PATHS.root / "data" / "cache" / "raw"
+
 GAZETTEER = {
-    "tracts": PATHS.root / "data" / "cache" / "raw" / "gaz_tracts_2023.txt",
-    "zcta": PATHS.root / "data" / "cache" / "raw" / "gaz_zcta_2023.txt",
-    "county": PATHS.root / "data" / "cache" / "raw" / "gaz_counties_2023.txt",
+    "tracts": _RAW / "gaz_tracts_2023.txt",
+    "zcta": _RAW / "gaz_zcta_2023.txt",
+    "county": _RAW / "gaz_counties_2023.txt",
+}
+
+#: Land area by CENSUS TRACT GEOGRAPHY, not by release year. ACS releases through 2019
+#: are published on 2010 tract boundaries and the 2020 release onward on 2020 boundaries,
+#: so Phase 5's rolling origins - which all resolve to 2010-geography ACS - need the
+#: contemporaneous gazetteer. The two files describe different tract sets entirely:
+#: 74,001 tracts in the 2019 edition against 85,396 in the 2023 one. Using the current
+#: file for a 2010-geography surface would leave most tracts with no land area and
+#: silently break population density.
+GAZETTEER_BY_TRACT_GEOGRAPHY = {
+    "2020": _RAW / "gaz_tracts_2023.txt",
+    "2010": _RAW / "gaz_tracts_2019.txt",
 }
 
 Row = Mapping[str, float | None]

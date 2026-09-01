@@ -97,10 +97,16 @@ def test_check_04_historical_acs_vintages_are_still_replayable(
     """
     fetcher = replay()
     assert HISTORICAL_ACS_YEARS, "at least one historical vintage must be retained"
+    # Rhode Island tract counts BY CENSUS TRACT GEOGRAPHY, not by release year. ACS
+    # releases through 2019 are published on 2010 boundaries and 2020 onward on 2020
+    # boundaries, so the count is not one constant. Phase 5 added the 2018 and 2019
+    # vintages, which is what exposed that; the earlier single constant was correct for
+    # every vintage Phase 3 had.
+    expected_tracts = {2018: 244, 2019: 244, 2023: 250}
     for year in HISTORICAL_ACS_YEARS:
         assert year != ACS_YEAR
         older = AcsSource(TRACT, "44", year=year).load(fetcher)
-        assert len(older.rows) == 250
+        assert len(older.rows) == expected_tracts[year], year
         assert older.vintage.vintage == f"ACS {year} 5-year"
     recorded = evidence["feature_vintage"]["historical_retained_for_phase_5"]
     assert recorded == [f"ACS {y} 5-year" for y in HISTORICAL_ACS_YEARS]

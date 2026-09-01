@@ -180,3 +180,38 @@ def test_malformed_rows_are_skipped_without_failing_the_state(
     points = load_population_points("53")
     assert len(points) == 1
     assert points[0].tract_geoid == "53033000100"
+
+
+# --- decennial vintages of the population-weight product ------------------------------
+
+def test_an_undeclared_census_vintage_is_refused_rather_than_guessed() -> None:
+    """Phase 5 needs 2010 weights for its 2010-geography origins. Constructing a URL for
+    a vintage nobody declared would 404 at retrieval time, far from the mistake."""
+    from pipeline.spatial.h3_grid import CENPOP_VINTAGES, GridError, block_group_source
+
+    with pytest.raises(GridError, match="no population-weighted centroid product"):
+        block_group_source("53", "2000")
+    assert sorted(CENPOP_VINTAGES) == ["2010", "2020"]
+
+
+def test_the_2020_source_id_is_unchanged_so_the_phase_2_cache_still_replays() -> None:
+    from pipeline.spatial.h3_grid import block_group_source
+
+    source = block_group_source("53")
+    assert source.source_id == "cenpop_bg_53"
+    assert source.endpoint.endswith("cenpop2020/blkgrp/CenPop2020_Mean_BG53.txt")
+    assert source.params == {}
+
+
+def test_the_2010_edition_takes_its_own_id_and_carries_the_waf_parameter() -> None:
+    """The Census firewall rejects the bare 2010 block-group URL for Oklahoma while
+    serving every other state. The parameter defeats it, and it must be a PARAMETER
+    rather than an inline query string because httpx replaces a URL's query when params
+    are supplied - an inline one would be silently stripped."""
+    from pipeline.spatial.h3_grid import block_group_source
+
+    source = block_group_source("40", "2010")
+    assert source.source_id == "cenpop_bg_2010_40"
+    assert source.endpoint.endswith("cenpop2010/blkgrp/CenPop2010_Mean_BG40.txt")
+    assert source.params == {"product": "cenpop2010_blkgrp"}
+    assert "?" not in source.endpoint

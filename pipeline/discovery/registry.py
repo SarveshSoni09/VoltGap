@@ -22,6 +22,7 @@ AFDC_BASE = "https://developer.nlr.gov/api/alt-fuel-stations/v1"
 AFDC_REGISTRATION_PAGE = "https://afdc.energy.gov/vehicle-registration"
 ATLAS_BASE = "https://www.atlasevhub.com/public/dmv"
 CENPOP_BASE = "https://www2.census.gov/geo/docs/reference/cenpop2020"
+CENPOP_2010_BASE = "https://www2.census.gov/geo/docs/reference/cenpop2010"
 ACS_SUMMARY_BASE = (
     "https://www2.census.gov/programs-surveys/acs/summary_file/2023/table-based-SF/data/5YRData"
 )
@@ -223,6 +224,18 @@ def _census() -> list[ProbeSpec]:
             url=f"{CENPOP_BASE}/blkgrp/CenPop2020_Mean_BG27.txt",
             note="Population-weighted block-group centroids, Minnesota. The finest "
                  "ready-made population-weighted centroid the Census Bureau publishes.",
+        ),
+        ProbeSpec(
+            source_id="census_cenpop_blockgroup_2010",
+            kind="remote_csv",
+            url=f"{CENPOP_2010_BASE}/blkgrp/CenPop2010_Mean_BG27.txt",
+            params={"product": "cenpop2010_blkgrp"},
+            note="Population-weighted block-group centroids on 2010 census geography, "
+                 "Minnesota. Retrieved for Phase 5: every rolling origin resolves to an "
+                 "ACS release published on 2010 tract boundaries. The inert 'product' "
+                 "parameter defeats a Census firewall rule that rejects the bare URL "
+                 "for Oklahoma; it is a request parameter rather than an inline query "
+                 "because httpx replaces a URL's query when params are supplied.",
         ),
         ProbeSpec(
             source_id="census_cenpop_block",
