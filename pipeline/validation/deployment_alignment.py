@@ -38,15 +38,19 @@ DECILES = tuple(round(0.1 * i, 1) for i in range(1, 11))
 #: Attached to every published capacity figure. Capacity is reconstructed from the current
 #: snapshot, so it is not what was installed at the time — see ``Deployment.capacity_kw``.
 CAPACITY_BASIS = (
-    "RETROSPECTIVELY RECONSTRUCTED capacity, NOT known installation-time capacity. "
-    "Non-overlapping generic service capacity (§7.1.1) resolved from the CURRENT AFDC "
-    "snapshot and attributed to each station's open date. A station later upgraded in "
-    "power, or given more ports, carries its present power rather than the power it had "
-    "when it opened, because the snapshot records no history (G10, G11). Stations that "
-    "closed or left the feed are absent entirely. The bias runs toward OVERSTATING the "
-    "capacity of older deployments and grows with age, the same direction and cause as "
-    "the survivorship bias on the station count."
+    "RECONSTRUCTED capacity associated with deployments, in CURRENT-SNAPSHOT kW. NOT "
+    "known installation-time capacity. Non-overlapping generic service capacity "
+    "(§7.1.1) resolved from the CURRENT AFDC snapshot and attributed to each station's "
+    "open date. The reconstruction carries COMPETING biases whose net direction is "
+    "UNKNOWN: a surviving station may carry higher power now than when it was installed; "
+    "stations that closed or left the feed are absent entirely; and upgrades and "
+    "closures need not be distributed equally between model-selected and non-selected "
+    "cells. Neither the reconstructed total nor any capture fraction computed from it "
+    "therefore has a guaranteed direction of bias relative to installation-time "
+    "capacity, and both the direction and the magnitude are more consequential for "
+    "older origins (G10, G11)."
 )
+
 
 
 @dataclass(frozen=True)
@@ -66,14 +70,17 @@ class Deployment:
     #: and not only station counts, because a station record is one network's presence at
     #: a site rather than a unit of capacity (G1).
     #:
-    #: **RETROSPECTIVELY RECONSTRUCTED, not installation-time capacity.** The power values
-    #: are read from the CURRENT snapshot and attributed to the station's open date. A
-    #: station that was later upgraded — 50 kW to 350 kW, or ports added — carries its
-    #: present power here, not the power it had when it opened, because the snapshot
-    #: records no history (G10, G11). The reconstruction is therefore biased toward
-    #: OVERSTATING the capacity of older deployments, and the bias grows with age, which
-    #: is the same direction and the same cause as the survivorship bias on the station
-    #: count itself.
+    #: **RECONSTRUCTED from the CURRENT snapshot, not installation-time capacity.** The
+    #: power values are read from the current snapshot and attributed to the station's
+    #: open date, because the snapshot records no history (G10, G11).
+    #:
+    #: The biases COMPETE and their net direction is unknown. A surviving station may
+    #: carry higher power now than when installed, which would inflate the figure;
+    #: stations that closed or left the feed are missing altogether, which would deflate
+    #: it; and neither upgrades nor closures need be distributed equally between
+    #: model-selected and non-selected cells, so even the *capture fraction* has no
+    #: guaranteed direction. An earlier draft claimed this reconstruction overstates older
+    #: capacity; that directional claim is withdrawn.
     capacity_kw: float = 0.0
 
 

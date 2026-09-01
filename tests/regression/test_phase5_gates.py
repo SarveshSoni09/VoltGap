@@ -377,19 +377,30 @@ def test_p5_g_the_acs_2020_release_date_is_recorded_as_established(
     assert [p["acs_api_year"] for p in evidence["origin_plans"]] == [2018, 2019, 2019]
 
 
-def test_p5_g_capacity_is_labelled_retrospectively_reconstructed(
+def test_p5_g_capacity_is_labelled_reconstructed_with_no_bias_direction_claimed(
     evidence: dict[str, Any],
 ) -> None:
     """G10/G11. Capacity is resolved from the CURRENT snapshot and attributed to each
-    station's open date, so a station later upgraded carries its present power rather
-    than the power it had when it opened. A reader must not take it for known
-    installation-time capacity, so the caveat travels with every capacity figure rather
-    than living in prose somewhere else."""
+    station's open date, so a reader must not take it for known installation-time
+    capacity. The caveat travels with every capacity figure rather than living in prose
+    somewhere else.
+
+    It must also NOT claim a direction of bias. The biases compete - surviving stations
+    may carry upgraded power, closed stations are missing entirely, and neither effect
+    need be distributed equally between selected and non-selected cells - so no
+    guaranteed direction exists for the total or for any capture fraction. An earlier
+    draft called the capture result a lower bound; that claim is withdrawn and this test
+    stops it returning.
+    """
     basis = evidence["station_reconstruction"]["capacity_kw_basis"]
-    assert "RETROSPECTIVELY RECONSTRUCTED" in basis
+    assert "RECONSTRUCTED" in basis
+    assert "CURRENT-SNAPSHOT kW" in basis
     assert "NOT known installation-time capacity" in basis
     assert "G10, G11" in basis
-    assert "OVERSTATING" in basis
+    assert "COMPETING biases" in basis
+    assert "UNKNOWN" in basis
+    for banned in ("OVERSTATING", "overstates", "lower bound", "upper bound"):
+        assert banned not in basis, banned
 
     for entry in evidence["deployment_alignment"]:
         assert entry["subsequent_deployment_capacity_kw_basis"] == basis

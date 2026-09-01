@@ -885,6 +885,52 @@ future work.
 **No metric changed.** Lift against random remains 6.72 / 6.39 / 5.89 and against population
 0.83 / 0.82 / 0.81.
 
+### I-26 — a direction of bias was claimed for reconstructed capacity, and none is known
+
+| Field | Value |
+|---|---|
+| Opened | 2026-09-01, external review of the Phase 5 closure |
+| Discovering phase | 5 (external review) |
+| Affected phase | 5 (`pipeline/validation/deployment_alignment.py`, `docs/VALIDATION.md`, `docs/reports/PHASE_5_REPORT.md`, `docs/evidence/P5-1_validation.json` metadata) |
+| Severity | **S3 Cosmetic** — interpretation and metadata wording only. No model, ranking, baseline, threshold or numeric result was involved, and every headline metric is identical before and after |
+| Status | **RESOLVED 2026-09-01** |
+
+**Claimed.** That the current-snapshot capacity reconstruction is biased toward **overstating**
+the capacity of older deployments, and that the model's 0.48–0.49 capacity-capture result is
+therefore a **lower bound** on the effect.
+
+**Actually true.** The direction is not known. The reconstruction carries competing biases:
+
+- a surviving station may carry **higher** power now than when it was installed — inflating;
+- stations that **closed or left the feed** are absent entirely — deflating;
+- upgrades and closures need **not** be distributed equally between model-selected and
+  non-selected cells, so even the capture *fraction* — a ratio, in which a bias applying
+  equally to numerator and denominator would cancel — has no guaranteed direction.
+
+The previous entry (**I-25**) reasoned only from the first of these. Having noticed that
+upgrades inflate surviving stations, I asserted a net direction without accounting for the
+missing stations that pull the other way, or for the fact that a capture fraction is a ratio.
+That made a bounded, honest limitation look like a quantified one-sided error.
+
+**Response taken.** Both directional claims are withdrawn. `CAPACITY_BASIS` — the string
+attached to every capacity figure in the artifact — now states that the biases compete and the
+net direction is **unknown**, and names all three effects. The table column is relabelled
+*"Reconstructed capacity associated with deployments (current-snapshot kW)"*. The
+interpretation is restated as: within the survivorship-biased current-snapshot reconstruction,
+the model's top-decile cells capture 48–49% of reconstructed capacity against 57–65% of
+subsequent deployment events, which indicates weaker alignment with reconstructed charging
+capacity than with deployment counts; the direction and magnitude of bias relative to
+installation-time capacity are unknown and more consequential for older origins.
+
+The "many small stations" reading is also withdrawn: what is observable is that the selected
+deployments have **lower reconstructed (current-snapshot) capacity on average**. Original
+installation-time capacity is unavailable, so no claim about the size of the stations actually
+built at the time is supported.
+
+`test_p5_g_capacity_is_labelled_reconstructed_with_no_bias_direction_claimed` now asserts the
+basis string contains no directional word — "OVERSTATING", "overstates", "lower bound",
+"upper bound" — so the claim cannot return silently. **A-5.6 stays OPEN.**
+
 ---
 
 ## Phase 0 note
