@@ -77,19 +77,42 @@ def test_every_origin_lands_on_2010_tract_geography() -> None:
 
 
 def test_the_2022_origin_does_not_use_the_acs_2020_release() -> None:
-    """Its period ends before the cutoff, which makes it tempting. Its release date is
-    not established by this project, so it is skipped in favour of ACS 2019 - the
-    direction that cannot manufacture leakage."""
+    """Its period ends before the cutoff, which makes it tempting. It was published
+    2022-03-17, after the cutoff, so nobody had it."""
     plans, ledger = plan_origins()
     plan = next(p for p in plans if p.origin.name == "2022")
     assert plan.acs_year == 2019
     assert any("ACS 2020" in e.name for e in ledger.exclusions)
 
 
-def test_the_acs_2020_vintage_is_declared_uncertain_rather_than_quietly_dropped() -> None:
+def test_the_acs_2020_release_date_is_recorded_and_still_postdates_the_cutoff() -> None:
+    """Recorded on external review 2026-08-31. It was previously carried as uncertain,
+    and the guard fell back to ACS 2019 for that reason; the established date is after
+    the 2022-01-01 cutoff, so selection and every result are unchanged. What changed is
+    the REASON - now "it demonstrably did not exist yet" rather than "we cannot show it
+    existed"."""
     acs2020 = next(v for v in ACS_VINTAGES if v.period_end.year == 2020)
-    assert acs2020.release_date_certain is False
-    assert "NOT verified against a primary source" in acs2020.release_evidence
+    assert acs2020.released == date(2022, 3, 17)
+    assert acs2020.release_date_certain is True
+    assert not acs2020.available_at(date(2022, 1, 1))
+
+    plans, ledger = plan_origins()
+    assert [p.acs_year for p in plans] == [2018, 2019, 2019]
+    reason = next(e.reason for e in ledger.exclusions if "ACS 2020" in e.name)
+    assert "not released until 2022-03-17" in reason
+    assert "not established" not in reason
+
+
+def test_no_road_geometry_of_any_vintage_enters_a_historical_origin() -> None:
+    """D1 audit. TIGER/Line 2024 postdates every cutoff and no earlier edition was
+    retrieved, so the Phase 4 road-proximity filter does not run at any origin. This is
+    a stated backtest-versus-production difference, not a silent omission."""
+    plans, _ = plan_origins()
+    for plan in plans:
+        assert plan.road_filter_vintage == "none - no road geometry enters this origin"
+        payload = plan.to_dict()
+        assert "NOT applied here" in str(payload["road_filter_audit"])
+        assert "postdates this cutoff" in str(payload["road_filter_audit"])
 
 
 def test_each_origin_uses_a_state_registration_vintage_from_before_its_cutoff() -> None:

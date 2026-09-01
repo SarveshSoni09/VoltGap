@@ -27,7 +27,7 @@ the least trustworthy of the three.
 from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import date
 
 import numpy as np
@@ -48,6 +48,11 @@ class Deployment:
     #: USPS state code from the AFDC record. Carried because geographic coverage is a
     #: required Phase 5 report field and an H3 index does not encode a jurisdiction.
     state: str = ""
+    #: NON-OVERLAPPING generic service capacity in kW (§7.1.1), summed over the station's
+    #: charging units from Phase 2's own power ladder. §10.2.4 requires capacity captured
+    #: and not only station counts, because a station record is one network's presence at
+    #: a site rather than a unit of capacity (G1).
+    capacity_kw: float = 0.0
 
 
 @dataclass(frozen=True)
@@ -60,6 +65,8 @@ class GainPoint:
     stations_captured: float
     ports_captured: float
     dcfc_ports_captured: float
+    #: Share of subsequent non-overlapping generic service capacity, in kW (§7.1.1).
+    capacity_kw_captured: float = 0.0
 
     def to_dict(self) -> dict[str, object]:
         return {
@@ -69,6 +76,8 @@ class GainPoint:
             "share_of_subsequent_ports_captured": round(self.ports_captured, 6),
             "share_of_subsequent_dcfc_ports_captured":
                 round(self.dcfc_ports_captured, 6),
+            "share_of_subsequent_capacity_kw_captured":
+                round(self.capacity_kw_captured, 6),
         }
 
 
@@ -109,12 +118,17 @@ class RankingResult:
     def top_decile_ports(self) -> float:
         return self.gain[0].ports_captured if self.gain else 0.0
 
+    @property
+    def top_decile_capacity_kw(self) -> float:
+        return self.gain[0].capacity_kw_captured if self.gain else 0.0
+
     def to_dict(self) -> dict[str, object]:
         return {
             "ranking": self.name,
             "cells_ranked": self.cells_ranked,
             "top_decile_capture_stations": round(self.top_decile_stations, 6),
             "top_decile_capture_ports": round(self.top_decile_ports, 6),
+            "top_decile_capture_capacity_kw": round(self.top_decile_capacity_kw, 6),
             "gain_curve": [p.to_dict() for p in self.gain],
         }
 
@@ -125,20 +139,23 @@ def score_ranking(
     stations: Mapping[str, float],
     ports: Mapping[str, float],
     dcfc: Mapping[str, float],
+    capacity_kw: Mapping[str, float] | None = None,
 ) -> RankingResult:
     """Build the full gain curve for one ranking.
 
-    §10.2.4 requires ports and capacity captured, not only station counts, because a
+    §10.2.4 requires **ports and capacity** captured, not only station counts, because a
     station record is a site of one network's presence and not a unit of capacity (G1).
+    All four quantities are scored over the same ranking.
     """
     by_station = gain_curve(ranking, stations)
     by_ports = gain_curve(ranking, ports)
     by_dcfc = gain_curve(ranking, dcfc)
+    by_capacity = gain_curve(ranking, capacity_kw or {})
     points = tuple(
-        GainPoint(decile=d, cells=cells, stations_captured=s,
-                  ports_captured=p, dcfc_ports_captured=f)
-        for (d, cells, s), (_, _, p), (_, _, f) in zip(
-            by_station, by_ports, by_dcfc, strict=True)
+        GainPoint(decile=d, cells=cells, stations_captured=s, ports_captured=p,
+                  dcfc_ports_captured=f, capacity_kw_captured=k)
+        for (d, cells, s), (_, _, p), (_, _, f), (_, _, k) in zip(
+            by_station, by_ports, by_dcfc, by_capacity, strict=True)
     )
     return RankingResult(name=name, cells_ranked=len(ranking), gain=points)
 
@@ -159,6 +176,12 @@ class OriginAlignment:
     baselines: tuple[RankingResult, ...]
     reconstruction_confidence: str
     vintages: Mapping[str, object]
+    #: How the capture denominator and the ranked support were constructed, so a reader
+    #: can check a lift figure rather than trust it.
+    eligible_support: Mapping[str, object] = field(default_factory=dict)
+    #: The random baseline's sampling noise (§ external review item 2).
+    random_baseline_spread: Mapping[str, object] = field(default_factory=dict)
+    deployment_capacity_kw: float = 0.0
 
     def lift(self, baseline: str, metric: str = "stations") -> float:
         """Model top-decile capture divided by a baseline's. 1.0 means no advantage."""
@@ -180,6 +203,9 @@ class OriginAlignment:
             "subsequent_deployments_available": self.deployments,
             "subsequent_deployment_ports": round(self.deployment_ports, 2),
             "subsequent_deployment_dcfc_ports": round(self.deployment_dcfc_ports, 2),
+            "subsequent_deployment_capacity_kw": round(self.deployment_capacity_kw, 2),
+            "eligible_support": dict(self.eligible_support),
+            "random_baseline_spread": dict(self.random_baseline_spread),
             "geographic_coverage_states": self.states_covered,
             "reconstruction_confidence": self.reconstruction_confidence,
             "vintages_used": dict(self.vintages),
@@ -209,6 +235,99 @@ def random_ranking(cells: Sequence[str], seed: int) -> list[str]:
     generator = np.random.default_rng(seed)
     order = generator.permutation(len(cells))
     return [cells[i] for i in order]
+
+
+#: Draws behind the random baseline. ONE permutation is an unbiased but high-variance
+#: estimate: deployment counts are heavily concentrated, so a single draw either does or
+#: does not happen to land on the busy cells. Measured over 400 draws at the 2020 origin
+#: the top-decile capture has mean 0.0976 and standard deviation 0.0137, and the
+#: single-seed draw originally reported, 0.0687, sat at **percentile 0** - below the 5th
+#: percentile of 0.0759. Reporting it as "the" random baseline overstated the model's
+#: lift at that origin. The mean over many draws is still an EMPIRICAL random baseline,
+#: not a theoretical value; it is simply a far less noisy one.
+RANDOM_DRAWS = 200
+
+
+@dataclass(frozen=True)
+class RandomBaselineSpread:
+    """How much a single random permutation could have varied.
+
+    Published so a reader can see the estimator's noise rather than infer precision the
+    single-draw number does not have.
+    """
+
+    draws: int
+    mean: float
+    standard_deviation: float
+    p5: float
+    p95: float
+    single_seeded_draw: float
+    single_draw_percentile: float
+
+    def to_dict(self) -> dict[str, object]:
+        return {
+            "draws": self.draws,
+            "top_decile_stations_mean": round(self.mean, 6),
+            "top_decile_stations_sd": round(self.standard_deviation, 6),
+            "top_decile_stations_p5": round(self.p5, 6),
+            "top_decile_stations_p95": round(self.p95, 6),
+            "single_seeded_draw": round(self.single_seeded_draw, 6),
+            "single_seeded_draw_percentile_among_draws": round(
+                self.single_draw_percentile, 4),
+            "why_a_mean": (
+                "one permutation is unbiased but high-variance, because deployment "
+                "counts are heavily concentrated. The reported random baseline is the "
+                "mean over these draws, which is still empirical - not a theoretical "
+                "1/10th - and is what lift is computed against."
+            ),
+        }
+
+
+def score_random_baseline(
+    cells: Sequence[str],
+    stations: Mapping[str, float],
+    ports: Mapping[str, float],
+    dcfc: Mapping[str, float],
+    capacity_kw: Mapping[str, float],
+    seed: int,
+    draws: int = RANDOM_DRAWS,
+) -> tuple[RankingResult, RandomBaselineSpread]:
+    """The random baseline as a mean over many permutations, plus its spread.
+
+    Each draw is scored on its own gain curve and the curves are averaged decile by
+    decile, so the reported baseline is the expected capture of a random ranking rather
+    than whatever one particular shuffle happened to do.
+    """
+    curves: list[RankingResult] = []
+    tops: list[float] = []
+    for offset in range(draws):
+        ranking = random_ranking(cells, seed * 100003 + offset)
+        result = score_ranking("random", ranking, stations, ports, dcfc, capacity_kw)
+        curves.append(result)
+        tops.append(result.top_decile_stations)
+
+    averaged = tuple(
+        GainPoint(
+            decile=curves[0].gain[i].decile,
+            cells=curves[0].gain[i].cells,
+            stations_captured=float(np.mean([c.gain[i].stations_captured for c in curves])),
+            ports_captured=float(np.mean([c.gain[i].ports_captured for c in curves])),
+            dcfc_ports_captured=float(
+                np.mean([c.gain[i].dcfc_ports_captured for c in curves])),
+            capacity_kw_captured=float(
+                np.mean([c.gain[i].capacity_kw_captured for c in curves])),
+        )
+        for i in range(len(curves[0].gain))
+    )
+    single = score_ranking("random", random_ranking(cells, seed), stations, ports, dcfc,
+                           capacity_kw).top_decile_stations
+    array = np.array(tops)
+    spread = RandomBaselineSpread(
+        draws=draws, mean=float(array.mean()), standard_deviation=float(array.std()),
+        p5=float(np.percentile(array, 5)), p95=float(np.percentile(array, 95)),
+        single_seeded_draw=single,
+        single_draw_percentile=float((array < single).mean()))
+    return RankingResult("random", len(cells), averaged), spread
 
 
 def ranked_by(values: Mapping[str, float], cells: Sequence[str]) -> list[str]:

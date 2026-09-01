@@ -28,13 +28,13 @@ REGISTRATION_SOURCE = "afdc_state_ev_registrations"
 
 #: ACS 5-year editions, with the release date that governs availability.
 #:
-#: The 2020 edition is marked **uncertain**. It is widely reported to have slipped from
-#: December 2021 into March 2022 because of pandemic collection problems, which would put
-#: it on the wrong side of the 2022-01-01 cutoff — but this project has not established
-#: that date from a primary source. Rather than rest a leakage claim on a remembered date,
-#: it is declared uncertain, and the guard therefore falls back to the 2019 edition at the
-#: 2022 origin. That is the conservative direction: using an older vintage cannot
-#: manufacture leakage, using a newer one can.
+#: The 2020 edition released **2022-03-17**, recorded on external review (2026-08-31).
+#: It was previously carried as `release_date_certain: false` because this project had
+#: not established the date, and the guard fell back to the 2019 edition. The recorded
+#: date is **after** the 2022-01-01 cutoff, so vintage selection and every result are
+#: unchanged: the 2022 origin still resolves to ACS 2019. What changes is the REASON -
+#: the edition is now excluded because it demonstrably did not exist at the cutoff,
+#: rather than because its availability could not be shown.
 ACS_VINTAGES: tuple[SourceVintage, ...] = (
     SourceVintage(
         ACS_SOURCE, "ACS 2018 5-year (2014-2018)", date(2018, 12, 31), date(2019, 12, 19),
@@ -44,9 +44,10 @@ ACS_VINTAGES: tuple[SourceVintage, ...] = (
         "standard December release, one year after the period ends"),
     SourceVintage(
         ACS_SOURCE, "ACS 2020 5-year (2016-2020)", date(2020, 12, 31), date(2022, 3, 17),
-        "reported to have slipped from December 2021 to March 2022 because of pandemic "
-        "collection problems; NOT verified against a primary source by this project",
-        release_date_certain=False),
+        "official Census release date for the 2016-2020 ACS 5-year estimates, recorded "
+        "on external review 2026-08-31. It slipped from the usual December schedule "
+        "because of pandemic collection problems, and it falls AFTER the 2022-01-01 "
+        "cutoff, so the 2022 origin still resolves to ACS 2019"),
     SourceVintage(
         ACS_SOURCE, "ACS 2021 5-year (2017-2021)", date(2021, 12, 31), date(2022, 12, 8),
         "standard December release, one year after the period ends"),
@@ -123,10 +124,25 @@ class OriginPlan:
     acs_year: int
     tract_geography: str
 
+    #: D1 audit, stated per origin rather than once in prose. TIGER/Line 2024 postdates
+    #: every Phase 5 cutoff, and no earlier TIGER edition was retrieved, so the road
+    #: filter does not run at any historical origin and NO road geometry of any vintage
+    #: enters a historical ranking. This is a difference between the backtested and the
+    #: production siting pipeline, not a silent omission.
+    road_filter_vintage: str = "none - no road geometry enters this origin"
+
     def to_dict(self) -> dict[str, object]:
         return {
             "origin": self.origin.name,
             "prediction_cutoff": self.origin.cutoff.isoformat(),
+            "road_filter_vintage": self.road_filter_vintage,
+            "road_filter_audit": (
+                "The Phase 4 candidate road-proximity filter uses TIGER/Line 2024, which "
+                "postdates this cutoff, so it is NOT applied here and no substitute "
+                "edition is used: the historical ranking scores every inhabited cell by "
+                "cutoff-valid modelled demand. Current or future road geometry therefore "
+                "cannot enter a historical origin. Enumerated as a backtest-versus-"
+                "production difference in docs/VALIDATION.md."),
             "evaluation_window": (
                 f"{self.origin.cutoff.isoformat()} to "
                 f"{self.origin.window_end.isoformat()} (24 months)"),

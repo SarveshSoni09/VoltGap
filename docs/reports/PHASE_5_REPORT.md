@@ -522,3 +522,148 @@ importing the lint's rules rather than restating them, so the test cannot drift 
 against a primary source. The conservative choice was taken, so this cannot have caused
 leakage — but it means the 2022 origin uses features two years older than it might legitimately
 have been allowed.
+
+---
+
+## Correction — 2026-08-31
+
+Appended, not merged: §§1–11 above are the original submission and are left as written, so
+the audit trail survives. Five bounded external-review items. **No model, metric, ranking or
+parameter was changed**, and the negative population-baseline result stands.
+
+Where a number below differs from one above, **the number below is the current one**.
+
+### C.1 The interpretation of the population result — corrected
+
+**Withdrawn.** §5.8 argued that a model *beating* population would have shown it had learned
+industry deployment habits, and that losing to population therefore vindicated directive D2.
+That inference does not hold. D2 is a constraint on which **features** may enter the demand
+model, and it is enforced by a test on the feature set — not by a ranking outcome. A model
+could outperform population for many reasons unrelated to reproducing industry behaviour, and
+underperform it for reasons unrelated to D2.
+
+**The narrow conclusion, which is the only one this result supports:**
+
+> The model strongly outperforms random and the existing-network baseline but does not
+> outperform population for reproducing subsequent industry deployment locations at any
+> origin. This is a negative historical-deployment-alignment result, not evidence of siting
+> failure and not itself evidence for or against D2.
+
+`docs/VALIDATION.md` §2.7 carries the corrected wording.
+
+### C.2 The 2020 random lift — reconciled, and a real defect found
+
+**The question.** A 2020 top-decile capture of 0.645 with random lift 9.40× implies random
+capture ≈ 0.0686, against ≈ 10% at 2021/2022. Why?
+
+**Capture mechanics, as asked:**
+
+| | |
+|---|---|
+| **Capture denominator** | *All* subsequent deployments in the window, including any landing outside the ranked cells. A deployment in an unranked cell is a **miss for every ranking**, not an exclusion for some — which is why full-ranking capture is below 1.0 by exactly the share that fell outside |
+| **Top-decile construction** | `round(0.1 × len(ranked_cells))` cells from the head of the ranking; ties broken by cell id, so deterministic. 5,076 of 50,756 cells |
+| **Random sampling universe** | The same ranked cells, permuted |
+| **Same support for every baseline?** | **Yes.** Asserted in the gate: all four rankings have identical full-ranking capture |
+| **Deployments inside the ranked universe** | 0.9754 / 0.9718 / 0.9681 at 2020 / 2021 / 2022 |
+| **Cells dropped as uninhabited** | 382 at every origin, leaving 50,756 |
+
+**So it was not support coverage** — the support barely moves between origins.
+
+**It was sampling noise in the baseline itself.** Each random baseline was a **single seeded
+permutation**. That is unbiased but high-variance, because deployment counts are heavily
+concentrated. Measured over 400 draws at the 2020 origin: mean **0.0976**, standard deviation
+**0.0137**, 5th percentile 0.0759. The shipped single-seed draw of **0.0687 sat at percentile
+0** — outside the 5–95 band. The 2021 and 2022 draws sat at percentiles 76 and 64.
+
+**Repair.** The random baseline is now the **mean over 200 draws**, with its spread published
+alongside. This is still an *empirical* random baseline — not a theoretical one-tenth — as the
+review required; it is simply a far less noisy estimator of the same quantity.
+
+| Origin | Random capture (was, 1 draw) | Random capture (now, 200-draw mean) | Lift vs random (was) | **Lift vs random (now)** |
+|---|---:|---:|---:|---:|
+| 2020 | 0.0687 | 0.0961 | 9.40 | **6.72** |
+| 2021 | 0.1050 | 0.0973 | 5.92 | **6.39** |
+| 2022 | 0.0991 | 0.0969 | 5.77 | **5.89** |
+
+Random capture is now consistent across origins, as the near-identical support implies it
+should be, and the trend in lift is smooth. **This reduced the model's headline advantage at
+2020 from 9.40× to 6.72×.** The model, its features and its ranking are untouched; only a
+noisy baseline was replaced with a better-estimated one.
+
+**Lift against population is unchanged: 0.83 / 0.82 / 0.81.** The negative result stands.
+
+Since the cause was baseline variance rather than candidate coverage, it does **not** enter
+the per-origin reconstruction-confidence discussion, which remains about survivorship bias.
+
+### C.3 §10.2.4 infrastructure quantities — ports were present, capacity was not
+
+Ports and DCFC ports were already reported per decile and per ranking
+(`share_of_subsequent_ports_captured`, `share_of_subsequent_dcfc_ports_captured`).
+**Capacity in kW was absent**, so it was added under existing G1 semantics: non-overlapping
+generic service capacity (§7.1.1), resolved through Phase 2's own power ladder — reported →
+empirical median → documented type default — with a unit's capacity the **maximum** of its
+mutually alternative connector outputs, never their sum. Phase 2's `resolve_all` and
+`build_unit_capacities` are reused rather than restated, so the two cannot drift.
+
+New artifact fields: `subsequent_deployment_capacity_kw` per origin,
+`top_decile_capture_capacity_kw` per ranking, and
+`share_of_subsequent_capacity_kw_captured` at every decile.
+
+| Origin | Capacity deployed (kW) | Model | Population | Existing-network | Random |
+|---|---:|---:|---:|---:|---:|
+| 2020 | 2,471,663 | 0.4797 | 0.6365 | 0.3231 | 0.0924 |
+| 2021 | 3,142,231 | 0.4842 | 0.6235 | 0.3795 | 0.0938 |
+| 2022 | 4,370,222 | 0.4944 | 0.6149 | 0.4149 | 0.0941 |
+
+**A finding this exposed:** the model captures materially less **capacity** than **station
+count** — 0.48–0.49 against 0.57–0.65. Its top decile skews toward cells that received many
+small stations rather than high-power sites. The ordering against the baselines is unchanged,
+and population still leads on capacity too.
+
+### C.4 Historical road-filter vintage — audited, no leakage
+
+**No road geometry of any vintage enters any historical origin.** For each of 2020, 2021 and
+2022 the artifact now carries `road_filter_vintage: "none - no road geometry enters this
+origin"` and a `road_filter_audit` string.
+
+The Phase 4 candidate road-proximity filter uses **TIGER/Line 2024**, which postdates every
+cutoff, and no earlier TIGER edition was retrieved. The filter is therefore **not applied**
+and **no substitute is used**: the historical ranking scores every inhabited cell by
+cutoff-valid modelled demand. Current or future road geometry cannot enter a historical origin
+by any path — `historical_cells` and `align_origin` import nothing from
+`pipeline.sources.tiger_roads` or `pipeline.spatial.road_proximity`.
+
+This is now enumerated as a **backtest-versus-production difference** in the §2.4 table of
+`docs/VALIDATION.md`, alongside the feature-vintage, geography, fit and reconciliation
+differences. Two tests assert it:
+`test_no_road_geometry_of_any_vintage_enters_a_historical_origin` and
+`test_p5_g_no_road_geometry_enters_any_historical_origin`.
+
+### C.5 ACS 2020 release date — closed
+
+Recorded: the 2016–2020 ACS 5-year estimates were released **2022-03-17**.
+`release_date_certain` is now **true**.
+
+This is after the 2022-01-01 cutoff, so **vintage selection and every result are unchanged**:
+the origins still resolve to ACS 2018 / 2019 / 2019. What changed is the *reason* the edition
+is excluded — it demonstrably did not exist at the cutoff, rather than its availability being
+unshowable. The conservative "resolve toward the older vintage" fallback remains in the code
+for any vintage whose date is genuinely unestablished; **A-5.4 is now CLOSED**.
+
+The stable-H3 treatment of the 2010→2020 tract-geography break is retained. The absolute
+wording is replaced throughout with:
+
+> 2020 tract geography was not contemporaneously available for these prediction cutoffs;
+> retrospective harmonization would require later boundary/crosswalk information, so Core
+> evaluates stable H3 cells using cutoff-appropriate 2010-geography inputs.
+
+A harmonised comparison is possible in principle using a later crosswalk — but that crosswalk
+is itself post-cutoff information, so it would answer a different question than the one D1
+permits at these origins. A-5.3 stays **OPEN** with that reasoning recorded.
+
+**A-0.5 was not reopened and no new source research was conducted.**
+
+### C.6 What was re-run
+
+`make gate PHASE=5`, the single authoritative gate, with the Phase 5 validation artifact
+regenerated. Six new gate checks (`test_p5_g_*`) cover the corrections.
