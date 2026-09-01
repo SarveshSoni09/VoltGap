@@ -1157,6 +1157,57 @@ sources:
         This is the finest ready-made population-weighted centroid the Census Bureau
         publishes. It is one level coarser than block.
 
+  - id: census_cenpop_blockgroup_2010
+    name: Census 2010 population-weighted block group centroids
+    tier: core
+    retrieval:
+      method: bulk_download
+      endpoint: "https://www2.census.gov/geo/docs/reference/cenpop2010/blkgrp/CenPop2010_Mean_BG{state_fips}.txt"
+      auth: none
+      rate_limit: "none advertised"
+    coverage:
+      geographic: "per state, all 51 jurisdictions retrieved"
+      temporal: "2010 decennial"
+      historical_vintages_available: false
+      vintage_field: null
+      vintage_semantics: "2010 decennial population distribution"
+    schema:
+      join_keys: [STATEFP, COUNTYFP, TRACTCE, BLKGRPCE]
+      stable_keys: true
+      schema_version: 96d13e2ff5b77e7f
+      expected_field_count: 7
+    quality:
+      expected_row_count: [400, 24000]
+      drift_tolerance: 0.10
+      expected_range_derivation: >-
+        Observed 2026-08-31 across all 51 jurisdictions: 450 block groups in the
+        District of Columbia to 23,212 in California.
+    license: "US Government work, public domain"
+    update_cadence: "decennial, superseded by the 2020 edition"
+    fallback_source: census_cenpop_tract
+    used_by: [historical_deployment_alignment]
+    backtest_eligible: false
+    known_limitations:
+      - >-
+        backtest_eligible is false in the contract's sense - there are no historical
+        vintages OF this product to reconstruct - but the source is nonetheless used by
+        the historical backtest, because it IS a fixed 2010 edition that predates every
+        Phase 5 cutoff. The contract field asks whether a past view of the source can be
+        recovered; here there is only ever one view, and it is already the right one.
+      - >-
+        Retrieved for Phase 5 only. Every rolling origin resolves to an ACS release
+        published on 2010 census tract boundaries, and allocating 2010-geography tract
+        values with 2020 population weights would mix two incompatible geographies.
+        Directive D1 also applies: the 2020 centroid product is a 2021 publication and
+        postdates every Phase 5 cutoff.
+      - >-
+        The Census web application firewall rejects the BARE URL for Oklahoma (state 40)
+        with an HTML "Request Rejected" page under HTTP 200, while serving every other
+        state and serving Oklahoma's own tract and county files normally. Any query
+        string defeats it, so requests carry an inert "product" parameter. It is sent as
+        a request PARAMETER rather than spliced into the endpoint because httpx replaces
+        a URL's query string when params are supplied, which would strip an inline one.
+
   - id: census_cenpop_block
     name: Census 2020 population-weighted block centroids (does not exist)
     tier: core

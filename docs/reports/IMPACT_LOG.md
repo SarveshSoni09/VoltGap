@@ -727,6 +727,67 @@ guarantee, which is exactly why the method rather than the outcome was fixed.
 **A-4.6 is closed.** It was opened as "vertex distance is close enough" and deferred; it is
 closed by replacing the method rather than by confirming the assumption.
 
+### I-21 — a positional read of the retained-vintage list changed what Phase 3 compared
+
+| Field | Value |
+|---|---|
+| Opened | 2026-08-31, during Phase 5 |
+| Discovering phase | 5 |
+| Affected phase | 3 (`pipeline/model/run_phase3.py`, `docs/evidence/P3-2_demand_model.json`) |
+| Severity | **S3 Cosmetic** — caught before anything was published in the broken form; the Phase 3 artifact on disk had always been correct |
+| Status | **RESOLVED 2026-08-31** |
+
+**Assumed.** That `HISTORICAL_ACS_YEARS[0]` was "the ACS release preceding the production
+one". It was, while the list held only `(2023,)`.
+
+**Actually true.** The list is ordered oldest-first and grows at the *front*. Phase 5 added
+the 2018 and 2019 vintages for its rolling origins, and Phase 3's "account for every tract
+that entered or left the surface between ACS vintages" diagnostic silently became a
+**2018-against-2024** comparison — spanning the 2010/2020 census tract-geography break, so
+instead of the one-tract change it was written to report, it produced a **250,264-line**
+artifact diff enumerating essentially the whole national tract set twice.
+
+**Response taken.** `ACS_PREVIOUS_YEAR = 2023` is now declared explicitly and the diagnostic
+reads that, with a comment saying why a positional read is wrong. Phase 3 regenerated: the
+artifact diff is back to **two lines**, the two vintages Phase 5 added to the retained list.
+A prior-gate regression test (`test_check_04_historical_acs_vintages_are_still_replayable`)
+also hard-coded 250 Rhode Island tracts; it now carries per-geography expected counts —
+244 for the 2010-geography vintages, 250 for 2020 — which documents the break rather than
+hiding it.
+
+---
+
+### I-22 — the copy lint could not permit the project's own central caveat
+
+| Field | Value |
+|---|---|
+| Opened | 2026-08-31, during Phase 5 |
+| Discovering phase | 5 |
+| Affected phase | 1 (`pipeline/quality/copy_lint.py`, created there; §15.5 anticipates Phase 5 extending it) |
+| Severity | **S2 Degrading** — the lint worked as specified, but its incentive ran backwards |
+| Status | **RESOLVED 2026-08-31** |
+
+**Assumed.** That phrase-matching rules could police optimality language without needing to
+distinguish a claim from its denial.
+
+**Actually true.** They cannot. "Ground truth for optimal siting does not exist" contains
+"optimal siting" and trips D3-OPT-01. CLAUDE.md D3 *requires* the project to be able to write
+that sentence, so the lint made its own specification unsatisfiable — and the pressure it
+created was to soften the disclaimer until the linter stopped complaining, which is the
+opposite of what it exists for.
+
+**Response taken.** Extended with `SANCTIONED_DISCLAIMERS`, a **three-entry exact-phrase
+list**, deliberately not a negation detector: a negation detector would have to understand
+scope ("not only is this the optimal site") and would quietly widen over time, whereas adding
+an exact phrase is a visible, reviewable edit to a named list. A match is forgiven only when
+it falls *inside* one of those phrases, and the stripping preserves offsets so a claim sitting
+beside a caveat is still caught — asserted by
+`test_a_claim_on_the_same_line_as_a_disclaimer_is_still_caught`.
+
+A second test asserts every listed phrase actually trips a rule. It found **nine dead entries
+in the first draft** — phrases I had added defensively that no rule matched — which would have
+sat in the file reading like permitted claims. They were removed, leaving three.
+
 ---
 
 ## Phase 0 note

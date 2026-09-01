@@ -55,22 +55,61 @@ class PopulationPoint:
         return str(h3.latlng_to_cell(self.latitude, self.longitude, resolution))
 
 
-def block_group_source(state_fips: str) -> DelimitedSource:
-    """The cached per-state block-group centroid file.
+#: Census decennial vintages of the population-weighted centroid product. The 2020
+#: edition is the production one; the 2010 edition exists because Phase 5's rolling
+#: origins all resolve to ACS releases published on **2010** tract boundaries, and
+#: allocating 2010-geography tract values with 2020 population weights would mix two
+#: incompatible geographies. Directive D1 also applies: the 2020 centroids are a 2021
+#: product and postdate every Phase 5 cutoff.
+CENPOP_VINTAGES: dict[str, str] = {
+    "2020": "https://www2.census.gov/geo/docs/reference/cenpop2020",
+    "2010": "https://www2.census.gov/geo/docs/reference/cenpop2010",
+}
 
-    The source id matches what Phase 2 recorded, so the national cache replays offline.
+
+def block_group_source(
+    state_fips: str, census_vintage: str = "2020"
+) -> DelimitedSource:
+    """The cached per-state block-group centroid file for one decennial vintage.
+
+    The 2020 source id matches what Phase 2 recorded, so the national cache replays
+    offline unchanged; the 2010 edition takes its own id and its own cache entries.
     """
-    return DelimitedSource(
-        f"cenpop_bg_{state_fips}",
-        endpoint=f"{CENPOP_BASE}/blkgrp/CenPop2020_Mean_BG{state_fips}.txt",
-    )
+    if census_vintage not in CENPOP_VINTAGES:
+        raise GridError(
+            f"no population-weighted centroid product is declared for census vintage "
+            f"{census_vintage!r}; known: {sorted(CENPOP_VINTAGES)}")
+    base = CENPOP_VINTAGES[census_vintage]
+    suffix = "" if census_vintage == "2020" else f"_{census_vintage}"
+    url = f"{base}/blkgrp/CenPop{census_vintage}_Mean_BG{state_fips}.txt"
+    params: dict[str, str] = {}
+    if census_vintage != "2020":
+        # The Census web application firewall rejects the BARE 2010 block-group URL for
+        # Oklahoma (state 40) with an HTML "Request Rejected" page under HTTP 200, while
+        # serving every other state, and serving Oklahoma's own tract and county files
+        # normally. Any query string defeats whatever it is matching and returns the
+        # identical 129,300-byte file.
+        #
+        # It is passed as a PARAMETER rather than spliced into the endpoint because the
+        # fetcher calls httpx with `params=...`, and httpx REPLACES a URL's existing
+        # query string when params are supplied - so an inline "?x=1" would be silently
+        # stripped and the request would go out bare again.
+        #
+        # Applied to every state rather than only the one that needs it: a per-state
+        # exception is a trap for whoever meets the next quirk. The parameter is inert,
+        # and it is part of the cache key, so replay stays stable.
+        params["product"] = f"cenpop{census_vintage}_blkgrp"
+    return DelimitedSource(f"cenpop_bg{suffix}_{state_fips}", endpoint=url,
+                           params=params)
 
 
 def load_population_points(
-    state_fips: str, fetcher: Fetcher | None = None
+    state_fips: str, fetcher: Fetcher | None = None,
+    census_vintage: str = "2020",
 ) -> list[PopulationPoint]:
-    """Every block-group population point in one state."""
-    table = block_group_source(state_fips).load(fetcher or ReplayFetcher(PATHS.cache))
+    """Every block-group population point in one state, for one decennial vintage."""
+    table = block_group_source(state_fips, census_vintage).load(
+        fetcher or ReplayFetcher(PATHS.cache))
     points: list[PopulationPoint] = []
     for row in table.rows:
         state = (row.get("STATEFP") or "").strip()
@@ -91,7 +130,8 @@ def load_population_points(
         ))
     if not points:
         raise GridError(
-            f"state {state_fips} yielded no block-group population points; a tract "
+            f"state {state_fips} (census {census_vintage}) yielded no block-group "
+            "population points; a tract "
             "quantity cannot be allocated to cells without population weights, and "
             "falling back to area weights is what §7.6 forbids"
         )

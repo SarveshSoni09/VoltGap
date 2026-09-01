@@ -488,6 +488,21 @@
     },
     {
       "expected_row_count": [
+        400,
+        24000
+      ],
+      "note": "within tolerance",
+      "observed_row_count": 4111,
+      "schema_hash_changed": false,
+      "source_id": "census_cenpop_blockgroup_2010",
+      "tolerance_band": [
+        360,
+        26400
+      ],
+      "within_expected_row_count": true
+    },
+    {
+      "expected_row_count": [
         1350,
         1660
       ],
@@ -2812,6 +2827,44 @@
       "status": "confirmed",
       "url": "https://www2.census.gov/geo/docs/reference/cenpop2020/blkgrp/CenPop2020_Mean_BG27.txt",
       "vintage": "Tue, 16 Nov 2021 14:38:33 GMT"
+    },
+    {
+      "content_bytes": 179257,
+      "content_sha256": "b692d77025c017f31f4c11f1ed55a50cb44f4dd1a4f4ae8dbc2c62046498f600",
+      "elapsed_ms": 294.1,
+      "http_status": 200,
+      "measurement": {
+        "field_count": 7,
+        "fields": [
+          "STATEFP",
+          "COUNTYFP",
+          "TRACTCE",
+          "BLKGRPCE",
+          "POPULATION",
+          "LATITUDE",
+          "LONGITUDE"
+        ],
+        "missingness": {
+          "BLKGRPCE": 0.0,
+          "COUNTYFP": 0.0,
+          "LATITUDE": 0.0,
+          "LONGITUDE": 0.0,
+          "POPULATION": 0.0,
+          "STATEFP": 0.0,
+          "TRACTCE": 0.0
+        },
+        "notes": [],
+        "row_count": 4111,
+        "schema_hash": "96d13e2ff5b77e7f",
+        "truncated": false
+      },
+      "note": "4111 records measured in the bounded sample. Population-weighted block-group centroids on 2010 census geography, Minnesota. Retrieved for Phase 5: every rolling origin resolves to an ACS release published on 2010 tract boundaries. The inert 'product' parameter defeats a Census firewall rule that rejects the bare URL for Oklahoma; it is a request parameter rather than an inline query because httpx replaces a URL's query when params are supplied.",
+      "rate_limit_headers": {},
+      "retrieved_at": "2026-09-01T02:14:30+00:00",
+      "source_id": "census_cenpop_blockgroup_2010",
+      "status": "confirmed",
+      "url": "https://www2.census.gov/geo/docs/reference/cenpop2010/blkgrp/CenPop2010_Mean_BG27.txt",
+      "vintage": "Tue, 12 Mar 2013 15:01:21 GMT"
     },
     {
       "content_bytes": 63246,

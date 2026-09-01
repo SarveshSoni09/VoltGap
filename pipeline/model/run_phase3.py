@@ -32,7 +32,11 @@ from pipeline.model.observed import (
 )
 from pipeline.model.panel import build_panels, load_area_tables
 from pipeline.model.uncertainty import AllocationPenalty, complexity_multipliers
-from pipeline.sources.census_acs import ACS_YEAR, HISTORICAL_ACS_YEARS
+from pipeline.sources.census_acs import (
+    ACS_PREVIOUS_YEAR,
+    ACS_YEAR,
+    HISTORICAL_ACS_YEARS,
+)
 from pipeline.validation.demand_model import (
     STATE_TOTAL_RECONCILED,
     LosoResult,
@@ -315,7 +319,10 @@ def tract_set_reconciliation(
     county counts - it was never a national tract-count comparison, and the national
     tract count had in fact changed by one.
     """
-    year = historical_year or HISTORICAL_ACS_YEARS[0]
+    # The PRECEDING release, not merely the oldest one retained: this asks what
+    # changed between consecutive vintages, and Phase 5 retains older editions
+    # for a different purpose entirely.
+    year = historical_year or ACS_PREVIOUS_YEAR
     previous = load_area_tables(states=states, year=year)
     old, new = set(previous["tracts"].rows), set(production["tracts"].rows)
     entered, left = sorted(new - old), sorted(old - new)

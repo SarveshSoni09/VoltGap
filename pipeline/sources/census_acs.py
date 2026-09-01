@@ -42,7 +42,22 @@ ACS_YEAR = 2024
 #: the contemporaneous ACS release and **must not** use the current production vintage.
 #: These are never overwritten: the cache key hashes the request URL, which carries the
 #: year, so each vintage occupies its own entry under the same source id.
-HISTORICAL_ACS_YEARS: tuple[int, ...] = (2023,)
+#:
+#: Phase 5 resolved its three origins to **2018 and 2019** (see
+#: ``pipeline.validation.origins``): the 2020 cutoff to ACS 2018, and both the 2021 and
+#: 2022 cutoffs to ACS 2019, because the ACS 2020 release date is not established by this
+#: project and the older edition is the direction that cannot manufacture leakage. 2023 is
+#: retained from Phase 3. Note the geography break: releases through 2019 are published on
+#: **2010** census tract boundaries and 2020 onward on 2020 boundaries.
+HISTORICAL_ACS_YEARS: tuple[int, ...] = (2018, 2019, 2023)
+
+#: The release immediately preceding :data:`ACS_YEAR`. Named explicitly rather than taken
+#: positionally from :data:`HISTORICAL_ACS_YEARS`, because that list is ordered oldest
+#: first and grows at the front: Phase 5 added the 2018 and 2019 vintages, and a
+#: positional read silently turned Phase 3's "what changed since the previous release"
+#: diagnostic into a 2018-against-2024 comparison spanning the 2010/2020 tract-geography
+#: break, which is a different question with a 250,000-line answer.
+ACS_PREVIOUS_YEAR = 2023
 
 ACS_DATASET = "acs/acs5"
 ACS_BASE = "https://api.census.gov/data"

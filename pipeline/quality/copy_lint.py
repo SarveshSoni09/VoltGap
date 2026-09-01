@@ -165,14 +165,51 @@ def iter_files(root: Path) -> Iterable[Path]:
         yield path
 
 
+#: Sentences this project is REQUIRED to be able to say. Extended in Phase 5 (§15.5:
+#: "the copy lint created in Phase 1 and extended here").
+#:
+#: The rules match phrases, not meaning, so they cannot tell a claim from its denial:
+#: "ground truth for optimal siting does not exist" contains "optimal siting" and trips
+#: D3-OPT-01. Without this, the project literally could not state its own central caveat,
+#: and the pressure would be to soften the disclaimer to appease the linter - which is
+#: exactly backwards.
+#:
+#: This is an EXACT-PHRASE list, not a negation detector. A negation detector would have
+#: to understand scope ("not only is this the optimal site") and would quietly widen over
+#: time. Adding an entry here is a visible, reviewable edit to a named list, and a match
+#: is only forgiven when it falls INSIDE one of these phrases.
+SANCTIONED_DISCLAIMERS: tuple[str, ...] = (
+    "ground truth for optimal siting does not exist",
+    "no ground truth for optimal siting exists",
+    "that any future selected site is validated as optimal",
+)
+
+
+def strip_sanctioned(line: str) -> str:
+    """Remove every sanctioned disclaimer from a line, case-insensitively.
+
+    What remains is the part of the line that is making a claim in its own right. A rule
+    that still matches after this is matching real prose, not a caveat.
+    """
+    lowered = line.lower()
+    for phrase in SANCTIONED_DISCLAIMERS:
+        start = 0
+        while (found := lowered.find(phrase, start)) != -1:
+            line = line[:found] + " " * len(phrase) + line[found + len(phrase):]
+            lowered = line.lower()
+            start = found + len(phrase)
+    return line
+
+
 def lint_text(text: str, path: Path, rules: Sequence[Rule] = RULES) -> list[Violation]:
     """Apply every rule to every line, honouring the inline allow marker."""
     violations: list[Violation] = []
     for number, line in enumerate(text.splitlines(), start=1):
         if INLINE_ALLOW in line:
             continue
+        checked = strip_sanctioned(line)
         for rule in rules:
-            if rule.pattern.search(line):
+            if rule.pattern.search(checked):
                 violations.append(Violation(path, number, rule.rule_id, rule.message, line))
     return violations
 
