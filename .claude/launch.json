@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "voltgap-static",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["web/.claude-serve.mjs"],
+      "port": 4321
+    }
+  ]
+}

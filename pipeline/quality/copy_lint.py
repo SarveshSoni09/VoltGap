@@ -43,6 +43,8 @@ ALLOWLISTED_PATHS: frozenset[str] = frozenset({
     "pipeline/quality/copy_lint.py",
     "tests/unit/test_copy_lint.py",
     "docs/reports/PHASE_1_PLAN.md",
+    "docs/reports/PHASE_6_PLAN.md",
+    "docs/reports/PLAN_CHANGE_6.md",
     "docs/reports/PLAN_CHANGE_0.md",
     "docs/reports/IMPACT_LOG.md",
     "docs/reports/ASSUMPTION_LEDGER.md",
@@ -68,6 +70,10 @@ EXTENSIONS: frozenset[str] = frozenset({".md", ".py", ".sql", ".ts", ".tsx", ".y
 SKIP_DIRECTORIES: frozenset[str] = frozenset({
     ".git", ".venv", "node_modules", "data", "__pycache__", ".mypy_cache",
     ".ruff_cache", ".pytest_cache", "htmlcov", "artifacts",
+    # Generated build output. Its strings come from web/ sources, which ARE linted;
+    # linting the bundle too would double-report and make the lint's result depend on
+    # whether a build happened to have run.
+    "out", ".next",
 })
 
 

@@ -14,6 +14,7 @@ from pipeline.sources.tiger_roads import (
     SECONDARY_ROAD,
     TIGER_YEAR,
     RoadSourceError,
+    parse_wkb_geometry,
     parse_wkb_linestring,
     read_road_vertices,
     roads_path,
@@ -350,3 +351,76 @@ def test_a_feature_with_no_geometry_is_counted_out_rather_than_skipped_silently(
     assert roads.excluded_classes["missing_geometry"] == 1
     assert len(roads) == 2
     assert roads.offsets == (0, 2)
+
+
+# --- MultiLineString: found nationally in Phase 6, absent from Phase 4's six states ----
+
+def multilinestring(parts: list[list[tuple[float, float]]]) -> bytes:
+    """A WKB MultiLineString: header, part count, then a full LineString per part."""
+    payload = struct.pack("<BII", 1, 5, len(parts))
+    for part in parts:
+        payload += wkb_linestring(part)
+    return payload
+
+
+def test_a_multilinestring_yields_each_part_separately() -> None:
+    """Nationally, 3 of Ohio's 10,350 included features are MultiLineString. Phase 4's
+    six states contain none, and the reader raised rather than mis-parsing, so no Phase 4
+    result was affected — but a national read has to handle it."""
+    parts = [[(47.0, -122.0), (47.0, -121.9)], [(46.0, -122.0), (46.0, -121.9)]]
+    assert parse_wkb_geometry(multilinestring(parts)) == parts
+
+
+def test_a_plain_linestring_comes_back_as_one_part() -> None:
+    line = [(47.0, -122.0), (47.0, -121.0)]
+    assert parse_wkb_geometry(wkb_linestring(line)) == [line]
+
+
+def test_multilinestring_parts_never_become_one_connected_road() -> None:
+    """THE risk. Two far-apart parts of one feature must not be joined: that would invent
+    a segment running between them, and a cell beside that phantom road would pass the
+    filter. Same failure the per-feature offsets prevent between features."""
+    north = [(47.0, -122.0), (47.0, -121.9)]
+    south = [(46.0, -122.0), (46.0, -121.9)]
+    parts = parse_wkb_geometry(multilinestring([north, south]))
+
+    separate = PolylineIndex.from_polylines(parts)
+    joined = PolylineIndex.from_polylines([north + south])
+    assert separate.segments == 2
+    assert joined.segments == 3
+
+    midway = (46.5, -121.95)
+    assert separate.nearest_km([midway[0]], [midway[1]])[0] > 50.0
+    assert joined.nearest_km([midway[0]], [midway[1]])[0] < 5.0
+
+
+def test_a_geometry_that_is_neither_kind_is_refused() -> None:
+    with pytest.raises(RoadSourceError, match="neither LineString"):
+        parse_wkb_geometry(wkb_linestring([SEATTLE], geometry_type=3))
+
+
+def test_a_truncated_multilinestring_is_refused_rather_than_read_short() -> None:
+    payload = multilinestring([[(47.0, -122.0), (47.0, -121.9)]])
+    with pytest.raises(RoadSourceError, match="part claims"):
+        parse_wkb_geometry(payload[:-8])
+
+
+def test_a_multilinestring_too_short_for_its_header_is_refused() -> None:
+    with pytest.raises(RoadSourceError, match="too short"):
+        parse_wkb_geometry(b"\x01\x05")
+
+
+def test_big_endian_is_refused_for_a_multilinestring_too() -> None:
+    payload = struct.pack("<BII", 0, 5, 1) + wkb_linestring([SEATTLE])
+    with pytest.raises(RoadSourceError, match="not little-endian"):
+        parse_wkb_geometry(payload)
+
+
+def test_ohio_reads_end_to_end_with_its_multilinestring_features() -> None:
+    """The state that exposed this. It must now read, and its geometry must be usable."""
+    roads = read_road_vertices("39")
+    assert roads.features == 10350
+    geometry = roads.index()
+    assert geometry.segments > 0
+    # More offset runs than features, because a MultiLineString contributes one per part.
+    assert len(roads.offsets) - 1 > roads.features

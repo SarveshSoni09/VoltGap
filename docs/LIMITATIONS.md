@@ -255,3 +255,17 @@ nationally.
 - **A time-limited CBC solve reports no solver optimality gap.** PuLP does not expose the
   solver's bound, so a solve that hits its limit reports `feasible_time_limit` and a null
   gap rather than a fabricated number. No solve hit the limit in the published run.
+
+---
+
+## Phase 6 — the published frontend
+
+| Limitation | What it means | Status |
+|---|---|---|
+| **The unmoderated usability check has not been run** | §15.5 requires one person unfamiliar with the project to produce a siting recommendation without instructions. That needs a human participant and cannot be executed by an automated gate. The machinery is verified — the task is reachable from a cold start, terminates in a CSV/GeoJSON export, and carries its caveats at the point of decision — but nobody unfamiliar with the project has tried it | **Outstanding.** Escalated in `docs/reports/PLAN_CHANGE_6.md` with a runnable protocol. Not claimed as passed |
+| **Vector tile sets are not produced** | `tippecanoe` is unavailable in this build environment. `sites.pmtiles` ships instead as a parquet **point layer**, which renders directly but does not page in by viewport the way tiles would. `transmission.pmtiles` ships **not at all** — it is an opt-in contextual layer, and §7.9 requires it never function as an interconnection constraint, so absent is its safest state | Named in `manifest.json` under `notes.degradations`, per D8 |
+| **Cold-load and frame-rate budgets are measured locally, not on a deployed site** | §11.3 budgets 3 s time-to-interactive and 55 fps. The artifact is 3.01 MB against an 8–15 MB budget and the app shell is 307.4 KB against 600 KB, so there is headroom — but the numbers that were *measured* are size and solve time, not TTI or frame rate. The headless browser here reports no frame timing worth quoting | Assumptions A-6.1 and A-6.2, to be closed in Phase 7 against the deployed site |
+| **Artifacts are served from the static export, not R2** | §12 targets Cloudflare R2, and §13.2 places the upload inside the Phase 7 ETL. Phase 6 writes artifacts locally and the frontend reads a configurable base URL, so pointing at R2 is configuration rather than a code change | By design; Phase 7 completes it |
+| **Metro drill-down at H3 resolution 8 is not built** | §11.4 lists `hex8_metro/{cbsa}.parquet` as a lazy-loaded enhancement on zoom. Core renders the national resolution-6 surface | Named in `manifest.json` under `notes.degradations` |
+| **The basemap is a single point of failure** | OpenFreeMap's public instance needs no key, which is why it is used (§2 forbids a keyed provider), and §12 records that a self-hosted Protomaps fallback belongs on R2. That fallback is Phase 7 infrastructure. Until it exists, a basemap failure is **surfaced in the interface**: the data layer still renders, and the page says the geographic context is missing rather than showing an empty country | Handled visibly; fallback deferred to Phase 7 |
+| **0.88% of national demand is unallocated** | 48,800 BEV sit in tracts with no block-group population weight, so they reach no cell. Reported in `manifest.json` under `notes.unallocated_demand_bev` rather than dropped | Declared |

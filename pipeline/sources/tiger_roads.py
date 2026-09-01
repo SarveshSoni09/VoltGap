@@ -40,9 +40,18 @@ PRIMARY_ROAD = "S1100"
 SECONDARY_ROAD = "S1200"
 INCLUDED_MTFCC: frozenset[str] = frozenset({PRIMARY_ROAD, SECONDARY_ROAD})
 
-#: WKB constants. Little-endian byte order, geometry type 2 = LineString.
+#: WKB constants. Little-endian byte order, geometry type 2 = LineString,
+#: type 5 = MultiLineString.
+#:
+#: MultiLineString appears rarely and only in some states: nationally, **3 of Ohio's
+#: 10,350 included features (0.029%)** are MultiLineString and every other state is pure
+#: LineString. Phase 4's six frontier states contain none, which is why this reader
+#: shipped handling only type 2 — and it *raised* on the unexpected type rather than
+#: mis-parsing it, so no Phase 4 result was ever affected. Found when Phase 6 first read
+#: all 51 states. Impact-log entry I-27.
 _WKB_LITTLE_ENDIAN = 1
 _WKB_LINESTRING = 2
+_WKB_MULTILINESTRING = 5
 _WKB_HEADER = struct.Struct("<BII")
 _WKB_POINT = struct.Struct("<dd")
 
@@ -102,7 +111,7 @@ def roads_path(state_fips: str, cache_root: Path | None = None) -> Path:
     return root / f"tl_{TIGER_YEAR}_{state_fips}_prisecroads.zip"
 
 
-def parse_wkb_linestring(payload: bytes) -> Iterator[tuple[float, float]]:
+def parse_wkb_linestring(payload: bytes, offset: int = 0) -> Iterator[tuple[float, float]]:
     """Yield (latitude, longitude) for every vertex of a WKB LineString.
 
     Raises rather than guessing on anything unexpected: a silently mis-parsed geometry
@@ -111,9 +120,21 @@ def parse_wkb_linestring(payload: bytes) -> Iterator[tuple[float, float]]:
     checked before any iterator is returned — so a malformed payload cannot slip past a
     caller that builds the generator and consumes it somewhere else.
     """
-    if len(payload) < _WKB_HEADER.size:
-        raise RoadSourceError(f"WKB payload is {len(payload)} bytes, too short to parse")
-    order, geometry_type, count = _WKB_HEADER.unpack_from(payload, 0)
+    count, start = _linestring_header(payload, offset)
+    if offset == 0 and len(payload) != start + count * _WKB_POINT.size:
+        raise RoadSourceError(
+            f"WKB LineString claims {count} points, which needs "
+            f"{start + count * _WKB_POINT.size} bytes, but the payload is {len(payload)}"
+        )
+    return _wkb_points(payload, count, start)
+
+
+def _linestring_header(payload: bytes, offset: int) -> tuple[int, int]:
+    """Validate a LineString header at `offset`; return (point count, points offset)."""
+    if len(payload) < offset + _WKB_HEADER.size:
+        raise RoadSourceError(
+            f"WKB payload is {len(payload)} bytes, too short to parse")
+    order, geometry_type, count = _WKB_HEADER.unpack_from(payload, offset)
     if order != _WKB_LITTLE_ENDIAN:
         raise RoadSourceError(
             f"WKB byte order {order} is not little-endian; this reader does not "
@@ -121,22 +142,55 @@ def parse_wkb_linestring(payload: bytes) -> Iterator[tuple[float, float]]:
         )
     if geometry_type != _WKB_LINESTRING:
         raise RoadSourceError(
-            f"WKB geometry type {geometry_type} is not LineString ({_WKB_LINESTRING}); "
-            "TIGER road features are LineStrings and anything else is unexpected"
+            f"WKB geometry type {geometry_type} is not LineString ({_WKB_LINESTRING})"
         )
-    expected = _WKB_HEADER.size + count * _WKB_POINT.size
-    if len(payload) != expected:
+    return count, offset + _WKB_HEADER.size
+
+
+def parse_wkb_geometry(payload: bytes) -> list[list[tuple[float, float]]]:
+    """Every polyline in a WKB LineString or MultiLineString, as separate runs.
+
+    **A MultiLineString's parts are returned separately and must stay separate.** Joining
+    them into one run would invent a segment connecting the end of one part to the start
+    of the next — a road that does not exist — which is the same error that feature
+    offsets exist to prevent between features.
+    """
+    if len(payload) < _WKB_HEADER.size:
         raise RoadSourceError(
-            f"WKB LineString claims {count} points, which needs {expected} bytes, but "
-            f"the payload is {len(payload)}"
+            f"WKB payload is {len(payload)} bytes, too short to parse")
+    order, geometry_type, count = _WKB_HEADER.unpack_from(payload, 0)
+    if order != _WKB_LITTLE_ENDIAN:
+        raise RoadSourceError(
+            f"WKB byte order {order} is not little-endian; this reader does not "
+            "byte-swap, and guessing would misplace every road"
         )
-    return _wkb_points(payload, count)
+    if geometry_type == _WKB_LINESTRING:
+        return [list(parse_wkb_linestring(payload))]
+    if geometry_type != _WKB_MULTILINESTRING:
+        raise RoadSourceError(
+            f"WKB geometry type {geometry_type} is neither LineString "
+            f"({_WKB_LINESTRING}) nor MultiLineString ({_WKB_MULTILINESTRING}); "
+            "TIGER road features are one or the other and anything else is unexpected"
+        )
+    parts: list[list[tuple[float, float]]] = []
+    offset = _WKB_HEADER.size
+    for _ in range(count):
+        points, start = _linestring_header(payload, offset)
+        needed = start + points * _WKB_POINT.size
+        if len(payload) < needed:
+            raise RoadSourceError(
+                f"WKB MultiLineString part claims {points} points, needing {needed} "
+                f"bytes, but the payload is {len(payload)}"
+            )
+        parts.append(list(_wkb_points(payload, points, start)))
+        offset = needed
+    return parts
 
 
-def _wkb_points(payload: bytes, count: int) -> Iterator[tuple[float, float]]:
+def _wkb_points(payload: bytes, count: int, start: int) -> Iterator[tuple[float, float]]:
     for index in range(count):
         longitude, latitude = _WKB_POINT.unpack_from(
-            payload, _WKB_HEADER.size + index * _WKB_POINT.size)
+            payload, start + index * _WKB_POINT.size)
         yield latitude, longitude
 
 
@@ -183,10 +237,13 @@ def read_road_vertices(
             excluded["missing_geometry"] = excluded.get("missing_geometry", 0) + 1
             continue
         kept += 1
-        for latitude, longitude in parse_wkb_linestring(bytes(geometry)):
-            latitudes.append(latitude)
-            longitudes.append(longitude)
-        offsets.append(len(latitudes))
+        # Each part of a MultiLineString gets its own offset run, so no segment is ever
+        # formed between two parts that are not actually connected.
+        for part in parse_wkb_geometry(bytes(geometry)):
+            for latitude, longitude in part:
+                latitudes.append(latitude)
+                longitudes.append(longitude)
+            offsets.append(len(latitudes))
 
     if not latitudes:
         raise RoadSourceError(

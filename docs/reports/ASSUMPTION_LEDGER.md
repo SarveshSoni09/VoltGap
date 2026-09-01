@@ -216,3 +216,12 @@ review, and A-0.5 moved forward to Phase 1. Phase 1's gate re-checks all open en
 `docs/VALIDATION.md` §2.8 and `docs/reports/PHASE_5_REPORT.md` §5.9, as §15.5 requires.
 Every assumption closed at the Phase 4 gate (A-2.1, A-4.1, A-4.6, A-4.8) stays closed;
 Phase 5 consumes Phase 4's candidate construction unchanged.
+
+## Opened by Phase 6 (2026-09-01)
+
+| ID | Falsifiable statement | Depends on | Tested in | Status |
+|---|---|---|---|---|
+| A-6.1 | Shipping the national cell surface as a single 3.01 MB parquet is fast enough for the §11.3 cold-load budget on a real connection. | Measured locally, where the file is served from localhost. The §11.3 3-second time-to-interactive budget has not been measured over a real network, on a real device, from a real CDN. The artifact is well inside its §12 size budget and the app shell is 51% of its own, so there is headroom — but headroom is not a measurement. | Phase 7, when the ETL publishes to R2 and a Lighthouse run can measure the deployed site | OPEN |
+| A-6.2 | Rendering 53,208 H3 cells with deck.gl sustains the §11.3 55 fps pan-and-zoom budget. | deck.gl's `H3HexagonLayer` is built for exactly this and 53k cells is modest for it, but frame rate was not measured: the headless browser available here reports no reliable frame timing, and a number produced from it would describe the harness rather than a user's machine. | Phase 7, alongside the Lighthouse run on the deployed site | OPEN |
+| A-6.3 | A parquet point layer is an adequate substitute for `sites.pmtiles` at the zoom levels Core uses. | `tippecanoe` is unavailable in this build environment, so no vector tile set is produced. 82,056 points render acceptably at national and state zoom, but a tile set would page in by viewport and this does not. Recorded as a degradation in the manifest rather than presented as equivalent. | whenever tippecanoe is available | OPEN |
+| A-6.4 | The interface can be used to produce a siting recommendation by someone who has not seen it before. | **Untested, and untestable by an automated gate.** Escalated in `docs/reports/PLAN_CHANGE_6.md` with a runnable protocol. The machinery is verified — the task is reachable, terminates in an export, and carries its caveats — but whether an unprompted person finds the path is exactly what no test here establishes. | a human participant | **OPEN, gate-blocking** |

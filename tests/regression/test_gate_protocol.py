@@ -32,7 +32,9 @@ REQUIRED_PRIOR_SUITES = (
     "tests/integration/test_smoke_forward_phase3.py",  # Phase 2 -> 3
     "tests/regression/test_phase4_gates.py",           # Phase 4, P4-A to P4-G
     "tests/regression/test_gate_protocol.py",          # the gate's own invariants
-    "tests/integration/test_smoke_forward_phase4.py",  # Phase 3 -> 4
+    "tests/integration/test_smoke_forward_phase4.py",
+    "tests/regression/test_phase5_gates.py",          # Phase 5, P5-A to P5-G
+    "tests/integration/test_smoke_forward_phase5.py",  # Phase 4 -> 5  # Phase 3 -> 4
 )
 
 def gate_body(gate: str) -> str:
@@ -43,6 +45,7 @@ def gate_body(gate: str) -> str:
 
 
 GATE_4 = gate_body("gate-4")
+GATE_6 = gate_body("gate-6")
 GATE_5 = gate_body("gate-5")
 
 
@@ -94,7 +97,11 @@ def test_a_failing_prior_suite_fails_the_gate_rather_than_being_reported_and_ign
 
 # --- A25: one coverage-instrumented run satisfies both requirements -------------------
 
-@pytest.mark.parametrize("gate", ["gate-0", "gate-1", "gate-2", "gate-3", "gate-4", "gate-5"])
+ALL_GATES = ["gate-0", "gate-1", "gate-2", "gate-3", "gate-4", "gate-5",
+             "gate-6"]
+
+
+@pytest.mark.parametrize("gate", ALL_GATES)
 def test_no_gate_runs_the_full_suite_twice(gate: str) -> None:
     """A25. The suite ran once plain and once under coverage; the plain run proved
     nothing the instrumented one does not. It must not come back."""
@@ -103,7 +110,7 @@ def test_no_gate_runs_the_full_suite_twice(gate: str) -> None:
     assert not bare, f"{gate} runs a bare whole-repository pytest: {bare}"
 
 
-@pytest.mark.parametrize("gate", ["gate-0", "gate-1", "gate-2", "gate-3", "gate-4", "gate-5"])
+@pytest.mark.parametrize("gate", ALL_GATES)
 def test_every_gate_still_runs_the_full_suite_under_coverage(gate: str) -> None:
     """The other half of A25: merging the two must not have dropped either."""
     assert "--no-print-directory coverage" in gate_body(gate), gate
@@ -130,6 +137,7 @@ def test_every_coverage_threshold_is_still_enforced() -> None:
         ("pipeline/discovery/*", 100), ("pipeline/spatial/*", 100),
         ("pipeline/validation/*", 100), ("pipeline/model/*", 100),
         ("pipeline/quality/*", 100), ("pipeline/schemas/*", 100),
+        ("pipeline/export/*", 100),
         ("pipeline/sources/*", 85), ("pipeline/transform/*", 85),
     ):
         assert f'--include="{module}" --fail-under={threshold}' in body, module
@@ -141,9 +149,9 @@ def test_every_coverage_threshold_is_still_enforced() -> None:
 def test_no_gate_recursively_invokes_another_phase_gate() -> None:
     """A26. `make gate PHASE=n` inside a gate re-runs the identical whole-repository
     suite and coverage work for every earlier phase, adding no evidence."""
-    for gate in ("gate-0", "gate-1", "gate-2", "gate-3", "gate-4", "gate-5"):
+    for gate in ALL_GATES:
         body = gate_body(gate)
-        for other in ("gate-0", "gate-1", "gate-2", "gate-3", "gate-4", "gate-5"):
+        for other in ALL_GATES:
             assert f"--no-print-directory {other}" not in body, (gate, other)
 
 
@@ -174,3 +182,61 @@ def test_the_phase_5_gate_runs_every_required_step(step: str) -> None:
 def test_the_phase_5_gate_runs_its_own_acceptance_and_smoke_forward_suites() -> None:
     assert "tests/regression/test_phase5_gates.py" in GATE_5
     assert "tests/integration/test_smoke_forward_phase5.py" in GATE_5
+
+
+# --- Phase 6 additions ----------------------------------------------------------------
+
+@pytest.mark.parametrize(
+    "step", ["web-install", "artifacts", "web-build", "lint", "web-typecheck",
+             "coverage", "prior-gate-suites", "determinism", "copy-lint",
+             "determinism-1", "build-fixture", "phase4", "phase5", "web-test",
+             "web-budget"],
+)
+def test_the_phase_6_gate_runs_every_step_it_declares(step: str) -> None:
+    assert f"--no-print-directory {step}" in GATE_6, step
+
+
+def test_the_phase_6_gate_runs_its_own_acceptance_and_smoke_forward_suites() -> None:
+    assert "tests/regression/test_phase6_gates.py" in GATE_6
+    assert "tests/integration/test_smoke_forward_phase6.py" in GATE_6
+
+
+def test_the_bundle_budget_is_enforced_by_the_gate_not_merely_reported() -> None:
+    """§11.3: "CI fails on bundle budget violation." A reporting step that always exits
+    zero would satisfy the letter and none of the intent."""
+    start = MAKEFILE.index("\nweb-budget:")
+    body = MAKEFILE[start:MAKEFILE.index("\n\n", start)]
+    assert "bundle-budget.mjs" in body
+    script = (PATHS.root / "web" / "scripts" / "bundle-budget.mjs").read_text(
+        encoding="utf-8")
+    assert "process.exit(1)" in script
+
+
+def test_the_frontend_is_covered_by_the_copy_lint() -> None:
+    """§11.5's rules apply to UI strings above all. The lint reads .ts and .tsx, and
+    skips only generated build output."""
+    from pipeline.quality.copy_lint import EXTENSIONS, SKIP_DIRECTORIES
+
+    assert ".ts" in EXTENSIONS
+    assert ".tsx" in EXTENSIONS
+    assert "node_modules" in SKIP_DIRECTORIES
+    assert "out" in SKIP_DIRECTORIES
+    assert ".next" in SKIP_DIRECTORIES
+
+
+def test_the_phase_6_gate_builds_generated_inputs_before_it_tests_them() -> None:
+    """The Phase 6 criteria are checked against the published artifacts and the static
+    export, both generated and git-ignored. If the gate tested them before building them,
+    it would pass on leftovers from a previous run and fail on a clean clone."""
+    body = gate_body("gate-6")
+    build_at = min(body.index("directory artifacts"), body.index("directory web-build"))
+    test_at = body.index("directory coverage")
+    assert build_at < test_at, "artifacts and the export must be built before the tests"
+
+
+def test_the_generated_artifacts_are_not_committed() -> None:
+    """They are reproducible from the accepted pipeline, so committing them would make a
+    stale copy indistinguishable from a fresh build."""
+    ignored = (PATHS.root / ".gitignore").read_text(encoding="utf-8")
+    assert "web/public/data/" in ignored
+    assert "web/out" in ignored

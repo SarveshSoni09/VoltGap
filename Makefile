@@ -5,6 +5,7 @@ PY := .venv/bin/python
 REPLAY := tests/fixtures/replay
 
 .PHONY: help setup test coverage lint copy-lint probe probe-live gate gate-0 gate-1 \
+	artifacts web-install web-build web-test web-budget web-typecheck \
 	gate-2 gate-3 gate-4 gate-5 build build-fixture phase3 phase4 phase5 \
 	determinism \
 	determinism-1 clean \
@@ -12,6 +13,10 @@ REPLAY := tests/fixtures/replay
 
 help:
 	@echo "setup       create the venv and install dependencies"
+	@echo "artifacts   build every published artifact from the accepted pipeline"
+	@echo "web-build   static export of the frontend"
+	@echo "web-test    frontend unit tests"
+	@echo "web-budget  CI-enforced bundle budget (CLAUDE.md 11.3)"
 	@echo "test        run the full test suite"
 	@echo "coverage    run tests with coverage thresholds enforced"
 	@echo "lint        ruff + mypy strict"
@@ -73,6 +78,9 @@ coverage:
 	@echo "--- pipeline/schemas (= 100%) ---"
 	@$(PY) -m coverage report --include="pipeline/schemas/*" --fail-under=100 > /tmp/voltgap_cov.txt 2>&1 || (tail -3 /tmp/voltgap_cov.txt && exit 1)
 	@tail -2 /tmp/voltgap_cov.txt
+	@echo "--- pipeline/export (= 100%) ---"
+	@$(PY) -m coverage report --include="pipeline/export/*" --fail-under=100 > /tmp/voltgap_cov.txt 2>&1 || (tail -3 /tmp/voltgap_cov.txt && exit 1)
+	@tail -2 /tmp/voltgap_cov.txt
 	@echo "--- pipeline/sources (>= 85%) ---"
 	@$(PY) -m coverage report --include="pipeline/sources/*" --fail-under=85 > /tmp/voltgap_cov.txt 2>&1 || (tail -3 /tmp/voltgap_cov.txt && exit 1)
 	@tail -2 /tmp/voltgap_cov.txt
@@ -100,6 +108,27 @@ phase3:
 # Phase 4. Reads only cached responses: no network, no credentials.
 phase4:
 	$(PY) -m pipeline.model.run_phase4
+
+# --- Phase 6: artifacts and the static frontend ---------------------------------------
+# Every published artifact, from the ACCEPTED outputs of Phases 3, 4 and 5. Offline.
+artifacts:
+	$(PY) -m pipeline.export.run
+
+web-install:
+	@cd web && npm ci --silent 2>/dev/null || (cd web && npm install --silent)
+
+web-typecheck:
+	@cd web && npx tsc --noEmit
+
+web-test:
+	@cd web && npx vitest run --reporter=basic
+
+web-build:
+	@cd web && npx next build
+
+# CLAUDE.md 11.3: "CI fails on bundle budget violation." This exits non-zero on breach.
+web-budget:
+	@cd web && node scripts/bundle-budget.mjs
 
 # Phase 5. Reads only cached responses: no network, no credentials.
 phase5:
@@ -148,6 +177,11 @@ PRIOR_GATE_SUITES += \
 	tests/regression/test_phase4_gates.py \
 	tests/regression/test_gate_protocol.py \
 	tests/integration/test_smoke_forward_phase4.py
+
+#: Phase 5's own suites, replayed from Phase 6 onward.
+PRIOR_GATE_SUITES += \
+	tests/regression/test_phase5_gates.py \
+	tests/integration/test_smoke_forward_phase5.py
 
 .PHONY: prior-gate-suites
 prior-gate-suites:
@@ -401,3 +435,50 @@ gate-5:
 	@$(MAKE) --no-print-directory phase4
 	@$(MAKE) --no-print-directory phase5
 	@echo "=== Phase 5 gate: PASS ==="
+
+# Phase 6 gate. Runs, in order:
+#   1. lint            ruff + mypy strict, plus the frontend typecheck
+#   2+3. the COMPLETE test suite run ONCE under coverage, which satisfies both the
+#        full-suite requirement and the coverage thresholds. CLAUDE.md A25.
+#   0. build the artifacts and the static export the acceptance tests read, so the gate
+#      is reproducible from a clean clone
+#   4. prior-phase gate suites replayed (Phase 0-5)
+#   4b. smoke-forward for Phase 7
+#   5. Phase 6 acceptance criteria P6-A to P6-G
+#   6. D3 / UI copy lint, which now covers web/ as well
+#   7. determinism        (semantic, CLAUDE.md 14.1)
+#   8. one-command rebuild of the canonical tables, Phases 3-5, the artifacts, and the
+#      static export; then the frontend test suite and the CI-enforced bundle budget
+gate-6:
+	@echo "=== Phase 6 gate ==="
+	@echo "--- 0. build the inputs the acceptance tests read ---"
+	@# The Phase 6 criteria are checked against the PUBLISHED artifacts and the STATIC
+	@# EXPORT, both of which are generated and git-ignored. Building them first is what
+	@# makes the gate reproducible from a clean clone: no test depends on output that
+	@# happened to be left over from a previous run.
+	@$(MAKE) --no-print-directory web-install
+	@$(MAKE) --no-print-directory artifacts
+	@$(MAKE) --no-print-directory web-build
+	@echo "--- 1. lint (ruff + mypy strict + frontend typecheck) ---"
+	@$(MAKE) --no-print-directory lint
+	@$(MAKE) --no-print-directory web-typecheck
+	@echo "--- 2+3. full test suite under coverage, and coverage thresholds ---"
+	@$(MAKE) --no-print-directory coverage
+	@echo "--- 4. prior-phase gate suites replayed (Phase 0 through 5) ---"
+	@$(MAKE) --no-print-directory prior-gate-suites
+	@$(MAKE) --no-print-directory determinism
+	@echo "--- 4b. smoke-forward test for Phase 7 ---"
+	@$(PY) -m pytest tests/integration/test_smoke_forward_phase6.py -v
+	@echo "--- 5. Phase 6 acceptance criteria P6-A to P6-G ---"
+	@$(PY) -m pytest tests/regression/test_phase6_gates.py -v
+	@echo "--- 6. D3 copy lint (source and frontend) ---"
+	@$(MAKE) --no-print-directory copy-lint
+	@echo "--- 7. determinism (semantic, CLAUDE.md 14.1) ---"
+	@$(MAKE) --no-print-directory determinism-1
+	@echo "--- 8. one-command rebuild ---"
+	@$(MAKE) --no-print-directory build-fixture
+	@$(MAKE) --no-print-directory phase4
+	@$(MAKE) --no-print-directory phase5
+	@$(MAKE) --no-print-directory web-test
+	@$(MAKE) --no-print-directory web-budget
+	@echo "=== Phase 6 gate: PASS ==="

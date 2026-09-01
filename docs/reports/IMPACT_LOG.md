@@ -931,6 +931,44 @@ built at the time is supported.
 basis string contains no directional word — "OVERSTATING", "overstates", "lower bound",
 "upper bound" — so the claim cannot return silently. **A-5.6 stays OPEN.**
 
+### I-27 — the TIGER road reader handled only LineString, and Ohio has MultiLineString
+
+| Field | Value |
+|---|---|
+| Opened | 2026-09-01, first national read of the road network in Phase 6 |
+| Discovering phase | 6 |
+| Affected phase | 4 (`pipeline/sources/tiger_roads.py`) |
+| Severity | **S3 Cosmetic** against published output — **no Phase 4 result is wrong** — but a hard blocker for national use, so it is recorded and fixed rather than noted |
+| Status | **RESOLVED 2026-09-01** |
+
+**Assumed.** That every TIGER/Line PRISECROADS feature is a WKB **LineString** (geometry
+type 2). The reader raised on anything else.
+
+**Actually true.** Ohio (FIPS 39) carries **3 MultiLineString features (type 5) out of
+10,350** included features — 0.029%. Every other state is pure LineString. Measured across
+all 51 cached state files.
+
+**Why no Phase 4 result is affected.** Phase 4's six frontier states — Washington,
+Tennessee, Montana, Vermont, Texas, California — contain **none**. And the reader
+**raised** rather than mis-parsing, so there was never a silently wrong road network: the
+failure mode was a hard stop, which is the behaviour the reader was written to have. Phase
+4's candidate counts, frontier and shortfall figures all stand unchanged, and the Phase 6
+gate re-verifies them cell for cell (P6-C).
+
+**Response taken.** `parse_wkb_geometry` handles both types and returns **each part as its
+own polyline**. That separation is the whole point: joining a MultiLineString's parts would
+invent a segment running between them, and a cell beside that phantom road would pass the
+proximity filter. It is the same error the per-feature CSR offsets already prevent between
+features, and `test_multilinestring_parts_never_become_one_connected_road` asserts the two
+readings differ by more than 45 km at the midpoint between two parts.
+
+Seven tests cover the new path, including Ohio end to end.
+`pipeline/sources/tiger_roads.py` is back at 100% line and branch coverage.
+
+**What this says about the Phase 4 road filter.** Nothing was wrong; something was
+incomplete. A reader that fails loudly on the unexpected is what made this a
+five-minute finding in Phase 6 rather than a wrong map.
+
 ---
 
 ## Phase 0 note

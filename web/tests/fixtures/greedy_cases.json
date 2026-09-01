@@ -1,0 +1,780 @@
+[
+ {
+  "name": "cluster_demand_only_budget3",
+  "budget": 3,
+  "weights": {
+   "demand": 1.0,
+   "equity": 0.0
+  },
+  "candidates": [
+   {
+    "h3_index": "8628d5427ffffff",
+    "demand": 100.0,
+    "equity_population": 10.0,
+    "population": 800.0,
+    "uncertainty_score": 0.2,
+    "sub_state_anchored_share": 1.0,
+    "dominant_evidence_grain": "native_tract",
+    "existing_dcfc_ports": 0.0,
+    "cost": 1.0
+   },
+   {
+    "h3_index": "8628d5437ffffff",
+    "demand": 94.0,
+    "equity_population": 13.0,
+    "population": 840.0,
+    "uncertainty_score": 0.2,
+    "sub_state_anchored_share": 1.0,
+    "dominant_evidence_grain": "native_tract",
+    "existing_dcfc_ports": 0.0,
+    "cost": 1.0
+   },
+   {
+    "h3_index": "8628d542fffffff",
+    "demand": 88.0,
+    "equity_population": 16.0,
+    "population": 880.0,
+    "uncertainty_score": 0.2,
+    "sub_state_anchored_share": 1.0,
+    "dominant_evidence_grain": "native_tract",
+    "existing_dcfc_ports": 0.0,
+    "cost": 1.0
+   },
+   {
+    "h3_index": "8628d5407ffffff",
+    "demand": 82.0,
+    "equity_population": 19.0,
+    "population": 920.0,
+    "uncertainty_score": 0.2,
+    "sub_state_anchored_share": 1.0,
+    "dominant_evidence_grain": "native_tract",
+    "existing_dcfc_ports": 0.0,
+    "cost": 1.0
+   },
+   {
+    "h3_index": "8628d540fffffff",
+    "demand": 76.0,
+    "equity_population": 10.0,
+    "population": 960.0,
+    "uncertainty_score": 0.2,
+    "sub_state_anchored_share": 1.0,
+    "dominant_evidence_grain": "native_tract",
+    "existing_dcfc_ports": 0.0,
+    "cost": 1.0
+   },
+   {
+    "h3_index": "8628d5417ffffff",
+    "demand": 70.0,
+    "equity_population": 13.0,
+    "population": 1000.0,
+    "uncertainty_score": 0.2,
+    "sub_state_anchored_share": 1.0,
+    "dominant_evidence_grain": "native_tract",
+    "existing_dcfc_ports": 0.0,
+    "cost": 1.0
+   },
+   {
+    "h3_index": "862a1072fffffff",
+    "demand": 64.0,
+    "equity_population": 16.0,
+    "population": 1040.0,
+    "uncertainty_score": 0.2,
+    "sub_state_anchored_share": 1.0,
+    "dominant_evidence_grain": "native_tract",
+    "existing_dcfc_ports": 0.0,
+    "cost": 1.0
+   },
+   {
+    "h3_index": "8629a1d2fffffff",
+    "demand": 58.0,
+    "equity_population": 19.0,
+    "population": 1080.0,
+    "uncertainty_score": 0.2,
+    "sub_state_anchored_share": 1.0,
+    "dominant_evidence_grain": "native_tract",
+    "existing_dcfc_ports": 0.0,
+    "cost": 1.0
+   },
+   {
+    "h3_index": "86446ca97ffffff",
+    "demand": 52.0,
+    "equity_population": 10.0,
+    "population": 1120.0,
+    "uncertainty_score": 0.2,
+    "sub_state_anchored_share": 1.0,
+    "dominant_evidence_grain": "native_tract",
+    "existing_dcfc_ports": 0.0,
+    "cost": 1.0
+   },
+   {
+    "h3_index": "8644a1137ffffff",
+    "demand": 46.0,
+    "equity_population": 13.0,
+    "population": 1160.0,
+    "uncertainty_score": 0.2,
+    "sub_state_anchored_share": 1.0,
+    "dominant_evidence_grain": "native_tract",
+    "existing_dcfc_ports": 0.0,
+    "cost": 1.0
+   }
+  ],
+  "coverage": {
+   "8628d5427ffffff": [
+    "8628d5407ffffff",
+    "8628d5427ffffff",
+    "8628d542fffffff",
+    "8628d5437ffffff"
+   ],
+   "8628d5437ffffff": [
+    "8628d5407ffffff",
+    "8628d5417ffffff",
+    "8628d5427ffffff",
+    "8628d5437ffffff"
+   ],
+   "8628d542fffffff": [
+    "8628d5407ffffff",
+    "8628d540fffffff",
+    "8628d5427ffffff",
+    "8628d542fffffff"
+   ],
+   "8628d5407ffffff": [
+    "8628d5407ffffff",
+    "8628d540fffffff",
+    "8628d5417ffffff",
+    "8628d5427ffffff",
+    "8628d542fffffff",
+    "8628d5437ffffff"
+   ],
+   "8628d540fffffff": [
+    "8628d5407ffffff",
+    "8628d540fffffff",
+    "8628d542fffffff"
+   ],
+   "8628d5417ffffff": [
+    "8628d5407ffffff",
+    "8628d5417ffffff",
+    "8628d5437ffffff"
+   ],
+   "862a1072fffffff": [
+    "862a1072fffffff"
+   ],
+   "8629a1d2fffffff": [
+    "8629a1d2fffffff"
+   ],
+   "86446ca97ffffff": [
+    "86446ca97ffffff"
+   ],
+   "8644a1137ffffff": [
+    "8644a1137ffffff"
+   ]
+  },
+  "expected": {
+   "selected": [
+    "8628d5407ffffff",
+    "862a1072fffffff",
+    "8629a1d2fffffff"
+   ],
+   "demand_covered": 632.0,
+   "equity_covered": 116.0
+  }
+ },
+ {
+  "name": "cluster_mixed_weights_budget5",
+  "budget": 5,
+  "weights": {
+   "demand": 0.6,
+   "equity": 0.4
+  },
+  "candidates": [
+   {
+    "h3_index": "8628d5427ffffff",
+    "demand": 100.0,
+    "equity_population": 10.0,
+    "population": 800.0,
+    "uncertainty_score": 0.2,
+    "sub_state_anchored_share": 1.0,
+    "dominant_evidence_grain": "native_tract",
+    "existing_dcfc_ports": 0.0,
+    "cost": 1.0
+   },
+   {
+    "h3_index": "8628d5437ffffff",
+    "demand": 94.0,
+    "equity_population": 13.0,
+    "population": 840.0,
+    "uncertainty_score": 0.2,
+    "sub_state_anchored_share": 1.0,
+    "dominant_evidence_grain": "native_tract",
+    "existing_dcfc_ports": 0.0,
+    "cost": 1.0
+   },
+   {
+    "h3_index": "8628d542fffffff",
+    "demand": 88.0,
+    "equity_population": 16.0,
+    "population": 880.0,
+    "uncertainty_score": 0.2,
+    "sub_state_anchored_share": 1.0,
+    "dominant_evidence_grain": "native_tract",
+    "existing_dcfc_ports": 0.0,
+    "cost": 1.0
+   },
+   {
+    "h3_index": "8628d5407ffffff",
+    "demand": 82.0,
+    "equity_population": 19.0,
+    "population": 920.0,
+    "uncertainty_score": 0.2,
+    "sub_state_anchored_share": 1.0,
+    "dominant_evidence_grain": "native_tract",
+    "existing_dcfc_ports": 0.0,
+    "cost": 1.0
+   },
+   {
+    "h3_index": "8628d540fffffff",
+    "demand": 76.0,
+    "equity_population": 10.0,
+    "population": 960.0,
+    "uncertainty_score": 0.2,
+    "sub_state_anchored_share": 1.0,
+    "dominant_evidence_grain": "native_tract",
+    "existing_dcfc_ports": 0.0,
+    "cost": 1.0
+   },
+   {
+    "h3_index": "8628d5417ffffff",
+    "demand": 70.0,
+    "equity_population": 13.0,
+    "population": 1000.0,
+    "uncertainty_score": 0.2,
+    "sub_state_anchored_share": 1.0,
+    "dominant_evidence_grain": "native_tract",
+    "existing_dcfc_ports": 0.0,
+    "cost": 1.0
+   },
+   {
+    "h3_index": "862a1072fffffff",
+    "demand": 64.0,
+    "equity_population": 16.0,
+    "population": 1040.0,
+    "uncertainty_score": 0.2,
+    "sub_state_anchored_share": 1.0,
+    "dominant_evidence_grain": "native_tract",
+    "existing_dcfc_ports": 0.0,
+    "cost": 1.0
+   },
+   {
+    "h3_index": "8629a1d2fffffff",
+    "demand": 58.0,
+    "equity_population": 19.0,
+    "population": 1080.0,
+    "uncertainty_score": 0.2,
+    "sub_state_anchored_share": 1.0,
+    "dominant_evidence_grain": "native_tract",
+    "existing_dcfc_ports": 0.0,
+    "cost": 1.0
+   },
+   {
+    "h3_index": "86446ca97ffffff",
+    "demand": 52.0,
+    "equity_population": 10.0,
+    "population": 1120.0,
+    "uncertainty_score": 0.2,
+    "sub_state_anchored_share": 1.0,
+    "dominant_evidence_grain": "native_tract",
+    "existing_dcfc_ports": 0.0,
+    "cost": 1.0
+   },
+   {
+    "h3_index": "8644a1137ffffff",
+    "demand": 46.0,
+    "equity_population": 13.0,
+    "population": 1160.0,
+    "uncertainty_score": 0.2,
+    "sub_state_anchored_share": 1.0,
+    "dominant_evidence_grain": "native_tract",
+    "existing_dcfc_ports": 0.0,
+    "cost": 1.0
+   }
+  ],
+  "coverage": {
+   "8628d5427ffffff": [
+    "8628d5407ffffff",
+    "8628d5427ffffff",
+    "8628d542fffffff",
+    "8628d5437ffffff"
+   ],
+   "8628d5437ffffff": [
+    "8628d5407ffffff",
+    "8628d5417ffffff",
+    "8628d5427ffffff",
+    "8628d5437ffffff"
+   ],
+   "8628d542fffffff": [
+    "8628d5407ffffff",
+    "8628d540fffffff",
+    "8628d5427ffffff",
+    "8628d542fffffff"
+   ],
+   "8628d5407ffffff": [
+    "8628d5407ffffff",
+    "8628d540fffffff",
+    "8628d5417ffffff",
+    "8628d5427ffffff",
+    "8628d542fffffff",
+    "8628d5437ffffff"
+   ],
+   "8628d540fffffff": [
+    "8628d5407ffffff",
+    "8628d540fffffff",
+    "8628d542fffffff"
+   ],
+   "8628d5417ffffff": [
+    "8628d5407ffffff",
+    "8628d5417ffffff",
+    "8628d5437ffffff"
+   ],
+   "862a1072fffffff": [
+    "862a1072fffffff"
+   ],
+   "8629a1d2fffffff": [
+    "8629a1d2fffffff"
+   ],
+   "86446ca97ffffff": [
+    "86446ca97ffffff"
+   ],
+   "8644a1137ffffff": [
+    "8644a1137ffffff"
+   ]
+  },
+  "expected": {
+   "selected": [
+    "8628d5407ffffff",
+    "862a1072fffffff",
+    "8629a1d2fffffff",
+    "86446ca97ffffff",
+    "8644a1137ffffff"
+   ],
+   "demand_covered": 730.0,
+   "equity_covered": 139.0
+  }
+ },
+ {
+  "name": "cluster_equity_only_budget2",
+  "budget": 2,
+  "weights": {
+   "demand": 0.0,
+   "equity": 1.0
+  },
+  "candidates": [
+   {
+    "h3_index": "8628d5427ffffff",
+    "demand": 100.0,
+    "equity_population": 10.0,
+    "population": 800.0,
+    "uncertainty_score": 0.2,
+    "sub_state_anchored_share": 1.0,
+    "dominant_evidence_grain": "native_tract",
+    "existing_dcfc_ports": 0.0,
+    "cost": 1.0
+   },
+   {
+    "h3_index": "8628d5437ffffff",
+    "demand": 94.0,
+    "equity_population": 13.0,
+    "population": 840.0,
+    "uncertainty_score": 0.2,
+    "sub_state_anchored_share": 1.0,
+    "dominant_evidence_grain": "native_tract",
+    "existing_dcfc_ports": 0.0,
+    "cost": 1.0
+   },
+   {
+    "h3_index": "8628d542fffffff",
+    "demand": 88.0,
+    "equity_population": 16.0,
+    "population": 880.0,
+    "uncertainty_score": 0.2,
+    "sub_state_anchored_share": 1.0,
+    "dominant_evidence_grain": "native_tract",
+    "existing_dcfc_ports": 0.0,
+    "cost": 1.0
+   },
+   {
+    "h3_index": "8628d5407ffffff",
+    "demand": 82.0,
+    "equity_population": 19.0,
+    "population": 920.0,
+    "uncertainty_score": 0.2,
+    "sub_state_anchored_share": 1.0,
+    "dominant_evidence_grain": "native_tract",
+    "existing_dcfc_ports": 0.0,
+    "cost": 1.0
+   },
+   {
+    "h3_index": "8628d540fffffff",
+    "demand": 76.0,
+    "equity_population": 10.0,
+    "population": 960.0,
+    "uncertainty_score": 0.2,
+    "sub_state_anchored_share": 1.0,
+    "dominant_evidence_grain": "native_tract",
+    "existing_dcfc_ports": 0.0,
+    "cost": 1.0
+   },
+   {
+    "h3_index": "8628d5417ffffff",
+    "demand": 70.0,
+    "equity_population": 13.0,
+    "population": 1000.0,
+    "uncertainty_score": 0.2,
+    "sub_state_anchored_share": 1.0,
+    "dominant_evidence_grain": "native_tract",
+    "existing_dcfc_ports": 0.0,
+    "cost": 1.0
+   },
+   {
+    "h3_index": "862a1072fffffff",
+    "demand": 64.0,
+    "equity_population": 16.0,
+    "population": 1040.0,
+    "uncertainty_score": 0.2,
+    "sub_state_anchored_share": 1.0,
+    "dominant_evidence_grain": "native_tract",
+    "existing_dcfc_ports": 0.0,
+    "cost": 1.0
+   },
+   {
+    "h3_index": "8629a1d2fffffff",
+    "demand": 58.0,
+    "equity_population": 19.0,
+    "population": 1080.0,
+    "uncertainty_score": 0.2,
+    "sub_state_anchored_share": 1.0,
+    "dominant_evidence_grain": "native_tract",
+    "existing_dcfc_ports": 0.0,
+    "cost": 1.0
+   },
+   {
+    "h3_index": "86446ca97ffffff",
+    "demand": 52.0,
+    "equity_population": 10.0,
+    "population": 1120.0,
+    "uncertainty_score": 0.2,
+    "sub_state_anchored_share": 1.0,
+    "dominant_evidence_grain": "native_tract",
+    "existing_dcfc_ports": 0.0,
+    "cost": 1.0
+   },
+   {
+    "h3_index": "8644a1137ffffff",
+    "demand": 46.0,
+    "equity_population": 13.0,
+    "population": 1160.0,
+    "uncertainty_score": 0.2,
+    "sub_state_anchored_share": 1.0,
+    "dominant_evidence_grain": "native_tract",
+    "existing_dcfc_ports": 0.0,
+    "cost": 1.0
+   }
+  ],
+  "coverage": {
+   "8628d5427ffffff": [
+    "8628d5407ffffff",
+    "8628d5427ffffff",
+    "8628d542fffffff",
+    "8628d5437ffffff"
+   ],
+   "8628d5437ffffff": [
+    "8628d5407ffffff",
+    "8628d5417ffffff",
+    "8628d5427ffffff",
+    "8628d5437ffffff"
+   ],
+   "8628d542fffffff": [
+    "8628d5407ffffff",
+    "8628d540fffffff",
+    "8628d5427ffffff",
+    "8628d542fffffff"
+   ],
+   "8628d5407ffffff": [
+    "8628d5407ffffff",
+    "8628d540fffffff",
+    "8628d5417ffffff",
+    "8628d5427ffffff",
+    "8628d542fffffff",
+    "8628d5437ffffff"
+   ],
+   "8628d540fffffff": [
+    "8628d5407ffffff",
+    "8628d540fffffff",
+    "8628d542fffffff"
+   ],
+   "8628d5417ffffff": [
+    "8628d5407ffffff",
+    "8628d5417ffffff",
+    "8628d5437ffffff"
+   ],
+   "862a1072fffffff": [
+    "862a1072fffffff"
+   ],
+   "8629a1d2fffffff": [
+    "8629a1d2fffffff"
+   ],
+   "86446ca97ffffff": [
+    "86446ca97ffffff"
+   ],
+   "8644a1137ffffff": [
+    "8644a1137ffffff"
+   ]
+  },
+  "expected": {
+   "selected": [
+    "8628d5407ffffff",
+    "8629a1d2fffffff"
+   ],
+   "demand_covered": 568.0,
+   "equity_covered": 100.0
+  }
+ },
+ {
+  "name": "budget_exceeds_candidates",
+  "budget": 99,
+  "weights": {
+   "demand": 1.0,
+   "equity": 0.0
+  },
+  "candidates": [
+   {
+    "h3_index": "8628d5427ffffff",
+    "demand": 100.0,
+    "equity_population": 10.0,
+    "population": 800.0,
+    "uncertainty_score": 0.2,
+    "sub_state_anchored_share": 1.0,
+    "dominant_evidence_grain": "native_tract",
+    "existing_dcfc_ports": 0.0,
+    "cost": 1.0
+   },
+   {
+    "h3_index": "8628d5437ffffff",
+    "demand": 94.0,
+    "equity_population": 13.0,
+    "population": 840.0,
+    "uncertainty_score": 0.2,
+    "sub_state_anchored_share": 1.0,
+    "dominant_evidence_grain": "native_tract",
+    "existing_dcfc_ports": 0.0,
+    "cost": 1.0
+   },
+   {
+    "h3_index": "8628d542fffffff",
+    "demand": 88.0,
+    "equity_population": 16.0,
+    "population": 880.0,
+    "uncertainty_score": 0.2,
+    "sub_state_anchored_share": 1.0,
+    "dominant_evidence_grain": "native_tract",
+    "existing_dcfc_ports": 0.0,
+    "cost": 1.0
+   },
+   {
+    "h3_index": "8628d5407ffffff",
+    "demand": 82.0,
+    "equity_population": 19.0,
+    "population": 920.0,
+    "uncertainty_score": 0.2,
+    "sub_state_anchored_share": 1.0,
+    "dominant_evidence_grain": "native_tract",
+    "existing_dcfc_ports": 0.0,
+    "cost": 1.0
+   },
+   {
+    "h3_index": "8628d540fffffff",
+    "demand": 76.0,
+    "equity_population": 10.0,
+    "population": 960.0,
+    "uncertainty_score": 0.2,
+    "sub_state_anchored_share": 1.0,
+    "dominant_evidence_grain": "native_tract",
+    "existing_dcfc_ports": 0.0,
+    "cost": 1.0
+   },
+   {
+    "h3_index": "8628d5417ffffff",
+    "demand": 70.0,
+    "equity_population": 13.0,
+    "population": 1000.0,
+    "uncertainty_score": 0.2,
+    "sub_state_anchored_share": 1.0,
+    "dominant_evidence_grain": "native_tract",
+    "existing_dcfc_ports": 0.0,
+    "cost": 1.0
+   }
+  ],
+  "coverage": {
+   "8628d5427ffffff": [
+    "8628d5407ffffff",
+    "8628d5427ffffff",
+    "8628d542fffffff",
+    "8628d5437ffffff"
+   ],
+   "8628d5437ffffff": [
+    "8628d5407ffffff",
+    "8628d5417ffffff",
+    "8628d5427ffffff",
+    "8628d5437ffffff"
+   ],
+   "8628d542fffffff": [
+    "8628d5407ffffff",
+    "8628d540fffffff",
+    "8628d5427ffffff",
+    "8628d542fffffff"
+   ],
+   "8628d5407ffffff": [
+    "8628d5407ffffff",
+    "8628d540fffffff",
+    "8628d5417ffffff",
+    "8628d5427ffffff",
+    "8628d542fffffff",
+    "8628d5437ffffff"
+   ],
+   "8628d540fffffff": [
+    "8628d5407ffffff",
+    "8628d540fffffff",
+    "8628d542fffffff"
+   ],
+   "8628d5417ffffff": [
+    "8628d5407ffffff",
+    "8628d5417ffffff",
+    "8628d5437ffffff"
+   ]
+  },
+  "expected": {
+   "selected": [
+    "8628d5407ffffff"
+   ],
+   "demand_covered": 510.0,
+   "equity_covered": 81.0
+  }
+ },
+ {
+  "name": "zero_weights_selects_nothing",
+  "budget": 3,
+  "weights": {
+   "demand": 0.0,
+   "equity": 0.0
+  },
+  "candidates": [
+   {
+    "h3_index": "8628d5427ffffff",
+    "demand": 100.0,
+    "equity_population": 10.0,
+    "population": 800.0,
+    "uncertainty_score": 0.2,
+    "sub_state_anchored_share": 1.0,
+    "dominant_evidence_grain": "native_tract",
+    "existing_dcfc_ports": 0.0,
+    "cost": 1.0
+   },
+   {
+    "h3_index": "8628d5437ffffff",
+    "demand": 94.0,
+    "equity_population": 13.0,
+    "population": 840.0,
+    "uncertainty_score": 0.2,
+    "sub_state_anchored_share": 1.0,
+    "dominant_evidence_grain": "native_tract",
+    "existing_dcfc_ports": 0.0,
+    "cost": 1.0
+   },
+   {
+    "h3_index": "8628d542fffffff",
+    "demand": 88.0,
+    "equity_population": 16.0,
+    "population": 880.0,
+    "uncertainty_score": 0.2,
+    "sub_state_anchored_share": 1.0,
+    "dominant_evidence_grain": "native_tract",
+    "existing_dcfc_ports": 0.0,
+    "cost": 1.0
+   },
+   {
+    "h3_index": "8628d5407ffffff",
+    "demand": 82.0,
+    "equity_population": 19.0,
+    "population": 920.0,
+    "uncertainty_score": 0.2,
+    "sub_state_anchored_share": 1.0,
+    "dominant_evidence_grain": "native_tract",
+    "existing_dcfc_ports": 0.0,
+    "cost": 1.0
+   },
+   {
+    "h3_index": "8628d540fffffff",
+    "demand": 76.0,
+    "equity_population": 10.0,
+    "population": 960.0,
+    "uncertainty_score": 0.2,
+    "sub_state_anchored_share": 1.0,
+    "dominant_evidence_grain": "native_tract",
+    "existing_dcfc_ports": 0.0,
+    "cost": 1.0
+   },
+   {
+    "h3_index": "8628d5417ffffff",
+    "demand": 70.0,
+    "equity_population": 13.0,
+    "population": 1000.0,
+    "uncertainty_score": 0.2,
+    "sub_state_anchored_share": 1.0,
+    "dominant_evidence_grain": "native_tract",
+    "existing_dcfc_ports": 0.0,
+    "cost": 1.0
+   }
+  ],
+  "coverage": {
+   "8628d5427ffffff": [
+    "8628d5407ffffff",
+    "8628d5427ffffff",
+    "8628d542fffffff",
+    "8628d5437ffffff"
+   ],
+   "8628d5437ffffff": [
+    "8628d5407ffffff",
+    "8628d5417ffffff",
+    "8628d5427ffffff",
+    "8628d5437ffffff"
+   ],
+   "8628d542fffffff": [
+    "8628d5407ffffff",
+    "8628d540fffffff",
+    "8628d5427ffffff",
+    "8628d542fffffff"
+   ],
+   "8628d5407ffffff": [
+    "8628d5407ffffff",
+    "8628d540fffffff",
+    "8628d5417ffffff",
+    "8628d5427ffffff",
+    "8628d542fffffff",
+    "8628d5437ffffff"
+   ],
+   "8628d540fffffff": [
+    "8628d5407ffffff",
+    "8628d540fffffff",
+    "8628d542fffffff"
+   ],
+   "8628d5417ffffff": [
+    "8628d5407ffffff",
+    "8628d5417ffffff",
+    "8628d5437ffffff"
+   ]
+  },
+  "expected": {
+   "selected": [],
+   "demand_covered": 0,
+   "equity_covered": 0
+  }
+ }
+]

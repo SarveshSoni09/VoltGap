@@ -44,3 +44,11 @@ web/out/
 
 # OS
 .DS_Store
+web/node_modules
+web/.next
+web/out
+web/tsconfig.tsbuildinfo
+# Generated publication artifacts. Rebuilt by `make artifacts` from the accepted
+# pipeline outputs, and by the Phase 6 gate before it runs the acceptance tests, so a
+# clean clone reproduces them rather than trusting a committed copy.
+web/public/data/
