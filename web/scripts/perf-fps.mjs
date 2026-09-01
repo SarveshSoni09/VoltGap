@@ -75,10 +75,23 @@ try {
     return info ? String(gl.getParameter(info.UNMASKED_RENDERER_WEBGL)) : "unknown";
   });
   console.log(`  renderer: ${renderer}`);
-  if (/swiftshader|software|llvmpipe/i.test(renderer)) {
+  // "none" is the case a GPU-less CI runner actually produces: this Chrome build serves
+  // no WebGL context at all rather than falling back to SwiftShader, so a name-only check
+  // would miss it and the run would fail later as an opaque timeout.
+  if (renderer === "none") {
     console.error(
-      "FAIL: this run is on a software rasteriser. A frame rate measured here would " +
-        "describe the harness, not the application, so it is refused rather than reported.",
+      "FAIL: no WebGL context is available on this machine, so the national layer cannot " +
+        "render and no frame rate exists to measure. This is what a GPU-less runner " +
+        "produces. See docs/reports/PLAN_CHANGE_6.md — do not substitute a software " +
+        "measurement or a proxy.",
+    );
+    process.exit(1);
+  }
+  if (/swiftshader|software|llvmpipe|softwarerasterizer/i.test(renderer)) {
+    console.error(
+      `FAIL: this run is on a software rasteriser (${renderer}). A frame rate measured ` +
+        "here would describe the harness, not the application, so it is refused rather " +
+        "than reported. See docs/reports/PLAN_CHANGE_6.md.",
     );
     process.exit(1);
   }

@@ -316,3 +316,26 @@ def test_the_harness_records_the_versions_that_produced_the_number() -> None:
     text = (PATHS.root / "web" / "scripts" / "perf-tti.mjs").read_text(encoding="utf-8")
     assert "lighthouseVersion" in text
     assert "hostUserAgent" in text
+
+
+def test_the_ci_workflow_suite_runs_in_the_gate() -> None:
+    """The workflow is the only place §11.3's "CI-enforced" is met at all, and it is a
+    file no other test reads. It must be exercised by the full suite the gate runs."""
+    assert (PATHS.root / "tests" / "regression" / "test_ci_workflow.py").is_file()
+
+
+def test_the_tti_harness_refuses_a_page_that_did_not_load_its_data() -> None:
+    """Measured: without the published artifacts the National Overview renders its error
+    state, and TTI came back 0.96 s — a comfortable pass against a 3.0 s budget, measuring
+    a page with no map and no data. The guard makes that impossible."""
+    text = (PATHS.root / "web" / "scripts" / "perf-tti.mjs").read_text(encoding="utf-8")
+    assert "MIN_CELLS" in text
+    assert "did not load its data is meaningless" in text
+
+
+def test_the_fps_harness_rejects_absent_webgl_not_only_named_software_renderers() -> None:
+    """A GPU-less Chrome here serves NO WebGL context rather than falling back to
+    SwiftShader, so a name-only check would miss exactly the case CI produces."""
+    text = (PATHS.root / "web" / "scripts" / "perf-fps.mjs").read_text(encoding="utf-8")
+    assert 'renderer === "none"' in text
+    assert "no WebGL context is available" in text

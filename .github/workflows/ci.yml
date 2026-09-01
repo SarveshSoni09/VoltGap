@@ -1,0 +1,189 @@
+# Pull-request CI. CLAUDE.md §13.1 and §11.3.
+#
+# Every job INVOKES AN EXISTING ACCEPTED CHECK — the same `make` target the Phase 6 gate
+# runs — rather than reimplementing its logic. A workflow that restated a threshold would
+# be a second place for it to be wrong, and the two would drift.
+#
+# SCOPE: Phase 6 acceptance plumbing only. No scheduled refresh, no keepalive, no
+# deployment, no health monitoring — those are Phase 7 (§13.2, §13.3) and are deliberately
+# absent from this file.
+#
+# ON "LIGHTHOUSE CI". §11.3 says "Lighthouse CI runs on every PR". This uses the Lighthouse
+# **Node API** through `web/scripts/perf-tti.mjs`, not `@lhci/cli`. Deliberate: the budget
+# is one specific audit under one pinned throttling profile, asserted with a non-zero exit.
+# That is what the Node API gives directly and what `lhci` would wrap in a second
+# configuration surface with its own thresholds to drift from ours. The requirement it must
+# satisfy is "runs automatically on PRs and fails the PR on breach".
+#
+# WHAT THIS FILE CAN AND CANNOT ENFORCE. Two prerequisites are absent from a GitHub-hosted
+# runner, both measured rather than assumed — see docs/reports/PLAN_CHANGE_6.md:
+#
+#   * the 4.4 GB source-data cache (`data/cache/`, git-ignored), without which the Python
+#     suite and the published artifacts cannot be built;
+#   * a GPU. A Chrome launched without GPU access here served NO WebGL context at all, so
+#     the map cannot render and no frame rate exists to measure.
+#
+# The jobs below are split accordingly. Nothing is measured with weakened semantics, and no
+# proxy stands in for a budget.
+
+name: CI
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  PYTHON_VERSION: "3.12"
+  NODE_VERSION: "24"
+
+jobs:
+  # =================================================================================
+  # Enforced here, with identical semantics to the gate. These need no source data and
+  # no GPU, so they are hard gates with no caveats.
+  # =================================================================================
+  python:
+    name: Python lint and types
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      - name: Install
+        run: |
+          python -m venv .venv
+          .venv/bin/pip install --upgrade pip
+          .venv/bin/pip install -e ".[dev]"
+      - name: ruff and mypy --strict
+        run: make lint
+      - name: D3 terminology copy lint (source, docs and frontend)
+        run: make copy-lint
+      - name: Gate-protocol regression suite
+        # Reads only the Makefile, the workflow and the scripts, so it runs without the
+        # source-data cache. It is what stops this workflow silently losing a job.
+        run: .venv/bin/python -m pytest tests/regression/test_gate_protocol.py -q
+
+  frontend:
+    name: Frontend typecheck, build, tests, app-shell budget
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - name: Install
+        run: make web-install
+      - name: Typecheck
+        run: make web-typecheck
+      - name: Build the static export
+        run: make web-build
+      - name: Frontend tests
+        # Fixtures are committed, including the real 3,532-cell Texas surface, so the
+        # greedy port and the 2-second solve budget are genuinely exercised here.
+        run: make web-test
+      - name: App shell budget (§11.3, <= 600 KB gzipped)
+        # Deterministic: gzip of the emitted files. Identical semantics to the gate.
+        run: make web-budget
+
+  # =================================================================================
+  # Enforced here ONLY where the prerequisite exists. Each job runs the accepted harness
+  # unchanged, including its refusal to report a number it cannot stand behind.
+  # =================================================================================
+  tti:
+    name: Time to Interactive budget (§11.3, <= 3.0 s)
+    # Needs the published artifacts, which need the source cache. Point this at a runner
+    # that has `data/cache/` to enforce it. Skipped, not faked, when unset.
+    if: vars.PERF_DATA_RUNNER != ''
+    runs-on: ${{ vars.PERF_DATA_RUNNER }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      - name: Install
+        run: |
+          python -m venv .venv
+          .venv/bin/pip install -e ".[dev]"
+          make web-install
+      - name: Build artifacts and the static export
+        run: make artifacts && make web-build
+      - name: Measure and enforce
+        # The accepted harness, unchanged. It refuses to report unless the page under test
+        # actually holds >= 50,000 cells: without the artifacts the error state measures
+        # 0.96 s and "passes", which is the worst kind of green.
+        run: make web-perf-tti
+
+  fps:
+    name: Sustained frame rate budget (§11.3, >= 55 fps)
+    # Needs the artifacts AND hardware rendering. Point this at a self-hosted GPU runner
+    # that also has `data/cache/`. Skipped, not faked, when unset.
+    if: vars.PERF_GPU_RUNNER != ''
+    runs-on: ${{ vars.PERF_GPU_RUNNER }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      - name: Install
+        run: |
+          python -m venv .venv
+          .venv/bin/pip install -e ".[dev]"
+          make web-install
+      - name: Build artifacts and the static export
+        run: make artifacts && make web-build
+      - name: Measure and enforce
+        # Unweakened: >= 50,000 rendered cells required, software rendering rejected,
+        # absent WebGL rejected, and the measured quantity is the worst 1-second window.
+        run: make web-perf-fps
+
+  # =================================================================================
+  # Always runs. States plainly which budgets this workflow enforces and which it does
+  # not, so a green CI cannot be read as more than it is.
+  # =================================================================================
+  performance-enforcement-status:
+    name: Which performance budgets this PR actually enforced
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Report
+        run: |
+          echo "App shell <= 600 KB gzipped   : ENFORCED on this PR (job 'frontend')."
+          if [ -n "${{ vars.PERF_DATA_RUNNER }}" ]; then
+            echo "Time to Interactive <= 3.0 s  : ENFORCED on this PR (job 'tti')."
+          else
+            echo "Time to Interactive <= 3.0 s  : NOT ENFORCED on this PR."
+            echo "  Needs the 4.4 GB source cache to build the artifacts the page loads."
+            echo "  Enforced by 'make gate PHASE=6'. Set the PERF_DATA_RUNNER variable to"
+            echo "  a runner holding data/cache/ to enforce it here too."
+          fi
+          if [ -n "${{ vars.PERF_GPU_RUNNER }}" ]; then
+            echo "Sustained >= 55 fps           : ENFORCED on this PR (job 'fps')."
+          else
+            echo "Sustained >= 55 fps           : NOT ENFORCED on this PR."
+            echo "  GitHub-hosted runners have no GPU; Chrome there serves no WebGL at all,"
+            echo "  so no frame rate exists to measure. No software substitute is used."
+            echo "  Enforced by 'make gate PHASE=6' on a GPU machine. Set PERF_GPU_RUNNER."
+          fi
+          echo ""
+          echo "Full Python suite and coverage : NOT RUN on this PR."
+          echo "  Most tests read the git-ignored 4.4 GB source cache. Enforced by"
+          echo "  'make gate PHASE=6'. Lint, types and the copy lint DO run here."
+          echo ""
+          echo "See docs/reports/PLAN_CHANGE_6.md for the evidence and the open decision."
+      - name: The limitation must stay documented
+        run: |
+          grep -q "CI runner limits" docs/reports/PLAN_CHANGE_6.md
+          grep -q "PERF_GPU_RUNNER" docs/reports/PLAN_CHANGE_6.md
+          grep -q "PERF_DATA_RUNNER" docs/reports/PLAN_CHANGE_6.md

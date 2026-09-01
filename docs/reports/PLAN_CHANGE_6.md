@@ -110,6 +110,121 @@ correct, then re-run with a **new** unfamiliar participant.
 
 Options A, B and C below stand as written. **A remains my recommendation.**
 
+## CI runner limits — 2026-09-01, awaiting an owner decision
+
+§11.3 requires *"All performance budgets met and **CI-enforced**"* and *"Lighthouse CI runs
+on every PR"*. `.github/workflows/ci.yml` now exists and runs on pull requests. Two
+prerequisites are absent from a GitHub-hosted runner, and both were **measured on this
+machine rather than assumed**.
+
+### Limitation 1 — no GPU, and no software fallback either
+
+A Chrome launched without GPU access does not fall back to SwiftShader here; it serves **no
+WebGL context at all**:
+
+```
+--use-gl=swiftshader     => NO WEBGL AT ALL
+--disable-gpu            => NO WEBGL AT ALL
+```
+
+So the national layer cannot render and **no frame rate exists to measure**. This is not a
+degraded measurement that could be reported with a caveat; it is the absence of the thing
+being measured. The harness refuses both cases explicitly — the `renderer === "none"` check
+was added after this probe, because a name-only software check would have missed it and the
+run would have failed later as an opaque timeout.
+
+**No software frame rate and no proxy is substituted.** Bundle size, first-render success
+and script execution time all remain excluded.
+
+### Limitation 2 — no source data, and a silent-green failure it caused
+
+`data/cache/` is git-ignored and **4.4 GB**. A CI runner cloning the repository has none of
+it, so `make artifacts` cannot run and `web/public/data/` cannot be built. Consequences:
+
+* most of the Python suite reads that cache, so **the full suite and its coverage
+  thresholds cannot run** on a clean runner. Lint, types and the copy lint can, and do.
+* the National Overview fetches the artifacts at runtime. Measured: with them absent, the
+  page renders its error state and the TTI harness reported **0.96 s — a comfortable PASS
+  against a 3.0 s budget — while measuring a page with no map and no data.**
+
+That last one was a **defect in the harness**, found by this investigation and fixed
+independently of CI: `perf-tti.mjs` now refuses to report unless the page under test holds
+at least 50,000 cells, the same guard the frame-rate harness already carried.
+
+### Limitation 3 — Time to Interactive is host-dependent, which I previously overclaimed
+
+§12 of `PHASE_6_REPORT.md` said the pinned throttling profile meant "the number means the
+same thing on a laptop and in CI". **That is wrong.** Lighthouse's `simulate` method
+normalises the *network* but derives CPU task durations from a trace taken on the host.
+Measured on this machine, same code, same page:
+
+| `cpuSlowdownMultiplier` | TTI | against the 3.0 s budget |
+|---|---:|---|
+| 1 | 2.38 s | within |
+| **4 (the shipped profile)** | **2.86 s** | **within** |
+| 8 | 3.40 s | over |
+| 12 | 3.96 s | over |
+
+A shared CI runner is materially slower than this development machine, so even with the
+identical profile its absolute figure would not be interchangeable with the accepted one.
+
+### What the workflow does about it
+
+Nothing is measured with weakened semantics. The jobs split by prerequisite:
+
+| Check | On a GitHub-hosted PR runner | Where it is enforced |
+|---|---|---|
+| ruff, mypy --strict, D3 copy lint | **enforced** | both |
+| Frontend typecheck, build, tests | **enforced** | both |
+| Greedy port vs the Python reference, 2 s solve budget | **enforced** (fixtures committed, real 3,532-cell Texas surface) | both |
+| **App shell ≤ 600 KB gzipped** | **enforced** — deterministic gzip of emitted files, identical semantics | both |
+| **TTI ≤ 3.0 s** | skipped unless `PERF_DATA_RUNNER` is set | `make gate PHASE=6` |
+| **Sustained ≥ 55 fps** | skipped unless `PERF_GPU_RUNNER` is set | `make gate PHASE=6` |
+| Full Python suite + coverage thresholds | not run | `make gate PHASE=6` |
+
+The two host-dependent jobs are **skipped rather than faked**, and an always-running
+`performance-enforcement-status` job prints, on every PR, exactly which budgets that PR did
+and did not enforce — so a green CI cannot be read as more than it is. That job also fails
+if this section stops documenting the limitation.
+
+Setting either repository variable to a runner that has the prerequisite turns the
+corresponding job on with no other change.
+
+### The narrowest truthful distinction, for owner decision
+
+I am **not** adopting this unilaterally, because it distinguishes two things §11.3 states as
+one:
+
+**(a) CI-enforced reproducible performance regression check.** What a GitHub-hosted runner
+can honestly provide today: the app-shell budget, which is deterministic and already
+enforced, plus — if wanted — a *relative* TTI check against a runner-calibrated baseline
+committed to the repository, catching "this PR made it twice as slow" without pretending the
+runner's absolute number is the acceptance figure.
+
+**(b) Hardware-rendered acceptance benchmark.** The absolute §11.3 budgets — TTI ≤ 3.0 s and
+≥ 55 fps sustained — measured on a machine with a GPU and the source cache, which today is
+`make gate PHASE=6`. This is where the accepted figures (2.87 s, 59.0 fps) come from.
+
+**Three options.**
+
+**Option A — provide the runners, and the literal requirement is met as written.** Set
+`PERF_DATA_RUNNER` and `PERF_GPU_RUNNER` to a self-hosted runner with a GPU and the source
+cache. No code change; both jobs activate. This is the only option under which "all
+performance budgets CI-enforced" is literally true, and it is what I recommend if a machine
+is available.
+
+**Option B — adopt the (a)/(b) split, and amend §11.3's wording to match.** The absolute
+budgets remain gate-enforced on hardware; PRs get the deterministic shell budget plus a
+relative regression check. This is honest but it **is** a weakening of the literal
+requirement, which is why it needs your approval rather than my judgement.
+
+**Option C — leave it as it stands.** The workflow enforces what it can, skips what it
+cannot, and says so on every PR. The literal requirement remains unmet and visibly so.
+
+**I have stopped here rather than choosing.** The workflow as committed is Option C, which
+is the only one of the three that does not require a decision from you — and it hides
+nothing.
+
 ## What I did in the meantime
 
 Built the task the protocol needs, so whichever option is chosen the check is ready to run:

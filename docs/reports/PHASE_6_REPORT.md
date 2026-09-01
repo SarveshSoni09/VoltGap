@@ -651,3 +651,126 @@ No threshold, no frontend performance implementation, and no measured value. TTI
 **2.84–2.86 s** against the 3.0 s budget across runs. No plan change is required, because
 the pre-registered criterion **can** be reproduced legitimately on current tooling — which
 is the condition the review set for needing one.
+
+---
+
+## 14. PR CI integration — 2026-09-01
+
+Appended. `.github/workflows/ci.yml` now exists and runs on pull requests. Every job invokes
+an existing accepted `make` target rather than reimplementing its logic; a test asserts no
+threshold is restated in the workflow, so the two cannot drift.
+
+**Scope:** Phase 6 acceptance plumbing only. No `etl.yml`, no schedule, no keepalive, no
+deployment, no health monitoring — `test_no_phase_7_automation_has_crept_in` and
+`test_no_other_workflow_files_exist` enforce that.
+
+### 14.1 On "Lighthouse CI"
+
+§11.3 says *"Lighthouse CI runs on every PR"*. This uses the Lighthouse **Node API** through
+`web/scripts/perf-tti.mjs`, **not `@lhci/cli`**, and that choice is deliberate rather than
+incidental: the budget is one specific audit under one pinned throttling profile asserted
+with a non-zero exit, which the Node API gives directly. `lhci` would wrap it in a second
+configuration surface carrying its own thresholds to drift from ours. The requirement it has
+to satisfy is *runs automatically on PRs and fails the PR on breach*.
+
+### 14.2 What PR CI enforces, and what it does not
+
+Two prerequisites are absent from a GitHub-hosted runner. **Both were measured, not
+assumed**, and the evidence is in `PLAN_CHANGE_6.md` under "CI runner limits".
+
+| Check | GitHub-hosted PR | Gate |
+|---|---|---|
+| ruff, `mypy --strict`, D3 copy lint | **enforced** | yes |
+| Gate-protocol + CI-workflow regression suites | **enforced** | yes |
+| Frontend typecheck, build, tests | **enforced** | yes |
+| Greedy port vs the Python reference; 2 s solve budget | **enforced** | yes |
+| **App shell ≤ 600 KB gzipped** | **enforced** — deterministic gzip, identical semantics | yes |
+| **TTI ≤ 3.0 s** | skipped unless `PERF_DATA_RUNNER` is set | yes |
+| **Sustained ≥ 55 fps** | skipped unless `PERF_GPU_RUNNER` is set | yes |
+| Full Python suite + coverage thresholds | not run | yes |
+
+The two host-dependent jobs are **skipped rather than faked**, and an always-running
+`performance-enforcement-status` job prints on every PR exactly which budgets that PR did and
+did not enforce, so a green CI cannot be read as more than it is. It also fails if the
+limitation stops being documented.
+
+### 14.3 Three findings from building it
+
+**A GPU-less Chrome here serves no WebGL at all** — not a SwiftShader fallback:
+
+```
+--use-gl=swiftshader     => NO WEBGL AT ALL
+--disable-gpu            => NO WEBGL AT ALL
+```
+
+So the frame-rate harness's name-based software check would have missed exactly the case CI
+produces, and the run would have failed later as an opaque timeout. It now refuses
+`renderer === "none"` explicitly. **The harness is unweakened**: ≥50,000 rendered cells still
+required, software rendering still rejected, worst 1-second window still the measured
+quantity.
+
+**The TTI harness would have passed on a page with no data.** `data/cache/` is git-ignored
+and 4.4 GB, so a CI runner cannot build the artifacts the National Overview fetches. Measured
+with them absent: the page renders its error state and the harness reported **0.96 s — a
+comfortable PASS against a 3.0 s budget — while measuring a page with no map and no data.**
+That is a defect in the harness, found by this investigation and fixed independently of CI:
+it now refuses unless the page under test holds ≥50,000 cells, the same guard the frame-rate
+harness carried. Verified in both directions.
+
+**§12's claim that the pinned profile made TTI machine-independent was wrong.** Lighthouse's
+`simulate` normalises the *network* but derives CPU task durations from a trace taken on the
+host. Same code, same page, this machine:
+
+| `cpuSlowdownMultiplier` | TTI | vs the 3.0 s budget |
+|---|---:|---|
+| 1 | 2.38 s | within |
+| **4 (shipped)** | **2.86 s** | **within** |
+| 8 | 3.40 s | over |
+| 12 | 3.96 s | over |
+
+A shared CI runner is materially slower than this machine, so even with the identical profile
+its absolute figure would not be interchangeable with the accepted one.
+
+### 14.4 The literal requirement is not yet met, and I stopped rather than weakening it
+
+§11.3 says *"All performance budgets met and CI-enforced"*. One of three — the app-shell
+budget — is enforced on a GitHub-hosted PR. The other two are enforced by
+`make gate PHASE=6` and are skipped on PRs unless a runner with the prerequisites is
+provided.
+
+`PLAN_CHANGE_6.md` sets out the narrowest truthful distinction the review asked for —
+**(a)** a CI-enforced reproducible performance regression check versus **(b)** the
+hardware-rendered acceptance benchmark — with three options. Option A (point the two
+repository variables at a self-hosted runner with a GPU and the source cache) is the only one
+under which the literal requirement becomes true, needs no code change, and is what I
+recommend. **The workflow as committed is Option C: it enforces what it can, skips what it
+cannot, and says so on every PR.** I have not chosen between them.
+
+### 14.5 An honest limit on this evidence
+
+**I cannot execute the workflow.** Pushing to the remote is blocked in this environment, so
+no CI run exists to point at. What I verified locally is that every command the workflow
+invokes succeeds, and that the frontend jobs pass with `web/public/data/` removed — the state
+a clean runner is in. The workflow's *behaviour on GitHub* is therefore reasoned from
+measured local evidence, not observed.
+
+### 14.6 Gate re-run
+
+`make gate PHASE=6` — **PASS**, 22 m 08 s, from a clean generated state.
+
+```
+PASS: app shell 218.9 KB of 600.0 KB (36.5% of budget).
+
+  page under test holds 53,208 cells
+Lighthouse 12.8.2, Chrome/148.0.0.0.
+  median Time to Interactive      2.87 s   (budget 3.0 s)
+PASS: Time to Interactive 2.87 s of 3.0 s (95.7% of budget).
+
+  renderer: ANGLE (Apple, ANGLE Metal Renderer: Apple M4, Unspecified Version)
+  cells in the rendered layer: 53,208
+  SUSTAINED (worst 1 s window)  59.0 fps   (budget 55 fps)
+PASS: sustained 59.0 fps against a 55 fps budget.
+```
+
+No threshold, implementation or measured result changed. The unmoderated usability check
+remains outstanding.

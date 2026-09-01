@@ -53,6 +53,10 @@ import puppeteer from "puppeteer";
 const BUDGET_SECONDS = 3.0;
 const PORT = Number(process.env.PERF_PORT ?? 4399);
 const URL_UNDER_TEST = `http://localhost:${PORT}/`;
+/** The national surface is 53,208 cells. Far below it means the page failed to
+ *  load its data, and the measurement would be of an error page. */
+const MIN_CELLS = 50000;
+
 const RUNS = Number(
   process.argv.find((a) => a.startsWith("--runs="))?.split("=")[1] ?? 3,
 );
@@ -88,6 +92,38 @@ const stop = () => server.kill();
 process.on("exit", stop);
 
 await new Promise((resolve) => setTimeout(resolve, 700));
+
+// PRE-FLIGHT: the page must actually load the national surface.
+//
+// Without the published artifacts the National Overview renders its error state, which is
+// fast: measured at 0.96 s, a comfortable "PASS" against a 3.0 s budget while measuring a
+// page with no map and no data. That is the worst kind of green. The measurement is
+// refused unless the layer really holds the national surface.
+{
+  const browser = await puppeteer.launch({
+    headless: true, args: ["--no-sandbox", "--disable-dev-shm-usage"],
+  });
+  try {
+    const page = await browser.newPage();
+    await page.goto(URL_UNDER_TEST, { waitUntil: "networkidle0", timeout: 120000 });
+    const cells = await page
+      .waitForFunction(() => window.__voltgapLayerCells ?? 0, { timeout: 60000 })
+      .then((handle) => handle.jsonValue())
+      .catch(() => 0);
+    if (Number(cells) < MIN_CELLS) {
+      console.error(
+        `FAIL: the page under test rendered ${cells} cells, fewer than the ${MIN_CELLS} ` +
+          "the national surface holds. Time to interactive measured against a page that " +
+          "did not load its data is meaningless, and it passes easily. Run " +
+          "`make artifacts` first. See docs/reports/PLAN_CHANGE_6.md.",
+      );
+      process.exit(1);
+    }
+    console.log(`  page under test holds ${Number(cells).toLocaleString()} cells`);
+  } finally {
+    await browser.close().catch(() => {});
+  }
+}
 
 // A FRESH browser per run. Lighthouse tears down the page it navigated, and reusing one
 // browser across runs makes the next run race that teardown - which surfaced as
