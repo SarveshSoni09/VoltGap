@@ -141,6 +141,10 @@ survivorship-biased and the bias grows with age. `Open Date` is documented as ap
 for automated network feeds, may record first appearance in the Station Locator rather than
 actual opening.
 
+**Capacity is reconstructed on the same terms as the network itself** — see §2.6.3: power
+comes from the current snapshot and is attributed to each station's open date, so an upgraded
+station carries its present power.
+
 From 292,756 charging-unit rows: 82,056 distinct public operational stations, of which
 **81,836 were placed** on the grid. Dropped and counted: 6,649 rows not operational, 29,649
 not public, 220 stations with no open date, 0 unparseable, 0 without coordinates.
@@ -223,9 +227,21 @@ connector outputs, never their sum.
 | 2021 | 3,142,231 | 0.4842 | 0.6235 | 0.3795 | 0.0938 |
 | 2022 | 4,370,222 | 0.4944 | 0.6149 | 0.4149 | 0.0941 |
 
+**This is retrospectively reconstructed capacity, not known installation-time capacity.**
+The power values are read from the **current** AFDC snapshot and attributed to each station's
+open date. A station later upgraded — 50 kW to 350 kW, or ports added — carries its *present*
+power here, not the power it had when it opened, because the snapshot records no history
+(**G10**, **G11**). Stations that closed or left the feed are absent entirely. The bias runs
+toward **overstating** the capacity of older deployments and grows with age — the same
+direction and the same cause as the survivorship bias on the station count itself, so the 2020
+origin's capacity figures are the least trustworthy of the three. Every published capacity
+figure carries this basis string in the artifact.
+
 **The model captures noticeably less capacity than it does station count** — 0.48–0.49 against
 0.57–0.65. Its top decile is skewed toward cells receiving many small stations rather than
-high-power sites. The ordering against the baselines is unchanged.
+high-power sites. The ordering against the baselines is unchanged. Because the reconstruction
+overstates older capacity, this gap is a lower bound on the effect rather than a precise
+measure of it.
 
 ### 2.7 The headline finding is negative, and it is reported as such
 

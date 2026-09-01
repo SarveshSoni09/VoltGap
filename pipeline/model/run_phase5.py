@@ -46,6 +46,7 @@ from pipeline.spatial.h3_grid import (
 )
 from pipeline.validation.backtest import KNOWN_EXCLUSIONS, build_historical_surface
 from pipeline.validation.deployment_alignment import (
+    CAPACITY_BASIS,
     Deployment,
     OriginAlignment,
     ranked_by,
@@ -74,6 +75,12 @@ def station_capacity_kw(rows: Sequence[Mapping[str, Any]]) -> dict[str, float]:
     site and not a unit of capacity (G1).
 
     A unit whose capacity the source cannot resolve contributes 0 rather than a guess.
+
+    **What this is NOT.** It is not installation-time capacity. The power values come from
+    the CURRENT snapshot and are attributed to each station's open date, so a station later
+    upgraded in power carries its present power rather than the power it had when it
+    opened — the snapshot records no history (G10, G11). Every published capacity figure
+    ships with ``CAPACITY_BASIS`` saying so.
     """
     from pipeline.model.build_supply_access import build_unit_capacities, resolve_all
     from pipeline.model.supply import load_connectors
@@ -482,6 +489,7 @@ def run(
                 "recover stations that closed, left the feed, or changed port counts, "
                 "so the historical network is survivorship-biased and the bias grows "
                 "with age (G10, G11)"),
+            "capacity_kw_basis": CAPACITY_BASIS,
         },
         "deployment_alignment": [a.to_dict() for a in alignments],
         "demand_model_validation": demand_model_validation(),

@@ -853,6 +853,38 @@ population for reproducing subsequent industry deployment locations at any origi
 negative historical-deployment-alignment result, not evidence of siting failure and not itself
 evidence for or against D2.
 
+### I-25 — the new capacity metric read as installation-time capacity
+
+| Field | Value |
+|---|---|
+| Opened | 2026-08-31, external review of the Phase 5 corrections |
+| Discovering phase | 5 (external review) |
+| Affected phase | 5 (`pipeline/validation/deployment_alignment.py`, `docs/evidence/P5-1_validation.json`) |
+| Severity | **S3 Cosmetic** — labelling only; no number changed, and every headline metric is identical before and after |
+| Status | **RESOLVED 2026-08-31** |
+
+**Claimed, by omission.** The capacity-captured metric added in the previous correction round
+shipped without saying where its power values came from, so a reader could reasonably take
+"capacity deployed in the 2020 window" for the capacity those stations actually had in 2020.
+
+**Actually true.** Power is resolved from the **current** AFDC snapshot and attributed to each
+station's open date. A station upgraded since — 50 kW to 350 kW, or ports added — carries its
+present power, because the snapshot records no history. This is the same G10/G11 reconstruction
+the station count already carried, and the same direction of bias: it **overstates** older
+deployments, and the overstatement grows with age. The 2020 origin's capacity figures are the
+least trustworthy of the three, exactly as its station counts are.
+
+**Response taken.** A `capacity_kw_basis` string is attached to **every** capacity figure in
+the artifact — the per-origin total, each ranking's top-decile capture, and every decile of
+every gain curve — rather than the caveat living in prose a reader of the JSON would never
+see. `test_p5_g_capacity_is_labelled_retrospectively_reconstructed` asserts it is present on
+all of them. Recorded as assumption **A-5.6**, open and documented as a limitation:
+quantifying the error would need archived AFDC snapshots, which §10.2.5 already records as
+future work.
+
+**No metric changed.** Lift against random remains 6.72 / 6.39 / 5.89 and against population
+0.83 / 0.82 / 0.81.
+
 ---
 
 ## Phase 0 note

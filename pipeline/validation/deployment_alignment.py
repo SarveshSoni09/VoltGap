@@ -35,6 +35,19 @@ import numpy as np
 #: The deciles §10.2.4 requires a gain curve across.
 DECILES = tuple(round(0.1 * i, 1) for i in range(1, 11))
 
+#: Attached to every published capacity figure. Capacity is reconstructed from the current
+#: snapshot, so it is not what was installed at the time — see ``Deployment.capacity_kw``.
+CAPACITY_BASIS = (
+    "RETROSPECTIVELY RECONSTRUCTED capacity, NOT known installation-time capacity. "
+    "Non-overlapping generic service capacity (§7.1.1) resolved from the CURRENT AFDC "
+    "snapshot and attributed to each station's open date. A station later upgraded in "
+    "power, or given more ports, carries its present power rather than the power it had "
+    "when it opened, because the snapshot records no history (G10, G11). Stations that "
+    "closed or left the feed are absent entirely. The bias runs toward OVERSTATING the "
+    "capacity of older deployments and grows with age, the same direction and cause as "
+    "the survivorship bias on the station count."
+)
+
 
 @dataclass(frozen=True)
 class Deployment:
@@ -52,6 +65,15 @@ class Deployment:
     #: charging units from Phase 2's own power ladder. §10.2.4 requires capacity captured
     #: and not only station counts, because a station record is one network's presence at
     #: a site rather than a unit of capacity (G1).
+    #:
+    #: **RETROSPECTIVELY RECONSTRUCTED, not installation-time capacity.** The power values
+    #: are read from the CURRENT snapshot and attributed to the station's open date. A
+    #: station that was later upgraded — 50 kW to 350 kW, or ports added — carries its
+    #: present power here, not the power it had when it opened, because the snapshot
+    #: records no history (G10, G11). The reconstruction is therefore biased toward
+    #: OVERSTATING the capacity of older deployments, and the bias grows with age, which
+    #: is the same direction and the same cause as the survivorship bias on the station
+    #: count itself.
     capacity_kw: float = 0.0
 
 
@@ -78,6 +100,7 @@ class GainPoint:
                 round(self.dcfc_ports_captured, 6),
             "share_of_subsequent_capacity_kw_captured":
                 round(self.capacity_kw_captured, 6),
+            "capacity_kw_basis": CAPACITY_BASIS,
         }
 
 
@@ -204,6 +227,7 @@ class OriginAlignment:
             "subsequent_deployment_ports": round(self.deployment_ports, 2),
             "subsequent_deployment_dcfc_ports": round(self.deployment_dcfc_ports, 2),
             "subsequent_deployment_capacity_kw": round(self.deployment_capacity_kw, 2),
+            "subsequent_deployment_capacity_kw_basis": CAPACITY_BASIS,
             "eligible_support": dict(self.eligible_support),
             "random_baseline_spread": dict(self.random_baseline_spread),
             "geographic_coverage_states": self.states_covered,
