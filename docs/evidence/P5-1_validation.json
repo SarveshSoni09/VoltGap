@@ -1,5 +1,5 @@
 {
-  "computed_at": "2026-08-31T23:23:40.087416-04:00",
+  "computed_at": "2026-08-31T23:44:45.172308-04:00",
   "cross_objective_robustness": {
     "per_state_and_budget": [
       {
@@ -6897,6 +6897,7 @@
           "cells_ranked": 50756,
           "gain_curve": [
             {
+              "capacity_kw_basis": "RETROSPECTIVELY RECONSTRUCTED capacity, NOT known installation-time capacity. Non-overlapping generic service capacity (\u00a77.1.1) resolved from the CURRENT AFDC snapshot and attributed to each station's open date. A station later upgraded in power, or given more ports, carries its present power rather than the power it had when it opened, because the snapshot records no history (G10, G11). Stations that closed or left the feed are absent entirely. The bias runs toward OVERSTATING the capacity of older deployments and grows with age, the same direction and cause as the survivorship bias on the station count.",
               "cells_in_decile_cumulative": 5076,
               "decile": 0.1,
               "share_of_subsequent_capacity_kw_captured": 0.092423,
@@ -6905,6 +6906,7 @@
               "share_of_subsequent_stations_captured": 0.096054
             },
             {
+              "capacity_kw_basis": "RETROSPECTIVELY RECONSTRUCTED capacity, NOT known installation-time capacity. Non-overlapping generic service capacity (\u00a77.1.1) resolved from the CURRENT AFDC snapshot and attributed to each station's open date. A station later upgraded in power, or given more ports, carries its present power rather than the power it had when it opened, because the snapshot records no history (G10, G11). Stations that closed or left the feed are absent entirely. The bias runs toward OVERSTATING the capacity of older deployments and grows with age, the same direction and cause as the survivorship bias on the station count.",
               "cells_in_decile_cumulative": 10151,
               "decile": 0.2,
               "share_of_subsequent_capacity_kw_captured": 0.184422,
@@ -6913,6 +6915,7 @@
               "share_of_subsequent_stations_captured": 0.192448
             },
             {
+              "capacity_kw_basis": "RETROSPECTIVELY RECONSTRUCTED capacity, NOT known installation-time capacity. Non-overlapping generic service capacity (\u00a77.1.1) resolved from the CURRENT AFDC snapshot and attributed to each station's open date. A station later upgraded in power, or given more ports, carries its present power rather than the power it had when it opened, because the snapshot records no history (G10, G11). Stations that closed or left the feed are absent entirely. The bias runs toward OVERSTATING the capacity of older deployments and grows with age, the same direction and cause as the survivorship bias on the station count.",
               "cells_in_decile_cumulative": 15227,
               "decile": 0.3,
               "share_of_subsequent_capacity_kw_captured": 0.27692,
@@ -6921,6 +6924,7 @@
               "share_of_subsequent_stations_captured": 0.290707
             },
             {
+              "capacity_kw_basis": "RETROSPECTIVELY RECONSTRUCTED capacity, NOT known installation-time capacity. Non-overlapping generic service capacity (\u00a77.1.1) resolved from the CURRENT AFDC snapshot and attributed to each station's open date. A station later upgraded in power, or given more ports, carries its present power rather than the power it had when it opened, because the snapshot records no history (G10, G11). Stations that closed or left the feed are absent entirely. The bias runs toward OVERSTATING the capacity of older deployments and grows with age, the same direction and cause as the survivorship bias on the station count.",
               "cells_in_decile_cumulative": 20302,
               "decile": 0.4,
               "share_of_subsequent_capacity_kw_captured": 0.368426,
@@ -6929,6 +6933,7 @@
               "share_of_subsequent_stations_captured": 0.387884
             },
             {
+              "capacity_kw_basis": "RETROSPECTIVELY RECONSTRUCTED capacity, NOT known installation-time capacity. Non-overlapping generic service capacity (\u00a77.1.1) resolved from the CURRENT AFDC snapshot and attributed to each station's open date. A station later upgraded in power, or given more ports, carries its present power rather than the power it had when it opened, because the snapshot records no history (G10, G11). Stations that closed or left the feed are absent entirely. The bias runs toward OVERSTATING the capacity of older deployments and grows with age, the same direction and cause as the survivorship bias on the station count.",
               "cells_in_decile_cumulative": 25378,
               "decile": 0.5,
               "share_of_subsequent_capacity_kw_captured": 0.461033,
@@ -6937,6 +6942,7 @@
               "share_of_subsequent_stations_captured": 0.48623
             },
             {
+              "capacity_kw_basis": "RETROSPECTIVELY RECONSTRUCTED capacity, NOT known installation-time capacity. Non-overlapping generic service capacity (\u00a77.1.1) resolved from the CURRENT AFDC snapshot and attributed to each station's open date. A station later upgraded in power, or given more ports, carries its present power rather than the power it had when it opened, because the snapshot records no history (G10, G11). Stations that closed or left the feed are absent entirely. The bias runs toward OVERSTATING the capacity of older deployments and grows with age, the same direction and cause as the survivorship bias on the station count.",
               "cells_in_decile_cumulative": 30454,
               "decile": 0.6,
               "share_of_subsequent_capacity_kw_captured": 0.55395,
@@ -6945,6 +6951,7 @@
               "share_of_subsequent_stations_captured": 0.58451
             },
             {
+              "capacity_kw_basis": "RETROSPECTIVELY RECONSTRUCTED capacity, NOT known installation-time capacity. Non-overlapping generic service capacity (\u00a77.1.1) resolved from the CURRENT AFDC snapshot and attributed to each station's open date. A station later upgraded in power, or given more ports, carries its present power rather than the power it had when it opened, because the snapshot records no history (G10, G11). Stations that closed or left the feed are absent entirely. The bias runs toward OVERSTATING the capacity of older deployments and grows with age, the same direction and cause as the survivorship bias on the station count.",
               "cells_in_decile_cumulative": 35529,
               "decile": 0.7,
               "share_of_subsequent_capacity_kw_captured": 0.646005,
@@ -6953,6 +6960,7 @@
               "share_of_subsequent_stations_captured": 0.682964
             },
             {
+              "capacity_kw_basis": "RETROSPECTIVELY RECONSTRUCTED capacity, NOT known installation-time capacity. Non-overlapping generic service capacity (\u00a77.1.1) resolved from the CURRENT AFDC snapshot and attributed to each station's open date. A station later upgraded in power, or given more ports, carries its present power rather than the power it had when it opened, because the snapshot records no history (G10, G11). Stations that closed or left the feed are absent entirely. The bias runs toward OVERSTATING the capacity of older deployments and grows with age, the same direction and cause as the survivorship bias on the station count.",
               "cells_in_decile_cumulative": 40605,
               "decile": 0.8,
               "share_of_subsequent_capacity_kw_captured": 0.737794,
@@ -6961,6 +6969,7 @@
               "share_of_subsequent_stations_captured": 0.780169
             },
             {
+              "capacity_kw_basis": "RETROSPECTIVELY RECONSTRUCTED capacity, NOT known installation-time capacity. Non-overlapping generic service capacity (\u00a77.1.1) resolved from the CURRENT AFDC snapshot and attributed to each station's open date. A station later upgraded in power, or given more ports, carries its present power rather than the power it had when it opened, because the snapshot records no history (G10, G11). Stations that closed or left the feed are absent entirely. The bias runs toward OVERSTATING the capacity of older deployments and grows with age, the same direction and cause as the survivorship bias on the station count.",
               "cells_in_decile_cumulative": 45680,
               "decile": 0.9,
               "share_of_subsequent_capacity_kw_captured": 0.83109,
@@ -6969,6 +6978,7 @@
               "share_of_subsequent_stations_captured": 0.878102
             },
             {
+              "capacity_kw_basis": "RETROSPECTIVELY RECONSTRUCTED capacity, NOT known installation-time capacity. Non-overlapping generic service capacity (\u00a77.1.1) resolved from the CURRENT AFDC snapshot and attributed to each station's open date. A station later upgraded in power, or given more ports, carries its present power rather than the power it had when it opened, because the snapshot records no history (G10, G11). Stations that closed or left the feed are absent entirely. The bias runs toward OVERSTATING the capacity of older deployments and grows with age, the same direction and cause as the survivorship bias on the station count.",
               "cells_in_decile_cumulative": 50756,
               "decile": 1.0,
               "share_of_subsequent_capacity_kw_captured": 0.924482,
@@ -6986,6 +6996,7 @@
           "cells_ranked": 50756,
           "gain_curve": [
             {
+              "capacity_kw_basis": "RETROSPECTIVELY RECONSTRUCTED capacity, NOT known installation-time capacity. Non-overlapping generic service capacity (\u00a77.1.1) resolved from the CURRENT AFDC snapshot and attributed to each station's open date. A station later upgraded in power, or given more ports, carries its present power rather than the power it had when it opened, because the snapshot records no history (G10, G11). Stations that closed or left the feed are absent entirely. The bias runs toward OVERSTATING the capacity of older deployments and grows with age, the same direction and cause as the survivorship bias on the station count.",
               "cells_in_decile_cumulative": 5076,
               "decile": 0.1,
               "share_of_subsequent_capacity_kw_captured": 0.636467,
@@ -6994,6 +7005,7 @@
               "share_of_subsequent_stations_captured": 0.776568
             },
             {
+              "capacity_kw_basis": "RETROSPECTIVELY RECONSTRUCTED capacity, NOT known installation-time capacity. Non-overlapping generic service capacity (\u00a77.1.1) resolved from the CURRENT AFDC snapshot and attributed to each station's open date. A station later upgraded in power, or given more ports, carries its present power rather than the power it had when it opened, because the snapshot records no history (G10, G11). Stations that closed or left the feed are absent entirely. The bias runs toward OVERSTATING the capacity of older deployments and grows with age, the same direction and cause as the survivorship bias on the station count.",
               "cells_in_decile_cumulative": 10151,
               "decile": 0.2,
               "share_of_subsequent_capacity_kw_captured": 0.781813,
@@ -7002,6 +7014,7 @@
               "share_of_subsequent_stations_captured": 0.884161
             },
             {
+              "capacity_kw_basis": "RETROSPECTIVELY RECONSTRUCTED capacity, NOT known installation-time capacity. Non-overlapping generic service capacity (\u00a77.1.1) resolved from the CURRENT AFDC snapshot and attributed to each station's open date. A station later upgraded in power, or given more ports, carries its present power rather than the power it had when it opened, because the snapshot records no history (G10, G11). Stations that closed or left the feed are absent entirely. The bias runs toward OVERSTATING the capacity of older deployments and grows with age, the same direction and cause as the survivorship bias on the station count.",
               "cells_in_decile_cumulative": 15227,
               "decile": 0.3,
               "share_of_subsequent_capacity_kw_captured": 0.844755,
@@ -7010,6 +7023,7 @@
               "share_of_subsequent_stations_captured": 0.922096
             },
             {
+              "capacity_kw_basis": "RETROSPECTIVELY RECONSTRUCTED capacity, NOT known installation-time capacity. Non-overlapping generic service capacity (\u00a77.1.1) resolved from the CURRENT AFDC snapshot and attributed to each station's open date. A station later upgraded in power, or given more ports, carries its present power rather than the power it had when it opened, because the snapshot records no history (G10, G11). Stations that closed or left the feed are absent entirely. The bias runs toward OVERSTATING the capacity of older deployments and grows with age, the same direction and cause as the survivorship bias on the station count.",
               "cells_in_decile_cumulative": 20302,
               "decile": 0.4,
               "share_of_subsequent_capacity_kw_captured": 0.875939,
@@ -7018,6 +7032,7 @@
               "share_of_subsequent_stations_captured": 0.938149
             },
             {
+              "capacity_kw_basis": "RETROSPECTIVELY RECONSTRUCTED capacity, NOT known installation-time capacity. Non-overlapping generic service capacity (\u00a77.1.1) resolved from the CURRENT AFDC snapshot and attributed to each station's open date. A station later upgraded in power, or given more ports, carries its present power rather than the power it had when it opened, because the snapshot records no history (G10, G11). Stations that closed or left the feed are absent entirely. The bias runs toward OVERSTATING the capacity of older deployments and grows with age, the same direction and cause as the survivorship bias on the station count.",
               "cells_in_decile_cumulative": 25378,
               "decile": 0.5,
               "share_of_subsequent_capacity_kw_captured": 0.894846,
@@ -7026,6 +7041,7 @@
               "share_of_subsequent_stations_captured": 0.947771
             },
             {
+              "capacity_kw_basis": "RETROSPECTIVELY RECONSTRUCTED capacity, NOT known installation-time capacity. Non-overlapping generic service capacity (\u00a77.1.1) resolved from the CURRENT AFDC snapshot and attributed to each station's open date. A station later upgraded in power, or given more ports, carries its present power rather than the power it had when it opened, because the snapshot records no history (G10, G11). Stations that closed or left the feed are absent entirely. The bias runs toward OVERSTATING the capacity of older deployments and grows with age, the same direction and cause as the survivorship bias on the station count.",
               "cells_in_decile_cumulative": 30454,
               "decile": 0.6,
               "share_of_subsequent_capacity_kw_captured": 0.903856,
@@ -7034,6 +7050,7 @@
               "share_of_subsequent_stations_captured": 0.956512
             },
             {
+              "capacity_kw_basis": "RETROSPECTIVELY RECONSTRUCTED capacity, NOT known installation-time capacity. Non-overlapping generic service capacity (\u00a77.1.1) resolved from the CURRENT AFDC snapshot and attributed to each station's open date. A station later upgraded in power, or given more ports, carries its present power rather than the power it had when it opened, because the snapshot records no history (G10, G11). Stations that closed or left the feed are absent entirely. The bias runs toward OVERSTATING the capacity of older deployments and grows with age, the same direction and cause as the survivorship bias on the station count.",
               "cells_in_decile_cumulative": 35529,
               "decile": 0.7,
               "share_of_subsequent_capacity_kw_captured": 0.910443,
@@ -7042,6 +7059,7 @@
               "share_of_subsequent_stations_captured": 0.960746
             },
             {
+              "capacity_kw_basis": "RETROSPECTIVELY RECONSTRUCTED capacity, NOT known installation-time capacity. Non-overlapping generic service capacity (\u00a77.1.1) resolved from the CURRENT AFDC snapshot and attributed to each station's open date. A station later upgraded in power, or given more ports, carries its present power rather than the power it had when it opened, because the snapshot records no history (G10, G11). Stations that closed or left the feed are absent entirely. The bias runs toward OVERSTATING the capacity of older deployments and grows with age, the same direction and cause as the survivorship bias on the station count.",
               "cells_in_decile_cumulative": 40605,
               "decile": 0.8,
               "share_of_subsequent_capacity_kw_captured": 0.913532,
@@ -7050,6 +7068,7 @@
               "share_of_subsequent_stations_captured": 0.965419
             },
             {
+              "capacity_kw_basis": "RETROSPECTIVELY RECONSTRUCTED capacity, NOT known installation-time capacity. Non-overlapping generic service capacity (\u00a77.1.1) resolved from the CURRENT AFDC snapshot and attributed to each station's open date. A station later upgraded in power, or given more ports, carries its present power rather than the power it had when it opened, because the snapshot records no history (G10, G11). Stations that closed or left the feed are absent entirely. The bias runs toward OVERSTATING the capacity of older deployments and grows with age, the same direction and cause as the survivorship bias on the station count.",
               "cells_in_decile_cumulative": 45680,
               "decile": 0.9,
               "share_of_subsequent_capacity_kw_captured": 0.91848,
@@ -7058,6 +7077,7 @@
               "share_of_subsequent_stations_captured": 0.970312
             },
             {
+              "capacity_kw_basis": "RETROSPECTIVELY RECONSTRUCTED capacity, NOT known installation-time capacity. Non-overlapping generic service capacity (\u00a77.1.1) resolved from the CURRENT AFDC snapshot and attributed to each station's open date. A station later upgraded in power, or given more ports, carries its present power rather than the power it had when it opened, because the snapshot records no history (G10, G11). Stations that closed or left the feed are absent entirely. The bias runs toward OVERSTATING the capacity of older deployments and grows with age, the same direction and cause as the survivorship bias on the station count.",
               "cells_in_decile_cumulative": 50756,
               "decile": 1.0,
               "share_of_subsequent_capacity_kw_captured": 0.924482,
@@ -7075,6 +7095,7 @@
           "cells_ranked": 50756,
           "gain_curve": [
             {
+              "capacity_kw_basis": "RETROSPECTIVELY RECONSTRUCTED capacity, NOT known installation-time capacity. Non-overlapping generic service capacity (\u00a77.1.1) resolved from the CURRENT AFDC snapshot and attributed to each station's open date. A station later upgraded in power, or given more ports, carries its present power rather than the power it had when it opened, because the snapshot records no history (G10, G11). Stations that closed or left the feed are absent entirely. The bias runs toward OVERSTATING the capacity of older deployments and grows with age, the same direction and cause as the survivorship bias on the station count.",
               "cells_in_decile_cumulative": 5076,
               "decile": 0.1,
               "share_of_subsequent_capacity_kw_captured": 0.323056,
@@ -7083,6 +7104,7 @@
               "share_of_subsequent_stations_captured": 0.423608
             },
             {
+              "capacity_kw_basis": "RETROSPECTIVELY RECONSTRUCTED capacity, NOT known installation-time capacity. Non-overlapping generic service capacity (\u00a77.1.1) resolved from the CURRENT AFDC snapshot and attributed to each station's open date. A station later upgraded in power, or given more ports, carries its present power rather than the power it had when it opened, because the snapshot records no history (G10, G11). Stations that closed or left the feed are absent entirely. The bias runs toward OVERSTATING the capacity of older deployments and grows with age, the same direction and cause as the survivorship bias on the station count.",
               "cells_in_decile_cumulative": 10151,
               "decile": 0.2,
               "share_of_subsequent_capacity_kw_captured": 0.356093,
@@ -7091,6 +7113,7 @@
               "share_of_subsequent_stations_captured": 0.469515
             },
             {
+              "capacity_kw_basis": "RETROSPECTIVELY RECONSTRUCTED capacity, NOT known installation-time capacity. Non-overlapping generic service capacity (\u00a77.1.1) resolved from the CURRENT AFDC snapshot and attributed to each station's open date. A station later upgraded in power, or given more ports, carries its present power rather than the power it had when it opened, because the snapshot records no history (G10, G11). Stations that closed or left the feed are absent entirely. The bias runs toward OVERSTATING the capacity of older deployments and grows with age, the same direction and cause as the survivorship bias on the station count.",
               "cells_in_decile_cumulative": 15227,
               "decile": 0.3,
               "share_of_subsequent_capacity_kw_captured": 0.408533,
@@ -7099,6 +7122,7 @@
               "share_of_subsequent_stations_captured": 0.526582
             },
             {
+              "capacity_kw_basis": "RETROSPECTIVELY RECONSTRUCTED capacity, NOT known installation-time capacity. Non-overlapping generic service capacity (\u00a77.1.1) resolved from the CURRENT AFDC snapshot and attributed to each station's open date. A station later upgraded in power, or given more ports, carries its present power rather than the power it had when it opened, because the snapshot records no history (G10, G11). Stations that closed or left the feed are absent entirely. The bias runs toward OVERSTATING the capacity of older deployments and grows with age, the same direction and cause as the survivorship bias on the station count.",
               "cells_in_decile_cumulative": 20302,
               "decile": 0.4,
               "share_of_subsequent_capacity_kw_captured": 0.478581,
@@ -7107,6 +7131,7 @@
               "share_of_subsequent_stations_captured": 0.585794
             },
             {
+              "capacity_kw_basis": "RETROSPECTIVELY RECONSTRUCTED capacity, NOT known installation-time capacity. Non-overlapping generic service capacity (\u00a77.1.1) resolved from the CURRENT AFDC snapshot and attributed to each station's open date. A station later upgraded in power, or given more ports, carries its present power rather than the power it had when it opened, because the snapshot records no history (G10, G11). Stations that closed or left the feed are absent entirely. The bias runs toward OVERSTATING the capacity of older deployments and grows with age, the same direction and cause as the survivorship bias on the station count.",
               "cells_in_decile_cumulative": 25378,
               "decile": 0.5,
               "share_of_subsequent_capacity_kw_captured": 0.674414,
@@ -7115,6 +7140,7 @@
               "share_of_subsequent_stations_captured": 0.766232
             },
             {
+              "capacity_kw_basis": "RETROSPECTIVELY RECONSTRUCTED capacity, NOT known installation-time capacity. Non-overlapping generic service capacity (\u00a77.1.1) resolved from the CURRENT AFDC snapshot and attributed to each station's open date. A station later upgraded in power, or given more ports, carries its present power rather than the power it had when it opened, because the snapshot records no history (G10, G11). Stations that closed or left the feed are absent entirely. The bias runs toward OVERSTATING the capacity of older deployments and grows with age, the same direction and cause as the survivorship bias on the station count.",
               "cells_in_decile_cumulative": 30454,
               "decile": 0.6,
               "share_of_subsequent_capacity_kw_captured": 0.71563,
@@ -7123,6 +7149,7 @@
               "share_of_subsequent_stations_captured": 0.815493
             },
             {
+              "capacity_kw_basis": "RETROSPECTIVELY RECONSTRUCTED capacity, NOT known installation-time capacity. Non-overlapping generic service capacity (\u00a77.1.1) resolved from the CURRENT AFDC snapshot and attributed to each station's open date. A station later upgraded in power, or given more ports, carries its present power rather than the power it had when it opened, because the snapshot records no history (G10, G11). Stations that closed or left the feed are absent entirely. The bias runs toward OVERSTATING the capacity of older deployments and grows with age, the same direction and cause as the survivorship bias on the station count.",
               "cells_in_decile_cumulative": 35529,
               "decile": 0.7,
               "share_of_subsequent_capacity_kw_captured": 0.77194,
@@ -7131,6 +7158,7 @@
               "share_of_subsequent_stations_captured": 0.858651
             },
             {
+              "capacity_kw_basis": "RETROSPECTIVELY RECONSTRUCTED capacity, NOT known installation-time capacity. Non-overlapping generic service capacity (\u00a77.1.1) resolved from the CURRENT AFDC snapshot and attributed to each station's open date. A station later upgraded in power, or given more ports, carries its present power rather than the power it had when it opened, because the snapshot records no history (G10, G11). Stations that closed or left the feed are absent entirely. The bias runs toward OVERSTATING the capacity of older deployments and grows with age, the same direction and cause as the survivorship bias on the station count.",
               "cells_in_decile_cumulative": 40605,
               "decile": 0.8,
               "share_of_subsequent_capacity_kw_captured": 0.805355,
@@ -7139,6 +7167,7 @@
               "share_of_subsequent_stations_captured": 0.900214
             },
             {
+              "capacity_kw_basis": "RETROSPECTIVELY RECONSTRUCTED capacity, NOT known installation-time capacity. Non-overlapping generic service capacity (\u00a77.1.1) resolved from the CURRENT AFDC snapshot and attributed to each station's open date. A station later upgraded in power, or given more ports, carries its present power rather than the power it had when it opened, because the snapshot records no history (G10, G11). Stations that closed or left the feed are absent entirely. The bias runs toward OVERSTATING the capacity of older deployments and grows with age, the same direction and cause as the survivorship bias on the station count.",
               "cells_in_decile_cumulative": 45680,
               "decile": 0.9,
               "share_of_subsequent_capacity_kw_captured": 0.880483,
@@ -7147,6 +7176,7 @@
               "share_of_subsequent_stations_captured": 0.944307
             },
             {
+              "capacity_kw_basis": "RETROSPECTIVELY RECONSTRUCTED capacity, NOT known installation-time capacity. Non-overlapping generic service capacity (\u00a77.1.1) resolved from the CURRENT AFDC snapshot and attributed to each station's open date. A station later upgraded in power, or given more ports, carries its present power rather than the power it had when it opened, because the snapshot records no history (G10, G11). Stations that closed or left the feed are absent entirely. The bias runs toward OVERSTATING the capacity of older deployments and grows with age, the same direction and cause as the survivorship bias on the station count.",
               "cells_in_decile_cumulative": 50756,
               "decile": 1.0,
               "share_of_subsequent_capacity_kw_captured": 0.924482,
@@ -7182,6 +7212,7 @@
         "cells_ranked": 50756,
         "gain_curve": [
           {
+            "capacity_kw_basis": "RETROSPECTIVELY RECONSTRUCTED capacity, NOT known installation-time capacity. Non-overlapping generic service capacity (\u00a77.1.1) resolved from the CURRENT AFDC snapshot and attributed to each station's open date. A station later upgraded in power, or given more ports, carries its present power rather than the power it had when it opened, because the snapshot records no history (G10, G11). Stations that closed or left the feed are absent entirely. The bias runs toward OVERSTATING the capacity of older deployments and grows with age, the same direction and cause as the survivorship bias on the station count.",
             "cells_in_decile_cumulative": 5076,
             "decile": 0.1,
             "share_of_subsequent_capacity_kw_captured": 0.479681,
@@ -7190,6 +7221,7 @@
             "share_of_subsequent_stations_captured": 0.645225
           },
           {
+            "capacity_kw_basis": "RETROSPECTIVELY RECONSTRUCTED capacity, NOT known installation-time capacity. Non-overlapping generic service capacity (\u00a77.1.1) resolved from the CURRENT AFDC snapshot and attributed to each station's open date. A station later upgraded in power, or given more ports, carries its present power rather than the power it had when it opened, because the snapshot records no history (G10, G11). Stations that closed or left the feed are absent entirely. The bias runs toward OVERSTATING the capacity of older deployments and grows with age, the same direction and cause as the survivorship bias on the station count.",
             "cells_in_decile_cumulative": 10151,
             "decile": 0.2,
             "share_of_subsequent_capacity_kw_captured": 0.558799,
@@ -7198,6 +7230,7 @@
             "share_of_subsequent_stations_captured": 0.704437
           },
           {
+            "capacity_kw_basis": "RETROSPECTIVELY RECONSTRUCTED capacity, NOT known installation-time capacity. Non-overlapping generic service capacity (\u00a77.1.1) resolved from the CURRENT AFDC snapshot and attributed to each station's open date. A station later upgraded in power, or given more ports, carries its present power rather than the power it had when it opened, because the snapshot records no history (G10, G11). Stations that closed or left the feed are absent entirely. The bias runs toward OVERSTATING the capacity of older deployments and grows with age, the same direction and cause as the survivorship bias on the station count.",
             "cells_in_decile_cumulative": 15227,
             "decile": 0.3,
             "share_of_subsequent_capacity_kw_captured": 0.595362,
@@ -7206,6 +7239,7 @@
             "share_of_subsequent_stations_captured": 0.732696
           },
           {
+            "capacity_kw_basis": "RETROSPECTIVELY RECONSTRUCTED capacity, NOT known installation-time capacity. Non-overlapping generic service capacity (\u00a77.1.1) resolved from the CURRENT AFDC snapshot and attributed to each station's open date. A station later upgraded in power, or given more ports, carries its present power rather than the power it had when it opened, because the snapshot records no history (G10, G11). Stations that closed or left the feed are absent entirely. The bias runs toward OVERSTATING the capacity of older deployments and grows with age, the same direction and cause as the survivorship bias on the station count.",
             "cells_in_decile_cumulative": 20302,
             "decile": 0.4,
             "share_of_subsequent_capacity_kw_captured": 0.619646,
@@ -7214,6 +7248,7 @@
             "share_of_subsequent_stations_captured": 0.748914
           },
           {
+            "capacity_kw_basis": "RETROSPECTIVELY RECONSTRUCTED capacity, NOT known installation-time capacity. Non-overlapping generic service capacity (\u00a77.1.1) resolved from the CURRENT AFDC snapshot and attributed to each station's open date. A station later upgraded in power, or given more ports, carries its present power rather than the power it had when it opened, because the snapshot records no history (G10, G11). Stations that closed or left the feed are absent entirely. The bias runs toward OVERSTATING the capacity of older deployments and grows with age, the same direction and cause as the survivorship bias on the station count.",
             "cells_in_decile_cumulative": 25378,
             "decile": 0.5,
             "share_of_subsequent_capacity_kw_captured": 0.643344,
@@ -7222,6 +7257,7 @@
             "share_of_subsequent_stations_captured": 0.763373
           },
           {
+            "capacity_kw_basis": "RETROSPECTIVELY RECONSTRUCTED capacity, NOT known installation-time capacity. Non-overlapping generic service capacity (\u00a77.1.1) resolved from the CURRENT AFDC snapshot and attributed to each station's open date. A station later upgraded in power, or given more ports, carries its present power rather than the power it had when it opened, because the snapshot records no history (G10, G11). Stations that closed or left the feed are absent entirely. The bias runs toward OVERSTATING the capacity of older deployments and grows with age, the same direction and cause as the survivorship bias on the station count.",
             "cells_in_decile_cumulative": 30454,
             "decile": 0.6,
             "share_of_subsequent_capacity_kw_captured": 0.666948,
@@ -7230,6 +7266,7 @@
             "share_of_subsequent_stations_captured": 0.782341
           },
           {
+            "capacity_kw_basis": "RETROSPECTIVELY RECONSTRUCTED capacity, NOT known installation-time capacity. Non-overlapping generic service capacity (\u00a77.1.1) resolved from the CURRENT AFDC snapshot and attributed to each station's open date. A station later upgraded in power, or given more ports, carries its present power rather than the power it had when it opened, because the snapshot records no history (G10, G11). Stations that closed or left the feed are absent entirely. The bias runs toward OVERSTATING the capacity of older deployments and grows with age, the same direction and cause as the survivorship bias on the station count.",
             "cells_in_decile_cumulative": 35529,
             "decile": 0.7,
             "share_of_subsequent_capacity_kw_captured": 0.743289,
@@ -7238,6 +7275,7 @@
             "share_of_subsequent_stations_captured": 0.828248
           },
           {
+            "capacity_kw_basis": "RETROSPECTIVELY RECONSTRUCTED capacity, NOT known installation-time capacity. Non-overlapping generic service capacity (\u00a77.1.1) resolved from the CURRENT AFDC snapshot and attributed to each station's open date. A station later upgraded in power, or given more ports, carries its present power rather than the power it had when it opened, because the snapshot records no history (G10, G11). Stations that closed or left the feed are absent entirely. The bias runs toward OVERSTATING the capacity of older deployments and grows with age, the same direction and cause as the survivorship bias on the station count.",
             "cells_in_decile_cumulative": 40605,
             "decile": 0.8,
             "share_of_subsequent_capacity_kw_captured": 0.826497,
@@ -7246,6 +7284,7 @@
             "share_of_subsequent_stations_captured": 0.886415
           },
           {
+            "capacity_kw_basis": "RETROSPECTIVELY RECONSTRUCTED capacity, NOT known installation-time capacity. Non-overlapping generic service capacity (\u00a77.1.1) resolved from the CURRENT AFDC snapshot and attributed to each station's open date. A station later upgraded in power, or given more ports, carries its present power rather than the power it had when it opened, because the snapshot records no history (G10, G11). Stations that closed or left the feed are absent entirely. The bias runs toward OVERSTATING the capacity of older deployments and grows with age, the same direction and cause as the survivorship bias on the station count.",
             "cells_in_decile_cumulative": 45680,
             "decile": 0.9,
             "share_of_subsequent_capacity_kw_captured": 0.884901,
@@ -7254,6 +7293,7 @@
             "share_of_subsequent_stations_captured": 0.927814
           },
           {
+            "capacity_kw_basis": "RETROSPECTIVELY RECONSTRUCTED capacity, NOT known installation-time capacity. Non-overlapping generic service capacity (\u00a77.1.1) resolved from the CURRENT AFDC snapshot and attributed to each station's open date. A station later upgraded in power, or given more ports, carries its present power rather than the power it had when it opened, because the snapshot records no history (G10, G11). Stations that closed or left the feed are absent entirely. The bias runs toward OVERSTATING the capacity of older deployments and grows with age, the same direction and cause as the survivorship bias on the station count.",
             "cells_in_decile_cumulative": 50756,
             "decile": 1.0,
             "share_of_subsequent_capacity_kw_captured": 0.924482,
@@ -7281,6 +7321,7 @@
       },
       "reconstruction_confidence": "lowest - five to six years of station churn is invisible in a current snapshot, so the reconstructed pre-cutoff network is the most survivorship-biased of the three",
       "subsequent_deployment_capacity_kw": 2471662.6,
+      "subsequent_deployment_capacity_kw_basis": "RETROSPECTIVELY RECONSTRUCTED capacity, NOT known installation-time capacity. Non-overlapping generic service capacity (\u00a77.1.1) resolved from the CURRENT AFDC snapshot and attributed to each station's open date. A station later upgraded in power, or given more ports, carries its present power rather than the power it had when it opened, because the snapshot records no history (G10, G11). Stations that closed or left the feed are absent entirely. The bias runs toward OVERSTATING the capacity of older deployments and grows with age, the same direction and cause as the survivorship bias on the station count.",
       "subsequent_deployment_dcfc_ports": 9633.0,
       "subsequent_deployment_ports": 46220.0,
       "subsequent_deployments_available": 18189,
@@ -7331,6 +7372,7 @@
           "cells_ranked": 50756,
           "gain_curve": [
             {
+              "capacity_kw_basis": "RETROSPECTIVELY RECONSTRUCTED capacity, NOT known installation-time capacity. Non-overlapping generic service capacity (\u00a77.1.1) resolved from the CURRENT AFDC snapshot and attributed to each station's open date. A station later upgraded in power, or given more ports, carries its present power rather than the power it had when it opened, because the snapshot records no history (G10, G11). Stations that closed or left the feed are absent entirely. The bias runs toward OVERSTATING the capacity of older deployments and grows with age, the same direction and cause as the survivorship bias on the station count.",
               "cells_in_decile_cumulative": 5076,
               "decile": 0.1,
               "share_of_subsequent_capacity_kw_captured": 0.093811,
@@ -7339,6 +7381,7 @@
               "share_of_subsequent_stations_captured": 0.097273
             },
             {
+              "capacity_kw_basis": "RETROSPECTIVELY RECONSTRUCTED capacity, NOT known installation-time capacity. Non-overlapping generic service capacity (\u00a77.1.1) resolved from the CURRENT AFDC snapshot and attributed to each station's open date. A station later upgraded in power, or given more ports, carries its present power rather than the power it had when it opened, because the snapshot records no history (G10, G11). Stations that closed or left the feed are absent entirely. The bias runs toward OVERSTATING the capacity of older deployments and grows with age, the same direction and cause as the survivorship bias on the station count.",
               "cells_in_decile_cumulative": 10151,
               "decile": 0.2,
               "share_of_subsequent_capacity_kw_captured": 0.186043,
@@ -7347,6 +7390,7 @@
               "share_of_subsequent_stations_captured": 0.194999
             },
             {
+              "capacity_kw_basis": "RETROSPECTIVELY RECONSTRUCTED capacity, NOT known installation-time capacity. Non-overlapping generic service capacity (\u00a77.1.1) resolved from the CURRENT AFDC snapshot and attributed to each station's open date. A station later upgraded in power, or given more ports, carries its present power rather than the power it had when it opened, because the snapshot records no history (G10, G11). Stations that closed or left the feed are absent entirely. The bias runs toward OVERSTATING the capacity of older deployments and grows with age, the same direction and cause as the survivorship bias on the station count.",
               "cells_in_decile_cumulative": 15227,
               "decile": 0.3,
               "share_of_subsequent_capacity_kw_captured": 0.279013,
@@ -7355,6 +7399,7 @@
               "share_of_subsequent_stations_captured": 0.292643
             },
             {
+              "capacity_kw_basis": "RETROSPECTIVELY RECONSTRUCTED capacity, NOT known installation-time capacity. Non-overlapping generic service capacity (\u00a77.1.1) resolved from the CURRENT AFDC snapshot and attributed to each station's open date. A station later upgraded in power, or given more ports, carries its present power rather than the power it had when it opened, because the snapshot records no history (G10, G11). Stations that closed or left the feed are absent entirely. The bias runs toward OVERSTATING the capacity of older deployments and grows with age, the same direction and cause as the survivorship bias on the station count.",
               "cells_in_decile_cumulative": 20302,
               "decile": 0.4,
               "share_of_subsequent_capacity_kw_captured": 0.373368,
@@ -7363,6 +7408,7 @@
               "share_of_subsequent_stations_captured": 0.389268
             },
             {
+              "capacity_kw_basis": "RETROSPECTIVELY RECONSTRUCTED capacity, NOT known installation-time capacity. Non-overlapping generic service capacity (\u00a77.1.1) resolved from the CURRENT AFDC snapshot and attributed to each station's open date. A station later upgraded in power, or given more ports, carries its present power rather than the power it had when it opened, because the snapshot records no history (G10, G11). Stations that closed or left the feed are absent entirely. The bias runs toward OVERSTATING the capacity of older deployments and grows with age, the same direction and cause as the survivorship bias on the station count.",
               "cells_in_decile_cumulative": 25378,
               "decile": 0.5,
               "share_of_subsequent_capacity_kw_captured": 0.466631,
@@ -7371,6 +7417,7 @@
               "share_of_subsequent_stations_captured": 0.485414
             },
             {
+              "capacity_kw_basis": "RETROSPECTIVELY RECONSTRUCTED capacity, NOT known installation-time capacity. Non-overlapping generic service capacity (\u00a77.1.1) resolved from the CURRENT AFDC snapshot and attributed to each station's open date. A station later upgraded in power, or given more ports, carries its present power rather than the power it had when it opened, because the snapshot records no history (G10, G11). Stations that closed or left the feed are absent entirely. The bias runs toward OVERSTATING the capacity of older deployments and grows with age, the same direction and cause as the survivorship bias on the station count.",
               "cells_in_decile_cumulative": 30454,
               "decile": 0.6,
               "share_of_subsequent_capacity_kw_captured": 0.559614,
@@ -7379,6 +7426,7 @@
               "share_of_subsequent_stations_captured": 0.583734
             },
             {
+              "capacity_kw_basis": "RETROSPECTIVELY RECONSTRUCTED capacity, NOT known installation-time capacity. Non-overlapping generic service capacity (\u00a77.1.1) resolved from the CURRENT AFDC snapshot and attributed to each station's open date. A station later upgraded in power, or given more ports, carries its present power rather than the power it had when it opened, because the snapshot records no history (G10, G11). Stations that closed or left the feed are absent entirely. The bias runs toward OVERSTATING the capacity of older deployments and grows with age, the same direction and cause as the survivorship bias on the station count.",
               "cells_in_decile_cumulative": 35529,
               "decile": 0.7,
               "share_of_subsequent_capacity_kw_captured": 0.651257,
@@ -7387,6 +7435,7 @@
               "share_of_subsequent_stations_captured": 0.679496
             },
             {
+              "capacity_kw_basis": "RETROSPECTIVELY RECONSTRUCTED capacity, NOT known installation-time capacity. Non-overlapping generic service capacity (\u00a77.1.1) resolved from the CURRENT AFDC snapshot and attributed to each station's open date. A station later upgraded in power, or given more ports, carries its present power rather than the power it had when it opened, because the snapshot records no history (G10, G11). Stations that closed or left the feed are absent entirely. The bias runs toward OVERSTATING the capacity of older deployments and grows with age, the same direction and cause as the survivorship bias on the station count.",
               "cells_in_decile_cumulative": 40605,
               "decile": 0.8,
               "share_of_subsequent_capacity_kw_captured": 0.744517,
@@ -7395,6 +7444,7 @@
               "share_of_subsequent_stations_captured": 0.777098
             },
             {
+              "capacity_kw_basis": "RETROSPECTIVELY RECONSTRUCTED capacity, NOT known installation-time capacity. Non-overlapping generic service capacity (\u00a77.1.1) resolved from the CURRENT AFDC snapshot and attributed to each station's open date. A station later upgraded in power, or given more ports, carries its present power rather than the power it had when it opened, because the snapshot records no history (G10, G11). Stations that closed or left the feed are absent entirely. The bias runs toward OVERSTATING the capacity of older deployments and grows with age, the same direction and cause as the survivorship bias on the station count.",
               "cells_in_decile_cumulative": 45680,
               "decile": 0.9,
               "share_of_subsequent_capacity_kw_captured": 0.838606,
@@ -7403,6 +7453,7 @@
               "share_of_subsequent_stations_captured": 0.874862
             },
             {
+              "capacity_kw_basis": "RETROSPECTIVELY RECONSTRUCTED capacity, NOT known installation-time capacity. Non-overlapping generic service capacity (\u00a77.1.1) resolved from the CURRENT AFDC snapshot and attributed to each station's open date. A station later upgraded in power, or given more ports, carries its present power rather than the power it had when it opened, because the snapshot records no history (G10, G11). Stations that closed or left the feed are absent entirely. The bias runs toward OVERSTATING the capacity of older deployments and grows with age, the same direction and cause as the survivorship bias on the station count.",
               "cells_in_decile_cumulative": 50756,
               "decile": 1.0,
               "share_of_subsequent_capacity_kw_captured": 0.931331,
@@ -7420,6 +7471,7 @@
           "cells_ranked": 50756,
           "gain_curve": [
             {
+              "capacity_kw_basis": "RETROSPECTIVELY RECONSTRUCTED capacity, NOT known installation-time capacity. Non-overlapping generic service capacity (\u00a77.1.1) resolved from the CURRENT AFDC snapshot and attributed to each station's open date. A station later upgraded in power, or given more ports, carries its present power rather than the power it had when it opened, because the snapshot records no history (G10, G11). Stations that closed or left the feed are absent entirely. The bias runs toward OVERSTATING the capacity of older deployments and grows with age, the same direction and cause as the survivorship bias on the station count.",
               "cells_in_decile_cumulative": 5076,
               "decile": 0.1,
               "share_of_subsequent_capacity_kw_captured": 0.623476,
@@ -7428,6 +7480,7 @@
               "share_of_subsequent_stations_captured": 0.755368
             },
             {
+              "capacity_kw_basis": "RETROSPECTIVELY RECONSTRUCTED capacity, NOT known installation-time capacity. Non-overlapping generic service capacity (\u00a77.1.1) resolved from the CURRENT AFDC snapshot and attributed to each station's open date. A station later upgraded in power, or given more ports, carries its present power rather than the power it had when it opened, because the snapshot records no history (G10, G11). Stations that closed or left the feed are absent entirely. The bias runs toward OVERSTATING the capacity of older deployments and grows with age, the same direction and cause as the survivorship bias on the station count.",
               "cells_in_decile_cumulative": 10151,
               "decile": 0.2,
               "share_of_subsequent_capacity_kw_captured": 0.775675,
@@ -7436,6 +7489,7 @@
               "share_of_subsequent_stations_captured": 0.870669
             },
             {
+              "capacity_kw_basis": "RETROSPECTIVELY RECONSTRUCTED capacity, NOT known installation-time capacity. Non-overlapping generic service capacity (\u00a77.1.1) resolved from the CURRENT AFDC snapshot and attributed to each station's open date. A station later upgraded in power, or given more ports, carries its present power rather than the power it had when it opened, because the snapshot records no history (G10, G11). Stations that closed or left the feed are absent entirely. The bias runs toward OVERSTATING the capacity of older deployments and grows with age, the same direction and cause as the survivorship bias on the station count.",
               "cells_in_decile_cumulative": 15227,
               "decile": 0.3,
               "share_of_subsequent_capacity_kw_captured": 0.839512,
@@ -7444,6 +7498,7 @@
               "share_of_subsequent_stations_captured": 0.912712
             },
             {
+              "capacity_kw_basis": "RETROSPECTIVELY RECONSTRUCTED capacity, NOT known installation-time capacity. Non-overlapping generic service capacity (\u00a77.1.1) resolved from the CURRENT AFDC snapshot and attributed to each station's open date. A station later upgraded in power, or given more ports, carries its present power rather than the power it had when it opened, because the snapshot records no history (G10, G11). Stations that closed or left the feed are absent entirely. The bias runs toward OVERSTATING the capacity of older deployments and grows with age, the same direction and cause as the survivorship bias on the station count.",
               "cells_in_decile_cumulative": 20302,
               "decile": 0.4,
               "share_of_subsequent_capacity_kw_captured": 0.874833,
@@ -7452,6 +7507,7 @@
               "share_of_subsequent_stations_captured": 0.931523
             },
             {
+              "capacity_kw_basis": "RETROSPECTIVELY RECONSTRUCTED capacity, NOT known installation-time capacity. Non-overlapping generic service capacity (\u00a77.1.1) resolved from the CURRENT AFDC snapshot and attributed to each station's open date. A station later upgraded in power, or given more ports, carries its present power rather than the power it had when it opened, because the snapshot records no history (G10, G11). Stations that closed or left the feed are absent entirely. The bias runs toward OVERSTATING the capacity of older deployments and grows with age, the same direction and cause as the survivorship bias on the station count.",
               "cells_in_decile_cumulative": 25378,
               "decile": 0.5,
               "share_of_subsequent_capacity_kw_captured": 0.891735,
@@ -7460,6 +7516,7 @@
               "share_of_subsequent_stations_captured": 0.942936
             },
             {
+              "capacity_kw_basis": "RETROSPECTIVELY RECONSTRUCTED capacity, NOT known installation-time capacity. Non-overlapping generic service capacity (\u00a77.1.1) resolved from the CURRENT AFDC snapshot and attributed to each station's open date. A station later upgraded in power, or given more ports, carries its present power rather than the power it had when it opened, because the snapshot records no history (G10, G11). Stations that closed or left the feed are absent entirely. The bias runs toward OVERSTATING the capacity of older deployments and grows with age, the same direction and cause as the survivorship bias on the station count.",
               "cells_in_decile_cumulative": 30454,
               "decile": 0.6,
               "share_of_subsequent_capacity_kw_captured": 0.908344,
@@ -7468,6 +7525,7 @@
               "share_of_subsequent_stations_captured": 0.951101
             },
             {
+              "capacity_kw_basis": "RETROSPECTIVELY RECONSTRUCTED capacity, NOT known installation-time capacity. Non-overlapping generic service capacity (\u00a77.1.1) resolved from the CURRENT AFDC snapshot and attributed to each station's open date. A station later upgraded in power, or given more ports, carries its present power rather than the power it had when it opened, because the snapshot records no history (G10, G11). Stations that closed or left the feed are absent entirely. The bias runs toward OVERSTATING the capacity of older deployments and grows with age, the same direction and cause as the survivorship bias on the station count.",
               "cells_in_decile_cumulative": 35529,
               "decile": 0.7,
               "share_of_subsequent_capacity_kw_captured": 0.91558,
@@ -7476,6 +7534,7 @@
               "share_of_subsequent_stations_captured": 0.956739
             },
             {
+              "capacity_kw_basis": "RETROSPECTIVELY RECONSTRUCTED capacity, NOT known installation-time capacity. Non-overlapping generic service capacity (\u00a77.1.1) resolved from the CURRENT AFDC snapshot and attributed to each station's open date. A station later upgraded in power, or given more ports, carries its present power rather than the power it had when it opened, because the snapshot records no history (G10, G11). Stations that closed or left the feed are absent entirely. The bias runs toward OVERSTATING the capacity of older deployments and grows with age, the same direction and cause as the survivorship bias on the station count.",
               "cells_in_decile_cumulative": 40605,
               "decile": 0.8,
               "share_of_subsequent_capacity_kw_captured": 0.918348,
@@ -7484,6 +7543,7 @@
               "share_of_subsequent_stations_captured": 0.962288
             },
             {
+              "capacity_kw_basis": "RETROSPECTIVELY RECONSTRUCTED capacity, NOT known installation-time capacity. Non-overlapping generic service capacity (\u00a77.1.1) resolved from the CURRENT AFDC snapshot and attributed to each station's open date. A station later upgraded in power, or given more ports, carries its present power rather than the power it had when it opened, because the snapshot records no history (G10, G11). Stations that closed or left the feed are absent entirely. The bias runs toward OVERSTATING the capacity of older deployments and grows with age, the same direction and cause as the survivorship bias on the station count.",
               "cells_in_decile_cumulative": 45680,
               "decile": 0.9,
               "share_of_subsequent_capacity_kw_captured": 0.925528,
@@ -7492,6 +7552,7 @@
               "share_of_subsequent_stations_captured": 0.967431
             },
             {
+              "capacity_kw_basis": "RETROSPECTIVELY RECONSTRUCTED capacity, NOT known installation-time capacity. Non-overlapping generic service capacity (\u00a77.1.1) resolved from the CURRENT AFDC snapshot and attributed to each station's open date. A station later upgraded in power, or given more ports, carries its present power rather than the power it had when it opened, because the snapshot records no history (G10, G11). Stations that closed or left the feed are absent entirely. The bias runs toward OVERSTATING the capacity of older deployments and grows with age, the same direction and cause as the survivorship bias on the station count.",
               "cells_in_decile_cumulative": 50756,
               "decile": 1.0,
               "share_of_subsequent_capacity_kw_captured": 0.931331,
@@ -7509,6 +7570,7 @@
           "cells_ranked": 50756,
           "gain_curve": [
             {
+              "capacity_kw_basis": "RETROSPECTIVELY RECONSTRUCTED capacity, NOT known installation-time capacity. Non-overlapping generic service capacity (\u00a77.1.1) resolved from the CURRENT AFDC snapshot and attributed to each station's open date. A station later upgraded in power, or given more ports, carries its present power rather than the power it had when it opened, because the snapshot records no history (G10, G11). Stations that closed or left the feed are absent entirely. The bias runs toward OVERSTATING the capacity of older deployments and grows with age, the same direction and cause as the survivorship bias on the station count.",
               "cells_in_decile_cumulative": 5076,
               "decile": 0.1,
               "share_of_subsequent_capacity_kw_captured": 0.379537,
@@ -7517,6 +7579,7 @@
               "share_of_subsequent_stations_captured": 0.469415
             },
             {
+              "capacity_kw_basis": "RETROSPECTIVELY RECONSTRUCTED capacity, NOT known installation-time capacity. Non-overlapping generic service capacity (\u00a77.1.1) resolved from the CURRENT AFDC snapshot and attributed to each station's open date. A station later upgraded in power, or given more ports, carries its present power rather than the power it had when it opened, because the snapshot records no history (G10, G11). Stations that closed or left the feed are absent entirely. The bias runs toward OVERSTATING the capacity of older deployments and grows with age, the same direction and cause as the survivorship bias on the station count.",
               "cells_in_decile_cumulative": 10151,
               "decile": 0.2,
               "share_of_subsequent_capacity_kw_captured": 0.407907,
@@ -7525,6 +7588,7 @@
               "share_of_subsequent_stations_captured": 0.513037
             },
             {
+              "capacity_kw_basis": "RETROSPECTIVELY RECONSTRUCTED capacity, NOT known installation-time capacity. Non-overlapping generic service capacity (\u00a77.1.1) resolved from the CURRENT AFDC snapshot and attributed to each station's open date. A station later upgraded in power, or given more ports, carries its present power rather than the power it had when it opened, because the snapshot records no history (G10, G11). Stations that closed or left the feed are absent entirely. The bias runs toward OVERSTATING the capacity of older deployments and grows with age, the same direction and cause as the survivorship bias on the station count.",
               "cells_in_decile_cumulative": 15227,
               "decile": 0.3,
               "share_of_subsequent_capacity_kw_captured": 0.456845,
@@ -7533,6 +7597,7 @@
               "share_of_subsequent_stations_captured": 0.557696
             },
             {
+              "capacity_kw_basis": "RETROSPECTIVELY RECONSTRUCTED capacity, NOT known installation-time capacity. Non-overlapping generic service capacity (\u00a77.1.1) resolved from the CURRENT AFDC snapshot and attributed to each station's open date. A station later upgraded in power, or given more ports, carries its present power rather than the power it had when it opened, because the snapshot records no history (G10, G11). Stations that closed or left the feed are absent entirely. The bias runs toward OVERSTATING the capacity of older deployments and grows with age, the same direction and cause as the survivorship bias on the station count.",
               "cells_in_decile_cumulative": 20302,
               "decile": 0.4,
               "share_of_subsequent_capacity_kw_captured": 0.501362,
@@ -7541,6 +7606,7 @@
               "share_of_subsequent_stations_captured": 0.601001
             },
             {
+              "capacity_kw_basis": "RETROSPECTIVELY RECONSTRUCTED capacity, NOT known installation-time capacity. Non-overlapping generic service capacity (\u00a77.1.1) resolved from the CURRENT AFDC snapshot and attributed to each station's open date. A station later upgraded in power, or given more ports, carries its present power rather than the power it had when it opened, because the snapshot records no history (G10, G11). Stations that closed or left the feed are absent entirely. The bias runs toward OVERSTATING the capacity of older deployments and grows with age, the same direction and cause as the survivorship bias on the station count.",
               "cells_in_decile_cumulative": 25378,
               "decile": 0.5,
               "share_of_subsequent_capacity_kw_captured": 0.659153,
@@ -7549,6 +7615,7 @@
               "share_of_subsequent_stations_captured": 0.74797
             },
             {
+              "capacity_kw_basis": "RETROSPECTIVELY RECONSTRUCTED capacity, NOT known installation-time capacity. Non-overlapping generic service capacity (\u00a77.1.1) resolved from the CURRENT AFDC snapshot and attributed to each station's open date. A station later upgraded in power, or given more ports, carries its present power rather than the power it had when it opened, because the snapshot records no history (G10, G11). Stations that closed or left the feed are absent entirely. The bias runs toward OVERSTATING the capacity of older deployments and grows with age, the same direction and cause as the survivorship bias on the station count.",
               "cells_in_decile_cumulative": 30454,
               "decile": 0.6,
               "share_of_subsequent_capacity_kw_captured": 0.703054,
@@ -7557,6 +7624,7 @@
               "share_of_subsequent_stations_captured": 0.80314
             },
             {
+              "capacity_kw_basis": "RETROSPECTIVELY RECONSTRUCTED capacity, NOT known installation-time capacity. Non-overlapping generic service capacity (\u00a77.1.1) resolved from the CURRENT AFDC snapshot and attributed to each station's open date. A station later upgraded in power, or given more ports, carries its present power rather than the power it had when it opened, because the snapshot records no history (G10, G11). Stations that closed or left the feed are absent entirely. The bias runs toward OVERSTATING the capacity of older deployments and grows with age, the same direction and cause as the survivorship bias on the station count.",
               "cells_in_decile_cumulative": 35529,
               "decile": 0.7,
               "share_of_subsequent_capacity_kw_captured": 0.751518,
@@ -7565,6 +7633,7 @@
               "share_of_subsequent_stations_captured": 0.844957
             },
             {
+              "capacity_kw_basis": "RETROSPECTIVELY RECONSTRUCTED capacity, NOT known installation-time capacity. Non-overlapping generic service capacity (\u00a77.1.1) resolved from the CURRENT AFDC snapshot and attributed to each station's open date. A station later upgraded in power, or given more ports, carries its present power rather than the power it had when it opened, because the snapshot records no history (G10, G11). Stations that closed or left the feed are absent entirely. The bias runs toward OVERSTATING the capacity of older deployments and grows with age, the same direction and cause as the survivorship bias on the station count.",
               "cells_in_decile_cumulative": 40605,
               "decile": 0.8,
               "share_of_subsequent_capacity_kw_captured": 0.794614,
@@ -7573,6 +7642,7 @@
               "share_of_subsequent_stations_captured": 0.893134
             },
             {
+              "capacity_kw_basis": "RETROSPECTIVELY RECONSTRUCTED capacity, NOT known installation-time capacity. Non-overlapping generic service capacity (\u00a77.1.1) resolved from the CURRENT AFDC snapshot and attributed to each station's open date. A station later upgraded in power, or given more ports, carries its present power rather than the power it had when it opened, because the snapshot records no history (G10, G11). Stations that closed or left the feed are absent entirely. The bias runs toward OVERSTATING the capacity of older deployments and grows with age, the same direction and cause as the survivorship bias on the station count.",
               "cells_in_decile_cumulative": 45680,
               "decile": 0.9,
               "share_of_subsequent_capacity_kw_captured": 0.875205,
@@ -7581,6 +7651,7 @@
               "share_of_subsequent_stations_captured": 0.938064
             },
             {
+              "capacity_kw_basis": "RETROSPECTIVELY RECONSTRUCTED capacity, NOT known installation-time capacity. Non-overlapping generic service capacity (\u00a77.1.1) resolved from the CURRENT AFDC snapshot and attributed to each station's open date. A station later upgraded in power, or given more ports, carries its present power rather than the power it had when it opened, because the snapshot records no history (G10, G11). Stations that closed or left the feed are absent entirely. The bias runs toward OVERSTATING the capacity of older deployments and grows with age, the same direction and cause as the survivorship bias on the station count.",
               "cells_in_decile_cumulative": 50756,
               "decile": 1.0,
               "share_of_subsequent_capacity_kw_captured": 0.931331,
@@ -7616,6 +7687,7 @@
         "cells_ranked": 50756,
         "gain_curve": [
           {
+            "capacity_kw_basis": "RETROSPECTIVELY RECONSTRUCTED capacity, NOT known installation-time capacity. Non-overlapping generic service capacity (\u00a77.1.1) resolved from the CURRENT AFDC snapshot and attributed to each station's open date. A station later upgraded in power, or given more ports, carries its present power rather than the power it had when it opened, because the snapshot records no history (G10, G11). Stations that closed or left the feed are absent entirely. The bias runs toward OVERSTATING the capacity of older deployments and grows with age, the same direction and cause as the survivorship bias on the station count.",
             "cells_in_decile_cumulative": 5076,
             "decile": 0.1,
             "share_of_subsequent_capacity_kw_captured": 0.484161,
@@ -7624,6 +7696,7 @@
             "share_of_subsequent_stations_captured": 0.621572
           },
           {
+            "capacity_kw_basis": "RETROSPECTIVELY RECONSTRUCTED capacity, NOT known installation-time capacity. Non-overlapping generic service capacity (\u00a77.1.1) resolved from the CURRENT AFDC snapshot and attributed to each station's open date. A station later upgraded in power, or given more ports, carries its present power rather than the power it had when it opened, because the snapshot records no history (G10, G11). Stations that closed or left the feed are absent entirely. The bias runs toward OVERSTATING the capacity of older deployments and grows with age, the same direction and cause as the survivorship bias on the station count.",
             "cells_in_decile_cumulative": 10151,
             "decile": 0.2,
             "share_of_subsequent_capacity_kw_captured": 0.589935,
@@ -7632,6 +7705,7 @@
             "share_of_subsequent_stations_captured": 0.708273
           },
           {
+            "capacity_kw_basis": "RETROSPECTIVELY RECONSTRUCTED capacity, NOT known installation-time capacity. Non-overlapping generic service capacity (\u00a77.1.1) resolved from the CURRENT AFDC snapshot and attributed to each station's open date. A station later upgraded in power, or given more ports, carries its present power rather than the power it had when it opened, because the snapshot records no history (G10, G11). Stations that closed or left the feed are absent entirely. The bias runs toward OVERSTATING the capacity of older deployments and grows with age, the same direction and cause as the survivorship bias on the station count.",
             "cells_in_decile_cumulative": 15227,
             "decile": 0.3,
             "share_of_subsequent_capacity_kw_captured": 0.645541,
@@ -7640,6 +7714,7 @@
             "share_of_subsequent_stations_captured": 0.744722
           },
           {
+            "capacity_kw_basis": "RETROSPECTIVELY RECONSTRUCTED capacity, NOT known installation-time capacity. Non-overlapping generic service capacity (\u00a77.1.1) resolved from the CURRENT AFDC snapshot and attributed to each station's open date. A station later upgraded in power, or given more ports, carries its present power rather than the power it had when it opened, because the snapshot records no history (G10, G11). Stations that closed or left the feed are absent entirely. The bias runs toward OVERSTATING the capacity of older deployments and grows with age, the same direction and cause as the survivorship bias on the station count.",
             "cells_in_decile_cumulative": 20302,
             "decile": 0.4,
             "share_of_subsequent_capacity_kw_captured": 0.677117,
@@ -7648,6 +7723,7 @@
             "share_of_subsequent_stations_captured": 0.766149
           },
           {
+            "capacity_kw_basis": "RETROSPECTIVELY RECONSTRUCTED capacity, NOT known installation-time capacity. Non-overlapping generic service capacity (\u00a77.1.1) resolved from the CURRENT AFDC snapshot and attributed to each station's open date. A station later upgraded in power, or given more ports, carries its present power rather than the power it had when it opened, because the snapshot records no history (G10, G11). Stations that closed or left the feed are absent entirely. The bias runs toward OVERSTATING the capacity of older deployments and grows with age, the same direction and cause as the survivorship bias on the station count.",
             "cells_in_decile_cumulative": 25378,
             "decile": 0.5,
             "share_of_subsequent_capacity_kw_captured": 0.702048,
@@ -7656,6 +7732,7 @@
             "share_of_subsequent_stations_captured": 0.786674
           },
           {
+            "capacity_kw_basis": "RETROSPECTIVELY RECONSTRUCTED capacity, NOT known installation-time capacity. Non-overlapping generic service capacity (\u00a77.1.1) resolved from the CURRENT AFDC snapshot and attributed to each station's open date. A station later upgraded in power, or given more ports, carries its present power rather than the power it had when it opened, because the snapshot records no history (G10, G11). Stations that closed or left the feed are absent entirely. The bias runs toward OVERSTATING the capacity of older deployments and grows with age, the same direction and cause as the survivorship bias on the station count.",
             "cells_in_decile_cumulative": 30454,
             "decile": 0.6,
             "share_of_subsequent_capacity_kw_captured": 0.734848,
@@ -7664,6 +7741,7 @@
             "share_of_subsequent_stations_captured": 0.810087
           },
           {
+            "capacity_kw_basis": "RETROSPECTIVELY RECONSTRUCTED capacity, NOT known installation-time capacity. Non-overlapping generic service capacity (\u00a77.1.1) resolved from the CURRENT AFDC snapshot and attributed to each station's open date. A station later upgraded in power, or given more ports, carries its present power rather than the power it had when it opened, because the snapshot records no history (G10, G11). Stations that closed or left the feed are absent entirely. The bias runs toward OVERSTATING the capacity of older deployments and grows with age, the same direction and cause as the survivorship bias on the station count.",
             "cells_in_decile_cumulative": 35529,
             "decile": 0.7,
             "share_of_subsequent_capacity_kw_captured": 0.77417,
@@ -7672,6 +7750,7 @@
             "share_of_subsequent_stations_captured": 0.833995
           },
           {
+            "capacity_kw_basis": "RETROSPECTIVELY RECONSTRUCTED capacity, NOT known installation-time capacity. Non-overlapping generic service capacity (\u00a77.1.1) resolved from the CURRENT AFDC snapshot and attributed to each station's open date. A station later upgraded in power, or given more ports, carries its present power rather than the power it had when it opened, because the snapshot records no history (G10, G11). Stations that closed or left the feed are absent entirely. The bias runs toward OVERSTATING the capacity of older deployments and grows with age, the same direction and cause as the survivorship bias on the station count.",
             "cells_in_decile_cumulative": 40605,
             "decile": 0.8,
             "share_of_subsequent_capacity_kw_captured": 0.847586,
@@ -7680,6 +7759,7 @@
             "share_of_subsequent_stations_captured": 0.886142
           },
           {
+            "capacity_kw_basis": "RETROSPECTIVELY RECONSTRUCTED capacity, NOT known installation-time capacity. Non-overlapping generic service capacity (\u00a77.1.1) resolved from the CURRENT AFDC snapshot and attributed to each station's open date. A station later upgraded in power, or given more ports, carries its present power rather than the power it had when it opened, because the snapshot records no history (G10, G11). Stations that closed or left the feed are absent entirely. The bias runs toward OVERSTATING the capacity of older deployments and grows with age, the same direction and cause as the survivorship bias on the station count.",
             "cells_in_decile_cumulative": 45680,
             "decile": 0.9,
             "share_of_subsequent_capacity_kw_captured": 0.911169,
@@ -7688,6 +7768,7 @@
             "share_of_subsequent_stations_captured": 0.934771
           },
           {
+            "capacity_kw_basis": "RETROSPECTIVELY RECONSTRUCTED capacity, NOT known installation-time capacity. Non-overlapping generic service capacity (\u00a77.1.1) resolved from the CURRENT AFDC snapshot and attributed to each station's open date. A station later upgraded in power, or given more ports, carries its present power rather than the power it had when it opened, because the snapshot records no history (G10, G11). Stations that closed or left the feed are absent entirely. The bias runs toward OVERSTATING the capacity of older deployments and grows with age, the same direction and cause as the survivorship bias on the station count.",
             "cells_in_decile_cumulative": 50756,
             "decile": 1.0,
             "share_of_subsequent_capacity_kw_captured": 0.931331,
@@ -7715,6 +7796,7 @@
       },
       "reconstruction_confidence": "middle",
       "subsequent_deployment_capacity_kw": 3142231.2,
+      "subsequent_deployment_capacity_kw_basis": "RETROSPECTIVELY RECONSTRUCTED capacity, NOT known installation-time capacity. Non-overlapping generic service capacity (\u00a77.1.1) resolved from the CURRENT AFDC snapshot and attributed to each station's open date. A station later upgraded in power, or given more ports, carries its present power rather than the power it had when it opened, because the snapshot records no history (G10, G11). Stations that closed or left the feed are absent entirely. The bias runs toward OVERSTATING the capacity of older deployments and grows with age, the same direction and cause as the survivorship bias on the station count.",
       "subsequent_deployment_dcfc_ports": 12015.0,
       "subsequent_deployment_ports": 58962.0,
       "subsequent_deployments_available": 22168,
@@ -7765,6 +7847,7 @@
           "cells_ranked": 50756,
           "gain_curve": [
             {
+              "capacity_kw_basis": "RETROSPECTIVELY RECONSTRUCTED capacity, NOT known installation-time capacity. Non-overlapping generic service capacity (\u00a77.1.1) resolved from the CURRENT AFDC snapshot and attributed to each station's open date. A station later upgraded in power, or given more ports, carries its present power rather than the power it had when it opened, because the snapshot records no history (G10, G11). Stations that closed or left the feed are absent entirely. The bias runs toward OVERSTATING the capacity of older deployments and grows with age, the same direction and cause as the survivorship bias on the station count.",
               "cells_in_decile_cumulative": 5076,
               "decile": 0.1,
               "share_of_subsequent_capacity_kw_captured": 0.094146,
@@ -7773,6 +7856,7 @@
               "share_of_subsequent_stations_captured": 0.096926
             },
             {
+              "capacity_kw_basis": "RETROSPECTIVELY RECONSTRUCTED capacity, NOT known installation-time capacity. Non-overlapping generic service capacity (\u00a77.1.1) resolved from the CURRENT AFDC snapshot and attributed to each station's open date. A station later upgraded in power, or given more ports, carries its present power rather than the power it had when it opened, because the snapshot records no history (G10, G11). Stations that closed or left the feed are absent entirely. The bias runs toward OVERSTATING the capacity of older deployments and grows with age, the same direction and cause as the survivorship bias on the station count.",
               "cells_in_decile_cumulative": 10151,
               "decile": 0.2,
               "share_of_subsequent_capacity_kw_captured": 0.188371,
@@ -7781,6 +7865,7 @@
               "share_of_subsequent_stations_captured": 0.19295
             },
             {
+              "capacity_kw_basis": "RETROSPECTIVELY RECONSTRUCTED capacity, NOT known installation-time capacity. Non-overlapping generic service capacity (\u00a77.1.1) resolved from the CURRENT AFDC snapshot and attributed to each station's open date. A station later upgraded in power, or given more ports, carries its present power rather than the power it had when it opened, because the snapshot records no history (G10, G11). Stations that closed or left the feed are absent entirely. The bias runs toward OVERSTATING the capacity of older deployments and grows with age, the same direction and cause as the survivorship bias on the station count.",
               "cells_in_decile_cumulative": 15227,
               "decile": 0.3,
               "share_of_subsequent_capacity_kw_captured": 0.282794,
@@ -7789,6 +7874,7 @@
               "share_of_subsequent_stations_captured": 0.290521
             },
             {
+              "capacity_kw_basis": "RETROSPECTIVELY RECONSTRUCTED capacity, NOT known installation-time capacity. Non-overlapping generic service capacity (\u00a77.1.1) resolved from the CURRENT AFDC snapshot and attributed to each station's open date. A station later upgraded in power, or given more ports, carries its present power rather than the power it had when it opened, because the snapshot records no history (G10, G11). Stations that closed or left the feed are absent entirely. The bias runs toward OVERSTATING the capacity of older deployments and grows with age, the same direction and cause as the survivorship bias on the station count.",
               "cells_in_decile_cumulative": 20302,
               "decile": 0.4,
               "share_of_subsequent_capacity_kw_captured": 0.377427,
@@ -7797,6 +7883,7 @@
               "share_of_subsequent_stations_captured": 0.387623
             },
             {
+              "capacity_kw_basis": "RETROSPECTIVELY RECONSTRUCTED capacity, NOT known installation-time capacity. Non-overlapping generic service capacity (\u00a77.1.1) resolved from the CURRENT AFDC snapshot and attributed to each station's open date. A station later upgraded in power, or given more ports, carries its present power rather than the power it had when it opened, because the snapshot records no history (G10, G11). Stations that closed or left the feed are absent entirely. The bias runs toward OVERSTATING the capacity of older deployments and grows with age, the same direction and cause as the survivorship bias on the station count.",
               "cells_in_decile_cumulative": 25378,
               "decile": 0.5,
               "share_of_subsequent_capacity_kw_captured": 0.471729,
@@ -7805,6 +7892,7 @@
               "share_of_subsequent_stations_captured": 0.485119
             },
             {
+              "capacity_kw_basis": "RETROSPECTIVELY RECONSTRUCTED capacity, NOT known installation-time capacity. Non-overlapping generic service capacity (\u00a77.1.1) resolved from the CURRENT AFDC snapshot and attributed to each station's open date. A station later upgraded in power, or given more ports, carries its present power rather than the power it had when it opened, because the snapshot records no history (G10, G11). Stations that closed or left the feed are absent entirely. The bias runs toward OVERSTATING the capacity of older deployments and grows with age, the same direction and cause as the survivorship bias on the station count.",
               "cells_in_decile_cumulative": 30454,
               "decile": 0.6,
               "share_of_subsequent_capacity_kw_captured": 0.565269,
@@ -7813,6 +7901,7 @@
               "share_of_subsequent_stations_captured": 0.581178
             },
             {
+              "capacity_kw_basis": "RETROSPECTIVELY RECONSTRUCTED capacity, NOT known installation-time capacity. Non-overlapping generic service capacity (\u00a77.1.1) resolved from the CURRENT AFDC snapshot and attributed to each station's open date. A station later upgraded in power, or given more ports, carries its present power rather than the power it had when it opened, because the snapshot records no history (G10, G11). Stations that closed or left the feed are absent entirely. The bias runs toward OVERSTATING the capacity of older deployments and grows with age, the same direction and cause as the survivorship bias on the station count.",
               "cells_in_decile_cumulative": 35529,
               "decile": 0.7,
               "share_of_subsequent_capacity_kw_captured": 0.659503,
@@ -7821,6 +7910,7 @@
               "share_of_subsequent_stations_captured": 0.677657
             },
             {
+              "capacity_kw_basis": "RETROSPECTIVELY RECONSTRUCTED capacity, NOT known installation-time capacity. Non-overlapping generic service capacity (\u00a77.1.1) resolved from the CURRENT AFDC snapshot and attributed to each station's open date. A station later upgraded in power, or given more ports, carries its present power rather than the power it had when it opened, because the snapshot records no history (G10, G11). Stations that closed or left the feed are absent entirely. The bias runs toward OVERSTATING the capacity of older deployments and grows with age, the same direction and cause as the survivorship bias on the station count.",
               "cells_in_decile_cumulative": 40605,
               "decile": 0.8,
               "share_of_subsequent_capacity_kw_captured": 0.753646,
@@ -7829,6 +7919,7 @@
               "share_of_subsequent_stations_captured": 0.7745
             },
             {
+              "capacity_kw_basis": "RETROSPECTIVELY RECONSTRUCTED capacity, NOT known installation-time capacity. Non-overlapping generic service capacity (\u00a77.1.1) resolved from the CURRENT AFDC snapshot and attributed to each station's open date. A station later upgraded in power, or given more ports, carries its present power rather than the power it had when it opened, because the snapshot records no history (G10, G11). Stations that closed or left the feed are absent entirely. The bias runs toward OVERSTATING the capacity of older deployments and grows with age, the same direction and cause as the survivorship bias on the station count.",
               "cells_in_decile_cumulative": 45680,
               "decile": 0.9,
               "share_of_subsequent_capacity_kw_captured": 0.84879,
@@ -7837,6 +7928,7 @@
               "share_of_subsequent_stations_captured": 0.871388
             },
             {
+              "capacity_kw_basis": "RETROSPECTIVELY RECONSTRUCTED capacity, NOT known installation-time capacity. Non-overlapping generic service capacity (\u00a77.1.1) resolved from the CURRENT AFDC snapshot and attributed to each station's open date. A station later upgraded in power, or given more ports, carries its present power rather than the power it had when it opened, because the snapshot records no history (G10, G11). Stations that closed or left the feed are absent entirely. The bias runs toward OVERSTATING the capacity of older deployments and grows with age, the same direction and cause as the survivorship bias on the station count.",
               "cells_in_decile_cumulative": 50756,
               "decile": 1.0,
               "share_of_subsequent_capacity_kw_captured": 0.944323,
@@ -7854,6 +7946,7 @@
           "cells_ranked": 50756,
           "gain_curve": [
             {
+              "capacity_kw_basis": "RETROSPECTIVELY RECONSTRUCTED capacity, NOT known installation-time capacity. Non-overlapping generic service capacity (\u00a77.1.1) resolved from the CURRENT AFDC snapshot and attributed to each station's open date. A station later upgraded in power, or given more ports, carries its present power rather than the power it had when it opened, because the snapshot records no history (G10, G11). Stations that closed or left the feed are absent entirely. The bias runs toward OVERSTATING the capacity of older deployments and grows with age, the same direction and cause as the survivorship bias on the station count.",
               "cells_in_decile_cumulative": 5076,
               "decile": 0.1,
               "share_of_subsequent_capacity_kw_captured": 0.614881,
@@ -7862,6 +7955,7 @@
               "share_of_subsequent_stations_captured": 0.706326
             },
             {
+              "capacity_kw_basis": "RETROSPECTIVELY RECONSTRUCTED capacity, NOT known installation-time capacity. Non-overlapping generic service capacity (\u00a77.1.1) resolved from the CURRENT AFDC snapshot and attributed to each station's open date. A station later upgraded in power, or given more ports, carries its present power rather than the power it had when it opened, because the snapshot records no history (G10, G11). Stations that closed or left the feed are absent entirely. The bias runs toward OVERSTATING the capacity of older deployments and grows with age, the same direction and cause as the survivorship bias on the station count.",
               "cells_in_decile_cumulative": 10151,
               "decile": 0.2,
               "share_of_subsequent_capacity_kw_captured": 0.776186,
@@ -7870,6 +7964,7 @@
               "share_of_subsequent_stations_captured": 0.846296
             },
             {
+              "capacity_kw_basis": "RETROSPECTIVELY RECONSTRUCTED capacity, NOT known installation-time capacity. Non-overlapping generic service capacity (\u00a77.1.1) resolved from the CURRENT AFDC snapshot and attributed to each station's open date. A station later upgraded in power, or given more ports, carries its present power rather than the power it had when it opened, because the snapshot records no history (G10, G11). Stations that closed or left the feed are absent entirely. The bias runs toward OVERSTATING the capacity of older deployments and grows with age, the same direction and cause as the survivorship bias on the station count.",
               "cells_in_decile_cumulative": 15227,
               "decile": 0.3,
               "share_of_subsequent_capacity_kw_captured": 0.841119,
@@ -7878,6 +7973,7 @@
               "share_of_subsequent_stations_captured": 0.898846
             },
             {
+              "capacity_kw_basis": "RETROSPECTIVELY RECONSTRUCTED capacity, NOT known installation-time capacity. Non-overlapping generic service capacity (\u00a77.1.1) resolved from the CURRENT AFDC snapshot and attributed to each station's open date. A station later upgraded in power, or given more ports, carries its present power rather than the power it had when it opened, because the snapshot records no history (G10, G11). Stations that closed or left the feed are absent entirely. The bias runs toward OVERSTATING the capacity of older deployments and grows with age, the same direction and cause as the survivorship bias on the station count.",
               "cells_in_decile_cumulative": 20302,
               "decile": 0.4,
               "share_of_subsequent_capacity_kw_captured": 0.875443,
@@ -7886,6 +7982,7 @@
               "share_of_subsequent_stations_captured": 0.921882
             },
             {
+              "capacity_kw_basis": "RETROSPECTIVELY RECONSTRUCTED capacity, NOT known installation-time capacity. Non-overlapping generic service capacity (\u00a77.1.1) resolved from the CURRENT AFDC snapshot and attributed to each station's open date. A station later upgraded in power, or given more ports, carries its present power rather than the power it had when it opened, because the snapshot records no history (G10, G11). Stations that closed or left the feed are absent entirely. The bias runs toward OVERSTATING the capacity of older deployments and grows with age, the same direction and cause as the survivorship bias on the station count.",
               "cells_in_decile_cumulative": 25378,
               "decile": 0.5,
               "share_of_subsequent_capacity_kw_captured": 0.897776,
@@ -7894,6 +7991,7 @@
               "share_of_subsequent_stations_captured": 0.935957
             },
             {
+              "capacity_kw_basis": "RETROSPECTIVELY RECONSTRUCTED capacity, NOT known installation-time capacity. Non-overlapping generic service capacity (\u00a77.1.1) resolved from the CURRENT AFDC snapshot and attributed to each station's open date. A station later upgraded in power, or given more ports, carries its present power rather than the power it had when it opened, because the snapshot records no history (G10, G11). Stations that closed or left the feed are absent entirely. The bias runs toward OVERSTATING the capacity of older deployments and grows with age, the same direction and cause as the survivorship bias on the station count.",
               "cells_in_decile_cumulative": 30454,
               "decile": 0.6,
               "share_of_subsequent_capacity_kw_captured": 0.911794,
@@ -7902,6 +8000,7 @@
               "share_of_subsequent_stations_captured": 0.945015
             },
             {
+              "capacity_kw_basis": "RETROSPECTIVELY RECONSTRUCTED capacity, NOT known installation-time capacity. Non-overlapping generic service capacity (\u00a77.1.1) resolved from the CURRENT AFDC snapshot and attributed to each station's open date. A station later upgraded in power, or given more ports, carries its present power rather than the power it had when it opened, because the snapshot records no history (G10, G11). Stations that closed or left the feed are absent entirely. The bias runs toward OVERSTATING the capacity of older deployments and grows with age, the same direction and cause as the survivorship bias on the station count.",
               "cells_in_decile_cumulative": 35529,
               "decile": 0.7,
               "share_of_subsequent_capacity_kw_captured": 0.921102,
@@ -7910,6 +8009,7 @@
               "share_of_subsequent_stations_captured": 0.952418
             },
             {
+              "capacity_kw_basis": "RETROSPECTIVELY RECONSTRUCTED capacity, NOT known installation-time capacity. Non-overlapping generic service capacity (\u00a77.1.1) resolved from the CURRENT AFDC snapshot and attributed to each station's open date. A station later upgraded in power, or given more ports, carries its present power rather than the power it had when it opened, because the snapshot records no history (G10, G11). Stations that closed or left the feed are absent entirely. The bias runs toward OVERSTATING the capacity of older deployments and grows with age, the same direction and cause as the survivorship bias on the station count.",
               "cells_in_decile_cumulative": 40605,
               "decile": 0.8,
               "share_of_subsequent_capacity_kw_captured": 0.926236,
@@ -7918,6 +8018,7 @@
               "share_of_subsequent_stations_captured": 0.957921
             },
             {
+              "capacity_kw_basis": "RETROSPECTIVELY RECONSTRUCTED capacity, NOT known installation-time capacity. Non-overlapping generic service capacity (\u00a77.1.1) resolved from the CURRENT AFDC snapshot and attributed to each station's open date. A station later upgraded in power, or given more ports, carries its present power rather than the power it had when it opened, because the snapshot records no history (G10, G11). Stations that closed or left the feed are absent entirely. The bias runs toward OVERSTATING the capacity of older deployments and grows with age, the same direction and cause as the survivorship bias on the station count.",
               "cells_in_decile_cumulative": 45680,
               "decile": 0.9,
               "share_of_subsequent_capacity_kw_captured": 0.939565,
@@ -7926,6 +8027,7 @@
               "share_of_subsequent_stations_captured": 0.962938
             },
             {
+              "capacity_kw_basis": "RETROSPECTIVELY RECONSTRUCTED capacity, NOT known installation-time capacity. Non-overlapping generic service capacity (\u00a77.1.1) resolved from the CURRENT AFDC snapshot and attributed to each station's open date. A station later upgraded in power, or given more ports, carries its present power rather than the power it had when it opened, because the snapshot records no history (G10, G11). Stations that closed or left the feed are absent entirely. The bias runs toward OVERSTATING the capacity of older deployments and grows with age, the same direction and cause as the survivorship bias on the station count.",
               "cells_in_decile_cumulative": 50756,
               "decile": 1.0,
               "share_of_subsequent_capacity_kw_captured": 0.944323,
@@ -7943,6 +8045,7 @@
           "cells_ranked": 50756,
           "gain_curve": [
             {
+              "capacity_kw_basis": "RETROSPECTIVELY RECONSTRUCTED capacity, NOT known installation-time capacity. Non-overlapping generic service capacity (\u00a77.1.1) resolved from the CURRENT AFDC snapshot and attributed to each station's open date. A station later upgraded in power, or given more ports, carries its present power rather than the power it had when it opened, because the snapshot records no history (G10, G11). Stations that closed or left the feed are absent entirely. The bias runs toward OVERSTATING the capacity of older deployments and grows with age, the same direction and cause as the survivorship bias on the station count.",
               "cells_in_decile_cumulative": 5076,
               "decile": 0.1,
               "share_of_subsequent_capacity_kw_captured": 0.414904,
@@ -7951,6 +8054,7 @@
               "share_of_subsequent_stations_captured": 0.447231
             },
             {
+              "capacity_kw_basis": "RETROSPECTIVELY RECONSTRUCTED capacity, NOT known installation-time capacity. Non-overlapping generic service capacity (\u00a77.1.1) resolved from the CURRENT AFDC snapshot and attributed to each station's open date. A station later upgraded in power, or given more ports, carries its present power rather than the power it had when it opened, because the snapshot records no history (G10, G11). Stations that closed or left the feed are absent entirely. The bias runs toward OVERSTATING the capacity of older deployments and grows with age, the same direction and cause as the survivorship bias on the station count.",
               "cells_in_decile_cumulative": 10151,
               "decile": 0.2,
               "share_of_subsequent_capacity_kw_captured": 0.445221,
@@ -7959,6 +8063,7 @@
               "share_of_subsequent_stations_captured": 0.482443
             },
             {
+              "capacity_kw_basis": "RETROSPECTIVELY RECONSTRUCTED capacity, NOT known installation-time capacity. Non-overlapping generic service capacity (\u00a77.1.1) resolved from the CURRENT AFDC snapshot and attributed to each station's open date. A station later upgraded in power, or given more ports, carries its present power rather than the power it had when it opened, because the snapshot records no history (G10, G11). Stations that closed or left the feed are absent entirely. The bias runs toward OVERSTATING the capacity of older deployments and grows with age, the same direction and cause as the survivorship bias on the station count.",
               "cells_in_decile_cumulative": 15227,
               "decile": 0.3,
               "share_of_subsequent_capacity_kw_captured": 0.49313,
@@ -7967,6 +8072,7 @@
               "share_of_subsequent_stations_captured": 0.528905
             },
             {
+              "capacity_kw_basis": "RETROSPECTIVELY RECONSTRUCTED capacity, NOT known installation-time capacity. Non-overlapping generic service capacity (\u00a77.1.1) resolved from the CURRENT AFDC snapshot and attributed to each station's open date. A station later upgraded in power, or given more ports, carries its present power rather than the power it had when it opened, because the snapshot records no history (G10, G11). Stations that closed or left the feed are absent entirely. The bias runs toward OVERSTATING the capacity of older deployments and grows with age, the same direction and cause as the survivorship bias on the station count.",
               "cells_in_decile_cumulative": 20302,
               "decile": 0.4,
               "share_of_subsequent_capacity_kw_captured": 0.534189,
@@ -7975,6 +8081,7 @@
               "share_of_subsequent_stations_captured": 0.564019
             },
             {
+              "capacity_kw_basis": "RETROSPECTIVELY RECONSTRUCTED capacity, NOT known installation-time capacity. Non-overlapping generic service capacity (\u00a77.1.1) resolved from the CURRENT AFDC snapshot and attributed to each station's open date. A station later upgraded in power, or given more ports, carries its present power rather than the power it had when it opened, because the snapshot records no history (G10, G11). Stations that closed or left the feed are absent entirely. The bias runs toward OVERSTATING the capacity of older deployments and grows with age, the same direction and cause as the survivorship bias on the station count.",
               "cells_in_decile_cumulative": 25378,
               "decile": 0.5,
               "share_of_subsequent_capacity_kw_captured": 0.674433,
@@ -7983,6 +8090,7 @@
               "share_of_subsequent_stations_captured": 0.702089
             },
             {
+              "capacity_kw_basis": "RETROSPECTIVELY RECONSTRUCTED capacity, NOT known installation-time capacity. Non-overlapping generic service capacity (\u00a77.1.1) resolved from the CURRENT AFDC snapshot and attributed to each station's open date. A station later upgraded in power, or given more ports, carries its present power rather than the power it had when it opened, because the snapshot records no history (G10, G11). Stations that closed or left the feed are absent entirely. The bias runs toward OVERSTATING the capacity of older deployments and grows with age, the same direction and cause as the survivorship bias on the station count.",
               "cells_in_decile_cumulative": 30454,
               "decile": 0.6,
               "share_of_subsequent_capacity_kw_captured": 0.7225,
@@ -7991,6 +8099,7 @@
               "share_of_subsequent_stations_captured": 0.776555
             },
             {
+              "capacity_kw_basis": "RETROSPECTIVELY RECONSTRUCTED capacity, NOT known installation-time capacity. Non-overlapping generic service capacity (\u00a77.1.1) resolved from the CURRENT AFDC snapshot and attributed to each station's open date. A station later upgraded in power, or given more ports, carries its present power rather than the power it had when it opened, because the snapshot records no history (G10, G11). Stations that closed or left the feed are absent entirely. The bias runs toward OVERSTATING the capacity of older deployments and grows with age, the same direction and cause as the survivorship bias on the station count.",
               "cells_in_decile_cumulative": 35529,
               "decile": 0.7,
               "share_of_subsequent_capacity_kw_captured": 0.773488,
@@ -7999,6 +8108,7 @@
               "share_of_subsequent_stations_captured": 0.823845
             },
             {
+              "capacity_kw_basis": "RETROSPECTIVELY RECONSTRUCTED capacity, NOT known installation-time capacity. Non-overlapping generic service capacity (\u00a77.1.1) resolved from the CURRENT AFDC snapshot and attributed to each station's open date. A station later upgraded in power, or given more ports, carries its present power rather than the power it had when it opened, because the snapshot records no history (G10, G11). Stations that closed or left the feed are absent entirely. The bias runs toward OVERSTATING the capacity of older deployments and grows with age, the same direction and cause as the survivorship bias on the station count.",
               "cells_in_decile_cumulative": 40605,
               "decile": 0.8,
               "share_of_subsequent_capacity_kw_captured": 0.815056,
@@ -8007,6 +8117,7 @@
               "share_of_subsequent_stations_captured": 0.879608
             },
             {
+              "capacity_kw_basis": "RETROSPECTIVELY RECONSTRUCTED capacity, NOT known installation-time capacity. Non-overlapping generic service capacity (\u00a77.1.1) resolved from the CURRENT AFDC snapshot and attributed to each station's open date. A station later upgraded in power, or given more ports, carries its present power rather than the power it had when it opened, because the snapshot records no history (G10, G11). Stations that closed or left the feed are absent entirely. The bias runs toward OVERSTATING the capacity of older deployments and grows with age, the same direction and cause as the survivorship bias on the station count.",
               "cells_in_decile_cumulative": 45680,
               "decile": 0.9,
               "share_of_subsequent_capacity_kw_captured": 0.882973,
@@ -8015,6 +8126,7 @@
               "share_of_subsequent_stations_captured": 0.929479
             },
             {
+              "capacity_kw_basis": "RETROSPECTIVELY RECONSTRUCTED capacity, NOT known installation-time capacity. Non-overlapping generic service capacity (\u00a77.1.1) resolved from the CURRENT AFDC snapshot and attributed to each station's open date. A station later upgraded in power, or given more ports, carries its present power rather than the power it had when it opened, because the snapshot records no history (G10, G11). Stations that closed or left the feed are absent entirely. The bias runs toward OVERSTATING the capacity of older deployments and grows with age, the same direction and cause as the survivorship bias on the station count.",
               "cells_in_decile_cumulative": 50756,
               "decile": 1.0,
               "share_of_subsequent_capacity_kw_captured": 0.944323,
@@ -8050,6 +8162,7 @@
         "cells_ranked": 50756,
         "gain_curve": [
           {
+            "capacity_kw_basis": "RETROSPECTIVELY RECONSTRUCTED capacity, NOT known installation-time capacity. Non-overlapping generic service capacity (\u00a77.1.1) resolved from the CURRENT AFDC snapshot and attributed to each station's open date. A station later upgraded in power, or given more ports, carries its present power rather than the power it had when it opened, because the snapshot records no history (G10, G11). Stations that closed or left the feed are absent entirely. The bias runs toward OVERSTATING the capacity of older deployments and grows with age, the same direction and cause as the survivorship bias on the station count.",
             "cells_in_decile_cumulative": 5076,
             "decile": 0.1,
             "share_of_subsequent_capacity_kw_captured": 0.494402,
@@ -8058,6 +8171,7 @@
             "share_of_subsequent_stations_captured": 0.571276
           },
           {
+            "capacity_kw_basis": "RETROSPECTIVELY RECONSTRUCTED capacity, NOT known installation-time capacity. Non-overlapping generic service capacity (\u00a77.1.1) resolved from the CURRENT AFDC snapshot and attributed to each station's open date. A station later upgraded in power, or given more ports, carries its present power rather than the power it had when it opened, because the snapshot records no history (G10, G11). Stations that closed or left the feed are absent entirely. The bias runs toward OVERSTATING the capacity of older deployments and grows with age, the same direction and cause as the survivorship bias on the station count.",
             "cells_in_decile_cumulative": 10151,
             "decile": 0.2,
             "share_of_subsequent_capacity_kw_captured": 0.609576,
@@ -8066,6 +8180,7 @@
             "share_of_subsequent_stations_captured": 0.67579
           },
           {
+            "capacity_kw_basis": "RETROSPECTIVELY RECONSTRUCTED capacity, NOT known installation-time capacity. Non-overlapping generic service capacity (\u00a77.1.1) resolved from the CURRENT AFDC snapshot and attributed to each station's open date. A station later upgraded in power, or given more ports, carries its present power rather than the power it had when it opened, because the snapshot records no history (G10, G11). Stations that closed or left the feed are absent entirely. The bias runs toward OVERSTATING the capacity of older deployments and grows with age, the same direction and cause as the survivorship bias on the station count.",
             "cells_in_decile_cumulative": 15227,
             "decile": 0.3,
             "share_of_subsequent_capacity_kw_captured": 0.664017,
@@ -8074,6 +8189,7 @@
             "share_of_subsequent_stations_captured": 0.718843
           },
           {
+            "capacity_kw_basis": "RETROSPECTIVELY RECONSTRUCTED capacity, NOT known installation-time capacity. Non-overlapping generic service capacity (\u00a77.1.1) resolved from the CURRENT AFDC snapshot and attributed to each station's open date. A station later upgraded in power, or given more ports, carries its present power rather than the power it had when it opened, because the snapshot records no history (G10, G11). Stations that closed or left the feed are absent entirely. The bias runs toward OVERSTATING the capacity of older deployments and grows with age, the same direction and cause as the survivorship bias on the station count.",
             "cells_in_decile_cumulative": 20302,
             "decile": 0.4,
             "share_of_subsequent_capacity_kw_captured": 0.71237,
@@ -8082,6 +8198,7 @@
             "share_of_subsequent_stations_captured": 0.755954
           },
           {
+            "capacity_kw_basis": "RETROSPECTIVELY RECONSTRUCTED capacity, NOT known installation-time capacity. Non-overlapping generic service capacity (\u00a77.1.1) resolved from the CURRENT AFDC snapshot and attributed to each station's open date. A station later upgraded in power, or given more ports, carries its present power rather than the power it had when it opened, because the snapshot records no history (G10, G11). Stations that closed or left the feed are absent entirely. The bias runs toward OVERSTATING the capacity of older deployments and grows with age, the same direction and cause as the survivorship bias on the station count.",
             "cells_in_decile_cumulative": 25378,
             "decile": 0.5,
             "share_of_subsequent_capacity_kw_captured": 0.751798,
@@ -8090,6 +8207,7 @@
             "share_of_subsequent_stations_captured": 0.782643
           },
           {
+            "capacity_kw_basis": "RETROSPECTIVELY RECONSTRUCTED capacity, NOT known installation-time capacity. Non-overlapping generic service capacity (\u00a77.1.1) resolved from the CURRENT AFDC snapshot and attributed to each station's open date. A station later upgraded in power, or given more ports, carries its present power rather than the power it had when it opened, because the snapshot records no history (G10, G11). Stations that closed or left the feed are absent entirely. The bias runs toward OVERSTATING the capacity of older deployments and grows with age, the same direction and cause as the survivorship bias on the station count.",
             "cells_in_decile_cumulative": 30454,
             "decile": 0.6,
             "share_of_subsequent_capacity_kw_captured": 0.785785,
@@ -8098,6 +8216,7 @@
             "share_of_subsequent_stations_captured": 0.806312
           },
           {
+            "capacity_kw_basis": "RETROSPECTIVELY RECONSTRUCTED capacity, NOT known installation-time capacity. Non-overlapping generic service capacity (\u00a77.1.1) resolved from the CURRENT AFDC snapshot and attributed to each station's open date. A station later upgraded in power, or given more ports, carries its present power rather than the power it had when it opened, because the snapshot records no history (G10, G11). Stations that closed or left the feed are absent entirely. The bias runs toward OVERSTATING the capacity of older deployments and grows with age, the same direction and cause as the survivorship bias on the station count.",
             "cells_in_decile_cumulative": 35529,
             "decile": 0.7,
             "share_of_subsequent_capacity_kw_captured": 0.822744,
@@ -8106,6 +8225,7 @@
             "share_of_subsequent_stations_captured": 0.834559
           },
           {
+            "capacity_kw_basis": "RETROSPECTIVELY RECONSTRUCTED capacity, NOT known installation-time capacity. Non-overlapping generic service capacity (\u00a77.1.1) resolved from the CURRENT AFDC snapshot and attributed to each station's open date. A station later upgraded in power, or given more ports, carries its present power rather than the power it had when it opened, because the snapshot records no history (G10, G11). Stations that closed or left the feed are absent entirely. The bias runs toward OVERSTATING the capacity of older deployments and grows with age, the same direction and cause as the survivorship bias on the station count.",
             "cells_in_decile_cumulative": 40605,
             "decile": 0.8,
             "share_of_subsequent_capacity_kw_captured": 0.866029,
@@ -8114,6 +8234,7 @@
             "share_of_subsequent_stations_captured": 0.87844
           },
           {
+            "capacity_kw_basis": "RETROSPECTIVELY RECONSTRUCTED capacity, NOT known installation-time capacity. Non-overlapping generic service capacity (\u00a77.1.1) resolved from the CURRENT AFDC snapshot and attributed to each station's open date. A station later upgraded in power, or given more ports, carries its present power rather than the power it had when it opened, because the snapshot records no history (G10, G11). Stations that closed or left the feed are absent entirely. The bias runs toward OVERSTATING the capacity of older deployments and grows with age, the same direction and cause as the survivorship bias on the station count.",
             "cells_in_decile_cumulative": 45680,
             "decile": 0.9,
             "share_of_subsequent_capacity_kw_captured": 0.923352,
@@ -8122,6 +8243,7 @@
             "share_of_subsequent_stations_captured": 0.938684
           },
           {
+            "capacity_kw_basis": "RETROSPECTIVELY RECONSTRUCTED capacity, NOT known installation-time capacity. Non-overlapping generic service capacity (\u00a77.1.1) resolved from the CURRENT AFDC snapshot and attributed to each station's open date. A station later upgraded in power, or given more ports, carries its present power rather than the power it had when it opened, because the snapshot records no history (G10, G11). Stations that closed or left the feed are absent entirely. The bias runs toward OVERSTATING the capacity of older deployments and grows with age, the same direction and cause as the survivorship bias on the station count.",
             "cells_in_decile_cumulative": 50756,
             "decile": 1.0,
             "share_of_subsequent_capacity_kw_captured": 0.944323,
@@ -8149,6 +8271,7 @@
       },
       "reconstruction_confidence": "highest of the three, though still an approximate reconstruction",
       "subsequent_deployment_capacity_kw": 4370221.9,
+      "subsequent_deployment_capacity_kw_basis": "RETROSPECTIVELY RECONSTRUCTED capacity, NOT known installation-time capacity. Non-overlapping generic service capacity (\u00a77.1.1) resolved from the CURRENT AFDC snapshot and attributed to each station's open date. A station later upgraded in power, or given more ports, carries its present power rather than the power it had when it opened, because the snapshot records no history (G10, G11). Stations that closed or left the feed are absent entirely. The bias runs toward OVERSTATING the capacity of older deployments and grows with age, the same direction and cause as the survivorship bias on the station count.",
       "subsequent_deployment_dcfc_ports": 17622.0,
       "subsequent_deployment_ports": 63616.0,
       "subsequent_deployments_available": 20533,
@@ -8240,6 +8363,7 @@
   ],
   "phase": 5,
   "station_reconstruction": {
+    "capacity_kw_basis": "RETROSPECTIVELY RECONSTRUCTED capacity, NOT known installation-time capacity. Non-overlapping generic service capacity (\u00a77.1.1) resolved from the CURRENT AFDC snapshot and attributed to each station's open date. A station later upgraded in power, or given more ports, carries its present power rather than the power it had when it opened, because the snapshot records no history (G10, G11). Stations that closed or left the feed are absent entirely. The bias runs toward OVERSTATING the capacity of older deployments and grows with age, the same direction and cause as the survivorship bias on the station count.",
     "distinct_stations": 82056,
     "labelling": "APPROXIMATE RECONSTRUCTION. A current snapshot plus Open Date cannot recover stations that closed, left the feed, or changed port counts, so the historical network is survivorship-biased and the bias grows with age (G10, G11)",
     "no_coordinates": 0,

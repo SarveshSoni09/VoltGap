@@ -375,3 +375,24 @@ def test_p5_g_the_acs_2020_release_date_is_recorded_as_established(
     assert acs2020["released"] == "2022-03-17"
     assert acs2020["release_date_certain"] is True
     assert [p["acs_api_year"] for p in evidence["origin_plans"]] == [2018, 2019, 2019]
+
+
+def test_p5_g_capacity_is_labelled_retrospectively_reconstructed(
+    evidence: dict[str, Any],
+) -> None:
+    """G10/G11. Capacity is resolved from the CURRENT snapshot and attributed to each
+    station's open date, so a station later upgraded carries its present power rather
+    than the power it had when it opened. A reader must not take it for known
+    installation-time capacity, so the caveat travels with every capacity figure rather
+    than living in prose somewhere else."""
+    basis = evidence["station_reconstruction"]["capacity_kw_basis"]
+    assert "RETROSPECTIVELY RECONSTRUCTED" in basis
+    assert "NOT known installation-time capacity" in basis
+    assert "G10, G11" in basis
+    assert "OVERSTATING" in basis
+
+    for entry in evidence["deployment_alignment"]:
+        assert entry["subsequent_deployment_capacity_kw_basis"] == basis
+        for ranking in [entry["model"], *entry["baselines"]]:
+            for point in ranking["gain_curve"]:
+                assert point["capacity_kw_basis"] == basis, ranking["ranking"]

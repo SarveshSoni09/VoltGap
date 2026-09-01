@@ -615,10 +615,27 @@ New artifact fields: `subsequent_deployment_capacity_kw` per origin,
 | 2021 | 3,142,231 | 0.4842 | 0.6235 | 0.3795 | 0.0938 |
 | 2022 | 4,370,222 | 0.4944 | 0.6149 | 0.4149 | 0.0941 |
 
+**This is retrospectively reconstructed capacity, not known installation-time capacity.**
+The power values are read from the **current** AFDC snapshot and attributed to each station's
+open date. A station later upgraded — 50 kW to 350 kW, or ports added — carries its *present*
+power here, not the power it had when it opened, because the snapshot records no history
+(**G10**, **G11**). Stations that closed or left the feed are absent entirely. The bias runs
+toward **overstating** the capacity of older deployments and grows with age — the same
+direction and the same cause as the survivorship bias on the station count itself, so the 2020
+origin's capacity figures are the least trustworthy of the three. Every published capacity
+figure carries this basis string in the artifact.
+
+A `capacity_kw_basis` string carrying that statement is attached to every capacity figure in
+the artifact — the per-origin total, each ranking's top-decile capture, and every decile of
+every gain curve — so a reader of the JSON alone cannot mistake it for installed-at-the-time
+capacity. `test_p5_g_capacity_is_labelled_retrospectively_reconstructed` asserts it is present
+on all of them.
+
 **A finding this exposed:** the model captures materially less **capacity** than **station
 count** — 0.48–0.49 against 0.57–0.65. Its top decile skews toward cells that received many
 small stations rather than high-power sites. The ordering against the baselines is unchanged,
-and population still leads on capacity too.
+and population still leads on capacity too. Because the reconstruction overstates older
+capacity, this gap is a lower bound on the effect rather than a precise measure of it.
 
 ### C.4 Historical road-filter vintage — audited, no leakage
 
