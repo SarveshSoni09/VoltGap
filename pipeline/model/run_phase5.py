@@ -48,8 +48,8 @@ from pipeline.validation.backtest import KNOWN_EXCLUSIONS, build_historical_surf
 from pipeline.validation.deployment_alignment import (
     Deployment,
     OriginAlignment,
-    random_ranking,
     ranked_by,
+    score_random_baseline,
     score_ranking,
 )
 from pipeline.validation.origins import ORIGINS, OriginPlan, plan_origins
@@ -61,6 +61,51 @@ from pipeline.validation.robustness import evaluate as evaluate_robustness
 ALIGNMENT_BASELINES = ("random", "population", "existing_network")
 
 EVIDENCE = PATHS.root / "docs" / "evidence" / "P5-1_validation.json"
+
+
+def station_capacity_kw(rows: Sequence[Mapping[str, Any]]) -> dict[str, float]:
+    """Non-overlapping generic service capacity per station, in kW (§7.1.1).
+
+    Reuses Phase 2's power ladder and its capacity rule rather than restating them, so
+    the two cannot drift: connector powers resolve through reported -> empirical median
+    -> documented type default, and a unit's generic capacity is the MAXIMUM of its
+    mutually alternative connector outputs, never their sum. §10.2.4 requires capacity
+    captured alongside ports, because a station record is one network's presence at a
+    site and not a unit of capacity (G1).
+
+    A unit whose capacity the source cannot resolve contributes 0 rather than a guess.
+    """
+    from pipeline.model.build_supply_access import build_unit_capacities, resolve_all
+    from pipeline.model.supply import load_connectors
+
+    connectors = load_connectors()
+    observations: list[dict[str, Any]] = []
+    unit_station: dict[str, str] = {}
+    for row in rows:
+        key = str(row.get("charging_unit_record_key") or "")
+        unit_station[key] = str(row.get("station_id") or "")
+        for raw in connectors:
+            count = row.get(f"connector_{raw}_port_count")
+            if not count or int(float(count)) <= 0:
+                continue
+            observations.append({
+                "charging_unit_record_key": key,
+                "connector_type_raw": raw,
+                "connector_count": int(float(count)),
+                "power_kw": row.get(f"connector_{raw}_power_kw"),
+                "charging_level": str(row.get("unit_charging_level") or ""),
+                "network": str(row.get("unit_network") or ""),
+                "port_count": int(float(row.get("unit_port_count") or 0)),
+            })
+    resolved, _empirical, _tally = resolve_all(observations, connectors)
+    kept = [o for o in observations if int(o.get("connector_count", 0) or 0) > 0]
+    capacity: dict[str, float] = {}
+    for unit in build_unit_capacities(kept, resolved):
+        station = unit_station.get(unit.charging_unit_record_key, "")
+        if station and unit.generic_service_capacity_kw is not None:
+            capacity[station] = (capacity.get(station, 0.0)
+                                 + float(unit.generic_service_capacity_kw))
+    return capacity
 
 
 def parse_station(
@@ -106,6 +151,7 @@ def load_station_history(
     first appearance in the Station Locator rather than actual opening.
     """
     table = local_json_source("afdc_charging_units", STATIONS_SNAPSHOT).load()
+    capacity_by_station = station_capacity_kw(table.rows)
     stations: dict[str, dict[str, Any]] = {}
     counts = {"rows": 0, "not_operational": 0, "not_public": 0, "no_open_date": 0,
               "unparseable_open_date": 0, "no_coordinates": 0}
@@ -142,7 +188,8 @@ def load_station_history(
     deployments = [
         Deployment(station_id=sid, cell=cell, opened=opened,
                    ports=float(e["ports"]), dcfc_ports=float(e["dcfc"]),
-                   state=str(e["state"]))
+                   state=str(e["state"]),
+                   capacity_kw=capacity_by_station.get(sid, 0.0))
         for (sid, e, opened), cell in zip(usable, cells, strict=True)
     ]
     counts["stations_placed"] = len(deployments)
@@ -222,6 +269,7 @@ def align_origin(
     target_stations: dict[str, float] = {}
     target_ports: dict[str, float] = {}
     target_dcfc: dict[str, float] = {}
+    target_capacity: dict[str, float] = {}
     states_seen: set[str] = set()
     built = 0
     for d in deployments:
@@ -231,21 +279,48 @@ def align_origin(
         target_stations[d.cell] = target_stations.get(d.cell, 0.0) + 1.0
         target_ports[d.cell] = target_ports.get(d.cell, 0.0) + d.ports
         target_dcfc[d.cell] = target_dcfc.get(d.cell, 0.0) + d.dcfc_ports
+        target_capacity[d.cell] = target_capacity.get(d.cell, 0.0) + d.capacity_kw
         states_seen.add(d.state)
 
     # Only inhabited cells are rankable: an uninhabited cell is not a siting candidate
-    # under any model, and including them would inflate every ranking equally.
+    # under any model, and including them would inflate every ranking equally. EVERY
+    # ranking - model and baselines alike - is scored over exactly this support, so a
+    # deployment outside it is a miss for all of them rather than an exclusion for some.
     cells = sorted(c for c in demand_cells if population_cells.get(c, 0.0) >= 1.0)
+    eligible = set(cells)
+    total_stations = sum(target_stations.values()) or 1.0
+    support = {
+        "ranked_cells": len(cells),
+        "cells_with_demand": len(demand_cells),
+        "cells_dropped_as_uninhabited": len(demand_cells) - len(cells),
+        "share_of_subsequent_stations_inside_ranked_cells": round(
+            sum(v for c, v in target_stations.items() if c in eligible)
+            / total_stations, 6),
+        "share_of_subsequent_ports_inside_ranked_cells": round(
+            sum(v for c, v in target_ports.items() if c in eligible)
+            / (sum(target_ports.values()) or 1.0), 6),
+        "capture_denominator": (
+            "ALL subsequent deployments in the window, including any landing outside "
+            "the ranked cells. A deployment in an unranked cell is a miss for every "
+            "ranking, not an exclusion, so the full-ranking capture is below 1.0 by "
+            "exactly the share that fell outside."),
+        "top_decile_construction": (
+            "round(0.1 * len(ranked_cells)) cells taken from the head of the ranking; "
+            "ties broken by cell id so the order is deterministic."),
+        "baselines_share_this_support": True,
+    }
 
     model = score_ranking("model_cutoff_valid_demand", ranked_by(demand_cells, cells),
-                          target_stations, target_ports, target_dcfc)
+                          target_stations, target_ports, target_dcfc, target_capacity)
+    random_result, random_spread = score_random_baseline(
+        cells, target_stations, target_ports, target_dcfc, target_capacity,
+        seed=int(plan.origin.name))
     baselines = (
-        score_ranking("random", random_ranking(cells, int(plan.origin.name)),
-                      target_stations, target_ports, target_dcfc),
+        random_result,
         score_ranking("population", ranked_by(population_cells, cells),
-                      target_stations, target_ports, target_dcfc),
+                      target_stations, target_ports, target_dcfc, target_capacity),
         score_ranking("existing_network", ranked_by(prior_dcfc, cells),
-                      target_stations, target_ports, target_dcfc),
+                      target_stations, target_ports, target_dcfc, target_capacity),
     )
     return OriginAlignment(
         origin=plan.origin.name, cutoff=cutoff, window_end=window_end,
@@ -256,6 +331,9 @@ def align_origin(
         model=model, baselines=baselines,
         reconstruction_confidence=plan.origin.reconstruction_confidence,
         vintages={**plan.to_dict(), "surface": dict(surface_detail)},
+        eligible_support=support,
+        random_baseline_spread=random_spread.to_dict(),
+        deployment_capacity_kw=sum(target_capacity.values()),
     )
 
 

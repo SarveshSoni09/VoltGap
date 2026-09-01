@@ -151,3 +151,82 @@ def test_a_deployment_carries_its_date_cell_and_capacity() -> None:
     d = Deployment("42", "cell_00", date(2021, 6, 1), ports=4.0, dcfc_ports=2.0)
     assert d.opened.year == 2021
     assert d.ports == 4.0
+
+
+# --- the random baseline is a mean over draws, not one shuffle ------------------------
+
+def test_the_random_baseline_averages_many_draws() -> None:
+    """One permutation is unbiased but high-variance, because deployment counts are
+    heavily concentrated. At the 2020 origin the single-seed draw landed at percentile 0
+    of 400, which overstated the model's lift there."""
+    from pipeline.validation.deployment_alignment import score_random_baseline
+
+    weights = {c: float(i + 1) for i, c in enumerate(CELLS)}
+    result, spread = score_random_baseline(
+        CELLS, weights, weights, weights, weights, seed=2020, draws=50)
+    assert result.name == "random"
+    assert spread.draws == 50
+    assert spread.standard_deviation >= 0.0
+    assert spread.p5 <= spread.mean <= spread.p95
+    assert 0.0 <= spread.single_draw_percentile <= 1.0
+
+
+def test_the_averaged_baseline_is_close_to_the_expected_share() -> None:
+    """With enough draws the top-decile capture converges on 0.1 of what is reachable,
+    which is the property that made the single-draw 2020 figure look anomalous."""
+    from pipeline.validation.deployment_alignment import score_random_baseline
+
+    weights = dict.fromkeys(CELLS, 1.0)
+    result, _ = score_random_baseline(
+        CELLS, weights, weights, weights, weights, seed=1, draws=200)
+    assert result.gain[0].stations_captured == pytest.approx(0.1, abs=0.03)
+    assert result.gain[-1].stations_captured == pytest.approx(1.0)
+
+
+def test_the_averaged_baseline_is_reproducible() -> None:
+    from pipeline.validation.deployment_alignment import score_random_baseline
+
+    weights = {c: float(i + 1) for i, c in enumerate(CELLS)}
+    first, _ = score_random_baseline(CELLS, weights, weights, weights, weights, 7, 20)
+    second, _ = score_random_baseline(CELLS, weights, weights, weights, weights, 7, 20)
+    assert [p.stations_captured for p in first.gain] == [
+        p.stations_captured for p in second.gain]
+
+
+def test_the_spread_explains_why_a_mean_is_reported() -> None:
+    """Published so a reader can see the estimator's noise rather than infer precision
+    the single-draw number does not have."""
+    from pipeline.validation.deployment_alignment import score_random_baseline
+
+    weights = {c: float(i + 1) for i, c in enumerate(CELLS)}
+    _, spread = score_random_baseline(
+        CELLS, weights, weights, weights, weights, seed=3, draws=25)
+    payload = spread.to_dict()
+    assert payload["draws"] == 25
+    assert "not a theoretical" in str(payload["why_a_mean"])
+    assert "high-variance" in str(payload["why_a_mean"])
+
+
+# --- capacity captured, alongside ports (§10.2.4) -------------------------------------
+
+def test_capacity_is_scored_alongside_stations_and_ports() -> None:
+    """§10.2.4 requires capacity captured, not only station counts (G1). A ranking can
+    capture many small stations and little capacity."""
+    result = score_ranking(
+        "m", CELLS,
+        stations={"cell_00": 1.0, "cell_09": 1.0},
+        ports={"cell_00": 1.0, "cell_09": 1.0},
+        dcfc={"cell_00": 0.0, "cell_09": 1.0},
+        capacity_kw={"cell_00": 7.2, "cell_09": 350.0})
+    top = result.gain[0]
+    assert top.stations_captured == pytest.approx(0.5)
+    assert top.capacity_kw_captured == pytest.approx(7.2 / 357.2)
+    assert result.top_decile_capacity_kw == top.capacity_kw_captured
+    assert "share_of_subsequent_capacity_kw_captured" in top.to_dict()
+
+
+def test_a_ranking_scored_without_capacity_reports_zero_rather_than_failing() -> None:
+    """Older callers that pass no capacity map must not crash the gain curve."""
+    result = score_ranking("m", CELLS, {"cell_00": 1.0}, {"cell_00": 1.0},
+                           {"cell_00": 1.0})
+    assert result.top_decile_capacity_kw == 0.0

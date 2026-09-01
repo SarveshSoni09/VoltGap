@@ -788,6 +788,71 @@ A second test asserts every listed phrase actually trips a rule. It found **nine
 in the first draft** — phrases I had added defensively that no rule matched — which would have
 sat in the file reading like permitted claims. They were removed, leaving three.
 
+### I-23 — the random baseline was one draw, and 2020's draw was an outlier
+
+| Field | Value |
+|---|---|
+| Opened | 2026-08-31, external review of the Phase 5 submission |
+| Discovering phase | 5 (external review) |
+| Affected phase | 5 (`pipeline/validation/deployment_alignment.py`, `docs/evidence/P5-1_validation.json`) |
+| Severity | **S2 Degrading** — a published headline figure was overstated by a noisy comparator; the model and its ranking were never affected |
+| Status | **RESOLVED 2026-08-31** |
+
+**Assumed.** That a single seeded permutation is an adequate random baseline.
+
+**Actually true.** It is unbiased but high-variance. Subsequent-deployment counts are heavily
+concentrated across cells, so one shuffle either does or does not land on the busy ones.
+Review spotted the symptom: a 2020 top-decile capture of 0.645 with lift 9.40x implies a
+random capture of ~0.0686, against ~10% at the other two origins.
+
+**What it was not.** Not a support difference. Every ranking is scored over exactly the same
+eligible cells — asserted in the gate — and the share of deployments falling inside that
+support barely moves between origins: 0.9754 / 0.9718 / 0.9681.
+
+**What it was.** Over 400 draws at the 2020 origin the top-decile capture has mean **0.0976**
+and standard deviation **0.0137**, with a 5th percentile of 0.0759. The shipped single-seed
+draw, **0.0687**, sat at **percentile 0** — outside the band. The 2021 and 2022 draws sat at
+percentiles 76 and 64, which is why only 2020 looked wrong.
+
+**Response taken.** The random baseline is the **mean over 200 draws**, with its spread
+(`draws`, mean, sd, p5, p95, the original single-seed value and its percentile) published in
+the artifact. It remains an **empirical** baseline, not a theoretical one-tenth, which is what
+the review required. Six gate checks were added, including one asserting random capture is now
+consistent across origins and one asserting all four rankings share an identical support.
+
+**Effect on published numbers.** Lift against random falls to **6.72 / 6.39 / 5.89** from
+9.40 / 5.92 / 5.77 — the correction **reduces** the model's headline advantage, most at the
+origin that looked best. Lift against population is unchanged at **0.83 / 0.82 / 0.81** and
+the negative alignment result stands.
+
+---
+
+### I-24 — the population result was over-interpreted as evidence about D2
+
+| Field | Value |
+|---|---|
+| Opened | 2026-08-31, external review of the Phase 5 submission |
+| Discovering phase | 5 (external review) |
+| Affected phase | 5 (`docs/VALIDATION.md`, `docs/reports/PHASE_5_REPORT.md`) |
+| Severity | **S3 Cosmetic** — interpretation only; no number, model or metric was involved |
+| Status | **RESOLVED 2026-08-31** |
+
+**Claimed.** That a model *beating* the population baseline would have been evidence it had
+learned industry deployment habits, and that losing to population therefore vindicated
+directive D2.
+
+**Actually true.** The inference does not hold in either direction. D2 constrains which
+**features** may enter the demand model and is enforced by a test on the feature set, not by
+a ranking outcome. A model could outperform population for many reasons unrelated to
+reproducing industry behaviour, and underperform it for reasons unrelated to D2. The argument
+dressed a comfortable reading of a negative result as a design vindication.
+
+**Response taken.** The claim is withdrawn and replaced with the narrow conclusion: the model
+strongly outperforms random and the existing-network baseline but does not outperform
+population for reproducing subsequent industry deployment locations at any origin; this is a
+negative historical-deployment-alignment result, not evidence of siting failure and not itself
+evidence for or against D2.
+
 ---
 
 ## Phase 0 note

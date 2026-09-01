@@ -39,11 +39,11 @@ Where a release date is not established with confidence, the harness uses the **
 vintage whose date is certain. Choosing the older edition can never manufacture leakage;
 choosing the newer one can. Each such decision is recorded on the vintage itself.
 
-This binds once, on the ACS 2020 5-year release. It is widely reported to have slipped from
-December 2021 to March 2022 because of pandemic collection problems, which would put it on
-the wrong side of the 2022-01-01 cutoff — but **this project has not verified that date
-against a primary source**, so it is declared `release_date_certain: false` and the 2022
-origin falls back to ACS 2019.
+This mechanism was built for the ACS 2020 5-year release, whose date is now recorded. The
+2016-2020 ACS 5-year estimates were released **2022-03-17**, after the 2022-01-01 cutoff, so
+the 2022 origin resolves to ACS 2019 either way and no result changes. What changed on
+external review is the *reason*: the edition is excluded because it demonstrably did not
+exist at the cutoff, rather than because its availability could not be shown.
 
 ### 1.3 The negative test
 
@@ -89,17 +89,21 @@ release onward on 2020 boundaries — measured on the live API, Vermont returns 
 2018 and 2019 and 193 for 2020 and 2021; nationally, 74,001 tracts in the 2019 gazetteer
 against 85,396 in the 2023 one.
 
-The backtest is therefore scored on **H3 resolution-6 cells**, which do not move when the
-Census redraws tracts, using contemporaneous **CenPop2010** block-group population weights
-and the contemporaneous 2019 gazetteer for land area. Every §10.2.4 metric is a cell-ranking
-metric, so nothing is lost.
+2020 tract geography was not contemporaneously available for these prediction cutoffs; retrospective harmonization would require later boundary/crosswalk information, so Core evaluates stable H3 cells using cutoff-appropriate 2010-geography inputs. The backtest is scored on **H3 resolution-6 cells**, which do not move when the
+Census redraws tracts, using contemporaneous **CenPop2010** block-group population weights and
+the contemporaneous 2019 gazetteer for land area. Every §10.2.4 metric is a cell-ranking
+metric, so nothing is lost by this.
+
+A harmonised 2020-geography comparison is possible in principle using a later boundary
+crosswalk — but that crosswalk is itself post-cutoff information, so it would answer a
+different question than the one directive D1 permits at these origins.
 
 ### 2.3 Features excluded from every historical origin
 
 | Feature / source | Reason |
 |---|---|
 | **ACS 2019 5-year** at the 2020 origin | Period ends before the cutoff, but not released until 2020-12-10 — nobody had it |
-| **ACS 2020 5-year** at the 2021 and 2022 origins | Same, and its release date is not established by this project (§1.2) |
+| **ACS 2020 5-year** at the 2021 and 2022 origins | Released 2022-03-17, after both cutoffs |
 | **ACS 2021 5-year** at the 2022 origin | Not released until 2022-12-08 |
 | **Home charging access** (`nrel_home_charging`) | Single undated NREL vintage, and Phase 0 established it is a parametric scenario surface rather than a dated observation, so no cutoff-appropriate edition exists |
 | **Sub-state registration panels** (Atlas, WA) | Every one is a *current* download; none publishes a 2019–2021 edition. Fitting on them would learn coefficients from post-cutoff outcomes |
@@ -119,6 +123,7 @@ metric, so nothing is lost.
 | Reconciliation | county totals where complete, else state totals | cutoff-valid state totals only |
 | Evidence grain | `native_tract` / `zip_anchored` / `county_anchored` / `state_total_only` | **`state_total_only` everywhere** |
 | Population weights | CenPop2020 block group | **CenPop2010** block group |
+| Road-proximity filter | TIGER/Line 2024 primary + secondary, 5.0 km | **not applied at any origin** — TIGER 2024 postdates every cutoff and no earlier edition was retrieved, so no road geometry of any vintage enters a historical ranking |
 
 **Why the fit is at state level.** The deployed model learns coefficients from sub-state
 registration panels, every one of which is a current download with no retrievable 2019–2021
@@ -157,45 +162,106 @@ Top-decile capture of subsequent deployments, and lift against each baseline.
 | **Model** (cutoff-valid demand) | 0.6452 | 0.6216 | 0.5713 |
 | Population baseline | **0.7766** | **0.7554** | **0.7063** |
 | Existing-network baseline | 0.4236 | 0.4694 | 0.4472 |
-| Random baseline | 0.0687 | 0.1050 | 0.0991 |
+| Random baseline (mean of 200 draws) | 0.0961 | 0.0973 | 0.0969 |
 
 **Lift (stations):**
 
 | Origin | vs random | vs population |
 |---|---:|---:|
-| 2020 | **9.40** | **0.83** |
-| 2021 | **5.92** | **0.82** |
-| 2022 | **5.77** | **0.81** |
+| 2020 | **6.72** | **0.83** |
+| 2021 | **6.39** | **0.82** |
+| 2022 | **5.89** | **0.81** |
+
+### 2.6.1 How capture is computed, and the eligible support
+
+Asked on external review, because the 2020 random figure originally looked anomalous.
+
+- **Capture denominator:** *all* subsequent deployments in the window, including any landing
+  outside the ranked cells. A deployment in an unranked cell is a **miss for every ranking**,
+  not an exclusion for some, which is why the full-ranking capture is below 1.0 by exactly the
+  share that fell outside.
+- **Top decile:** `round(0.1 × len(ranked_cells))` cells from the head of the ranking; ties
+  broken by cell id so the order is deterministic. At 50,756 ranked cells that is 5,076 cells.
+- **Ranked support:** every cell carrying at least one resident. 382 cells are dropped as
+  uninhabited at every origin, leaving **50,756**. An uninhabited cell is not a siting
+  candidate under any model.
+- **Every ranking — model, random, population, existing-network — is scored over exactly this
+  support**, and the artifact asserts their full-ranking captures are identical.
+- **Share of deployments inside the ranked cells:** 0.9754 / 0.9718 / 0.9681 for 2020 / 2021 /
+  2022. The support barely moves between origins, so it does **not** explain the original
+  2020 random figure.
+
+### 2.6.2 Why the 2020 random baseline looked anomalous
+
+The originally reported random captures — 0.0687 / 0.1050 / 0.0991 — came from a **single
+seeded permutation** each. That is unbiased but high-variance: deployment counts are heavily
+concentrated, so one shuffle either does or does not land on the busy cells.
+
+Measured over 400 draws at the 2020 origin, the top-decile capture has mean **0.0976** and
+standard deviation **0.0137**, with a 5th percentile of 0.0759. The single-seed draw of
+**0.0687 sat at percentile 0** — outside the 5–95 band. The 2021 and 2022 draws sat at
+percentiles 76 and 64, close to their means. So the anomaly was **sampling noise in the
+baseline**, not a difference in eligible support or candidate coverage.
+
+The random baseline is now the **mean over 200 draws**, which is still an *empirical* random
+baseline rather than a theoretical one-tenth, and its spread ships alongside. Random capture
+becomes 0.0961 / 0.0973 / 0.0969 — consistent across origins, as the near-identical support
+implies it should be — and lift against random becomes 6.72 / 6.39 / 5.89. **This reduced the
+model's headline advantage** at 2020 from 9.40× to 6.72×; the model and its ranking are
+unchanged.
+
+### 2.6.3 Capacity captured, not only station counts
+
+§10.2.4 requires ports **and capacity**. Capacity is non-overlapping generic service capacity
+in kW (§7.1.1), resolved through Phase 2's own power ladder — reported → empirical median →
+documented type default — with a unit's capacity the **maximum** of its mutually alternative
+connector outputs, never their sum.
+
+| Origin | Capacity deployed (kW) | Model top-decile capacity | Population | Existing-network | Random |
+|---|---:|---:|---:|---:|---:|
+| 2020 | 2,471,663 | 0.4797 | 0.6365 | 0.3231 | 0.0924 |
+| 2021 | 3,142,231 | 0.4842 | 0.6235 | 0.3795 | 0.0938 |
+| 2022 | 4,370,222 | 0.4944 | 0.6149 | 0.4149 | 0.0941 |
+
+**The model captures noticeably less capacity than it does station count** — 0.48–0.49 against
+0.57–0.65. Its top decile is skewed toward cells receiving many small stations rather than
+high-power sites. The ordering against the baselines is unchanged.
 
 ### 2.7 The headline finding is negative, and it is reported as such
 
-**The model beats random by 5.8–9.4×, and loses to a plain population ranking at every one
+**The model beats random by 5.9–6.7×, and loses to a plain population ranking at every one
 of the three origins**, by a consistent margin (lift 0.81–0.83 on stations, 0.78–0.82 on
 ports). Ranking cells by resident population predicts where chargers actually got built
 better than the cutoff-valid demand model does.
 
-This is a result, not a failure to hide, and nothing was tuned in response to it. Reading it
-carefully:
+**The narrow conclusion, and it is the only one this result supports.** The model strongly
+outperforms random and the existing-network baseline, but does not outperform population for
+reproducing subsequent industry deployment locations at any origin. This is a **negative
+historical-deployment-alignment result**. It is **not** evidence of siting failure, and it is
+**not** itself evidence for or against directive D2.
 
-- **It does not mean the demand model is worthless.** It means that for the question *"where
-  did industry build next"*, population is a stronger predictor than modelled BEV demand. That
-  is unsurprising: operators build where people are, and a demand model that merely reproduced
-  population would have no reason to exist.
-- **It is consistent with the project's stated purpose.** §18 anti-pattern 2 warns that high
-  alignment may mean the model reproduces industry bias. A model that *beat* population here
-  would be evidence it had learned industry's deployment habits, which is what directive D2
-  exists to prevent.
-- **The backtested model is deliberately weaker than the deployed one** (§2.4). It is fit on
-  51 state observations rather than sub-state panels. This result is not a measurement of the
-  deployed model's accuracy — that is §3.
-- **What the model does beat** is the existing-network baseline (0.57–0.65 against 0.42–0.47),
-  which is the ranking that says "build where infrastructure already is".
+Nothing was tuned in response to it. What it does and does not license:
+
+- **It does not mean the demand model is inaccurate.** Whether tract-level estimates are
+  accurate is *demand model validation*, a different term with a different method. Alignment
+  measures agreement with where industry built, which is not the same question.
+- **It says nothing about D2 either way.** An earlier draft of this document argued that
+  beating population would have shown the model had learned industry deployment habits, and
+  that losing to population therefore vindicated D2. That inference does not hold: D2 is a
+  constraint on which *features* may enter the demand model, and it is enforced by a test on
+  the feature set, not by a ranking outcome. A model could outperform population for many
+  reasons unrelated to reproducing industry behaviour, and could underperform it for reasons
+  unrelated to D2. The claim is withdrawn.
+- **It is not a measurement of the deployed model.** The backtested model is deliberately
+  weaker: 51 state-level observations rather than sub-state panels.
+- **What the model does beat** is the existing-network baseline, the ranking that says "build
+  where infrastructure already is".
 
 ### 2.8 Sensitivity across origins, and confounding
 
 Conclusions are **stable across all three origins**: the ordering (population > model >
 existing-network > random) holds at every one, and every figure moves monotonically and
-mildly with the cutoff. Lift against random falls from 9.40 to 5.77 as the window moves later,
+mildly with the cutoff. Lift against random falls from 6.72 to 5.89 as the window moves later,
 which reflects deployments spreading into more cells as the network grew rather than a change
 in model quality.
 

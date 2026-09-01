@@ -239,3 +239,60 @@ def test_an_unusable_station_is_counted_by_reason_rather_than_dropped(
     assert parse_station(entry, counts) is None
     assert counts[reason] == 1
     assert sum(counts.values()) == 1
+
+
+# --- station capacity, reusing Phase 2's ladder ---------------------------------------
+
+def unit_row(key: str, station: str, level: str = "DC",
+             **connectors: object) -> dict[str, Any]:
+    row: dict[str, Any] = {
+        "charging_unit_record_key": key, "station_id": station,
+        "unit_charging_level": level, "unit_network": "Test", "unit_port_count": 1,
+    }
+    row.update(connectors)
+    return row
+
+
+def test_capacity_takes_the_maximum_of_alternative_connectors_never_the_sum() -> None:
+    """§7.1.1: a one-port unit offering CCS at 200 kW and CHAdeMO at 100 kW contributes
+    200 kW of simultaneous capacity, not 300."""
+    from pipeline.model.run_phase5 import station_capacity_kw
+
+    rows = [unit_row("u1", "s1",
+                     connector_J1772COMBO_port_count=1,
+                     connector_J1772COMBO_power_kw=200.0,
+                     connector_CHADEMO_port_count=1,
+                     connector_CHADEMO_power_kw=100.0)]
+    assert station_capacity_kw(rows)["s1"] == pytest.approx(200.0)
+
+
+def test_capacity_sums_across_the_units_of_one_station() -> None:
+    """Separate units ARE separate service positions, so those do add."""
+    from pipeline.model.run_phase5 import station_capacity_kw
+
+    rows = [unit_row("u1", "s1", connector_J1772COMBO_port_count=1,
+                     connector_J1772COMBO_power_kw=150.0),
+            unit_row("u2", "s1", connector_J1772COMBO_port_count=1,
+                     connector_J1772COMBO_power_kw=50.0)]
+    assert station_capacity_kw(rows)["s1"] == pytest.approx(200.0)
+
+
+def test_a_unit_whose_capacity_cannot_be_resolved_contributes_nothing_not_a_guess(
+) -> None:
+    """A multi-port unit does not inherit the one-port maximum rule (amendment A19):
+    AFDC exposes no per-port connector mapping, so which connectors serve which port is
+    unknown. Such a unit reports None, and D8 says contribute 0 rather than invent."""
+    from pipeline.model.run_phase5 import station_capacity_kw
+
+    rows = [unit_row("u1", "s1", connector_J1772COMBO_port_count=2,
+                     connector_J1772COMBO_power_kw=150.0,
+                     connector_CHADEMO_port_count=2,
+                     connector_CHADEMO_power_kw=50.0)]
+    rows[0]["unit_port_count"] = 2
+    assert station_capacity_kw(rows) == {}
+
+
+def test_a_unit_with_no_connectors_at_all_is_skipped() -> None:
+    from pipeline.model.run_phase5 import station_capacity_kw
+
+    assert station_capacity_kw([unit_row("u1", "s1")]) == {}

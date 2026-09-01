@@ -1,5 +1,5 @@
 {
-  "computed_at": "2026-08-31T22:26:42.898848-04:00",
+  "computed_at": "2026-08-31T23:23:40.087416-04:00",
   "cross_objective_robustness": {
     "per_state_and_budget": [
       {
@@ -6899,77 +6899,88 @@
             {
               "cells_in_decile_cumulative": 5076,
               "decile": 0.1,
-              "share_of_subsequent_dcfc_ports_captured": 0.076819,
-              "share_of_subsequent_ports_captured": 0.068628,
-              "share_of_subsequent_stations_captured": 0.068668
+              "share_of_subsequent_capacity_kw_captured": 0.092423,
+              "share_of_subsequent_dcfc_ports_captured": 0.091716,
+              "share_of_subsequent_ports_captured": 0.095952,
+              "share_of_subsequent_stations_captured": 0.096054
             },
             {
               "cells_in_decile_cumulative": 10151,
               "decile": 0.2,
-              "share_of_subsequent_dcfc_ports_captured": 0.169833,
-              "share_of_subsequent_ports_captured": 0.152921,
-              "share_of_subsequent_stations_captured": 0.155369
+              "share_of_subsequent_capacity_kw_captured": 0.184422,
+              "share_of_subsequent_dcfc_ports_captured": 0.183105,
+              "share_of_subsequent_ports_captured": 0.192075,
+              "share_of_subsequent_stations_captured": 0.192448
             },
             {
               "cells_in_decile_cumulative": 15227,
               "decile": 0.3,
-              "share_of_subsequent_dcfc_ports_captured": 0.262016,
-              "share_of_subsequent_ports_captured": 0.233297,
-              "share_of_subsequent_stations_captured": 0.232393
+              "share_of_subsequent_capacity_kw_captured": 0.27692,
+              "share_of_subsequent_dcfc_ports_captured": 0.274726,
+              "share_of_subsequent_ports_captured": 0.289718,
+              "share_of_subsequent_stations_captured": 0.290707
             },
             {
               "cells_in_decile_cumulative": 20302,
               "decile": 0.4,
-              "share_of_subsequent_dcfc_ports_captured": 0.355964,
-              "share_of_subsequent_ports_captured": 0.325227,
-              "share_of_subsequent_stations_captured": 0.330255
+              "share_of_subsequent_capacity_kw_captured": 0.368426,
+              "share_of_subsequent_dcfc_ports_captured": 0.365527,
+              "share_of_subsequent_ports_captured": 0.386675,
+              "share_of_subsequent_stations_captured": 0.387884
             },
             {
               "cells_in_decile_cumulative": 25378,
               "decile": 0.5,
-              "share_of_subsequent_dcfc_ports_captured": 0.441711,
-              "share_of_subsequent_ports_captured": 0.423345,
-              "share_of_subsequent_stations_captured": 0.432129
+              "share_of_subsequent_capacity_kw_captured": 0.461033,
+              "share_of_subsequent_dcfc_ports_captured": 0.457283,
+              "share_of_subsequent_ports_captured": 0.484161,
+              "share_of_subsequent_stations_captured": 0.48623
             },
             {
               "cells_in_decile_cumulative": 30454,
               "decile": 0.6,
-              "share_of_subsequent_dcfc_ports_captured": 0.54604,
-              "share_of_subsequent_ports_captured": 0.532627,
-              "share_of_subsequent_stations_captured": 0.525537
+              "share_of_subsequent_capacity_kw_captured": 0.55395,
+              "share_of_subsequent_dcfc_ports_captured": 0.549515,
+              "share_of_subsequent_ports_captured": 0.582011,
+              "share_of_subsequent_stations_captured": 0.58451
             },
             {
               "cells_in_decile_cumulative": 35529,
               "decile": 0.7,
-              "share_of_subsequent_dcfc_ports_captured": 0.638742,
-              "share_of_subsequent_ports_captured": 0.634206,
-              "share_of_subsequent_stations_captured": 0.629171
+              "share_of_subsequent_capacity_kw_captured": 0.646005,
+              "share_of_subsequent_dcfc_ports_captured": 0.640703,
+              "share_of_subsequent_ports_captured": 0.67901,
+              "share_of_subsequent_stations_captured": 0.682964
             },
             {
               "cells_in_decile_cumulative": 40605,
               "decile": 0.8,
-              "share_of_subsequent_dcfc_ports_captured": 0.728537,
-              "share_of_subsequent_ports_captured": 0.756101,
-              "share_of_subsequent_stations_captured": 0.758041
+              "share_of_subsequent_capacity_kw_captured": 0.737794,
+              "share_of_subsequent_dcfc_ports_captured": 0.731931,
+              "share_of_subsequent_ports_captured": 0.775213,
+              "share_of_subsequent_stations_captured": 0.780169
             },
             {
               "cells_in_decile_cumulative": 45680,
               "decile": 0.9,
-              "share_of_subsequent_dcfc_ports_captured": 0.824977,
-              "share_of_subsequent_ports_captured": 0.865383,
-              "share_of_subsequent_stations_captured": 0.866073
+              "share_of_subsequent_capacity_kw_captured": 0.83109,
+              "share_of_subsequent_dcfc_ports_captured": 0.824372,
+              "share_of_subsequent_ports_captured": 0.872576,
+              "share_of_subsequent_stations_captured": 0.878102
             },
             {
               "cells_in_decile_cumulative": 50756,
               "decile": 1.0,
+              "share_of_subsequent_capacity_kw_captured": 0.924482,
               "share_of_subsequent_dcfc_ports_captured": 0.916952,
               "share_of_subsequent_ports_captured": 0.96971,
               "share_of_subsequent_stations_captured": 0.975425
             }
           ],
           "ranking": "random",
-          "top_decile_capture_ports": 0.068628,
-          "top_decile_capture_stations": 0.068668
+          "top_decile_capture_capacity_kw": 0.092423,
+          "top_decile_capture_ports": 0.095952,
+          "top_decile_capture_stations": 0.096054
         },
         {
           "cells_ranked": 50756,
@@ -6977,6 +6988,7 @@
             {
               "cells_in_decile_cumulative": 5076,
               "decile": 0.1,
+              "share_of_subsequent_capacity_kw_captured": 0.636467,
               "share_of_subsequent_dcfc_ports_captured": 0.610402,
               "share_of_subsequent_ports_captured": 0.77209,
               "share_of_subsequent_stations_captured": 0.776568
@@ -6984,6 +6996,7 @@
             {
               "cells_in_decile_cumulative": 10151,
               "decile": 0.2,
+              "share_of_subsequent_capacity_kw_captured": 0.781813,
               "share_of_subsequent_dcfc_ports_captured": 0.760822,
               "share_of_subsequent_ports_captured": 0.878429,
               "share_of_subsequent_stations_captured": 0.884161
@@ -6991,6 +7004,7 @@
             {
               "cells_in_decile_cumulative": 15227,
               "decile": 0.3,
+              "share_of_subsequent_capacity_kw_captured": 0.844755,
               "share_of_subsequent_dcfc_ports_captured": 0.830063,
               "share_of_subsequent_ports_captured": 0.916659,
               "share_of_subsequent_stations_captured": 0.922096
@@ -6998,6 +7012,7 @@
             {
               "cells_in_decile_cumulative": 20302,
               "decile": 0.4,
+              "share_of_subsequent_capacity_kw_captured": 0.875939,
               "share_of_subsequent_dcfc_ports_captured": 0.862244,
               "share_of_subsequent_ports_captured": 0.933341,
               "share_of_subsequent_stations_captured": 0.938149
@@ -7005,6 +7020,7 @@
             {
               "cells_in_decile_cumulative": 25378,
               "decile": 0.5,
+              "share_of_subsequent_capacity_kw_captured": 0.894846,
               "share_of_subsequent_dcfc_ports_captured": 0.881968,
               "share_of_subsequent_ports_captured": 0.943531,
               "share_of_subsequent_stations_captured": 0.947771
@@ -7012,6 +7028,7 @@
             {
               "cells_in_decile_cumulative": 30454,
               "decile": 0.6,
+              "share_of_subsequent_capacity_kw_captured": 0.903856,
               "share_of_subsequent_dcfc_ports_captured": 0.893699,
               "share_of_subsequent_ports_captured": 0.951017,
               "share_of_subsequent_stations_captured": 0.956512
@@ -7019,6 +7036,7 @@
             {
               "cells_in_decile_cumulative": 35529,
               "decile": 0.7,
+              "share_of_subsequent_capacity_kw_captured": 0.910443,
               "share_of_subsequent_dcfc_ports_captured": 0.9019,
               "share_of_subsequent_ports_captured": 0.955452,
               "share_of_subsequent_stations_captured": 0.960746
@@ -7026,6 +7044,7 @@
             {
               "cells_in_decile_cumulative": 40605,
               "decile": 0.8,
+              "share_of_subsequent_capacity_kw_captured": 0.913532,
               "share_of_subsequent_dcfc_ports_captured": 0.905637,
               "share_of_subsequent_ports_captured": 0.960017,
               "share_of_subsequent_stations_captured": 0.965419
@@ -7033,6 +7052,7 @@
             {
               "cells_in_decile_cumulative": 45680,
               "decile": 0.9,
+              "share_of_subsequent_capacity_kw_captured": 0.91848,
               "share_of_subsequent_dcfc_ports_captured": 0.910827,
               "share_of_subsequent_ports_captured": 0.964777,
               "share_of_subsequent_stations_captured": 0.970312
@@ -7040,12 +7060,14 @@
             {
               "cells_in_decile_cumulative": 50756,
               "decile": 1.0,
+              "share_of_subsequent_capacity_kw_captured": 0.924482,
               "share_of_subsequent_dcfc_ports_captured": 0.916952,
               "share_of_subsequent_ports_captured": 0.96971,
               "share_of_subsequent_stations_captured": 0.975425
             }
           ],
           "ranking": "population",
+          "top_decile_capture_capacity_kw": 0.636467,
           "top_decile_capture_ports": 0.77209,
           "top_decile_capture_stations": 0.776568
         },
@@ -7055,6 +7077,7 @@
             {
               "cells_in_decile_cumulative": 5076,
               "decile": 0.1,
+              "share_of_subsequent_capacity_kw_captured": 0.323056,
               "share_of_subsequent_dcfc_ports_captured": 0.311429,
               "share_of_subsequent_ports_captured": 0.426114,
               "share_of_subsequent_stations_captured": 0.423608
@@ -7062,6 +7085,7 @@
             {
               "cells_in_decile_cumulative": 10151,
               "decile": 0.2,
+              "share_of_subsequent_capacity_kw_captured": 0.356093,
               "share_of_subsequent_dcfc_ports_captured": 0.33925,
               "share_of_subsequent_ports_captured": 0.466724,
               "share_of_subsequent_stations_captured": 0.469515
@@ -7069,6 +7093,7 @@
             {
               "cells_in_decile_cumulative": 15227,
               "decile": 0.3,
+              "share_of_subsequent_capacity_kw_captured": 0.408533,
               "share_of_subsequent_dcfc_ports_captured": 0.409322,
               "share_of_subsequent_ports_captured": 0.525357,
               "share_of_subsequent_stations_captured": 0.526582
@@ -7076,6 +7101,7 @@
             {
               "cells_in_decile_cumulative": 20302,
               "decile": 0.4,
+              "share_of_subsequent_capacity_kw_captured": 0.478581,
               "share_of_subsequent_dcfc_ports_captured": 0.484273,
               "share_of_subsequent_ports_captured": 0.582042,
               "share_of_subsequent_stations_captured": 0.585794
@@ -7083,6 +7109,7 @@
             {
               "cells_in_decile_cumulative": 25378,
               "decile": 0.5,
+              "share_of_subsequent_capacity_kw_captured": 0.674414,
               "share_of_subsequent_dcfc_ports_captured": 0.671753,
               "share_of_subsequent_ports_captured": 0.76138,
               "share_of_subsequent_stations_captured": 0.766232
@@ -7090,6 +7117,7 @@
             {
               "cells_in_decile_cumulative": 30454,
               "decile": 0.6,
+              "share_of_subsequent_capacity_kw_captured": 0.71563,
               "share_of_subsequent_dcfc_ports_captured": 0.713589,
               "share_of_subsequent_ports_captured": 0.807075,
               "share_of_subsequent_stations_captured": 0.815493
@@ -7097,6 +7125,7 @@
             {
               "cells_in_decile_cumulative": 35529,
               "decile": 0.7,
+              "share_of_subsequent_capacity_kw_captured": 0.77194,
               "share_of_subsequent_dcfc_ports_captured": 0.767881,
               "share_of_subsequent_ports_captured": 0.850692,
               "share_of_subsequent_stations_captured": 0.858651
@@ -7104,6 +7133,7 @@
             {
               "cells_in_decile_cumulative": 40605,
               "decile": 0.8,
+              "share_of_subsequent_capacity_kw_captured": 0.805355,
               "share_of_subsequent_dcfc_ports_captured": 0.797571,
               "share_of_subsequent_ports_captured": 0.890935,
               "share_of_subsequent_stations_captured": 0.900214
@@ -7111,6 +7141,7 @@
             {
               "cells_in_decile_cumulative": 45680,
               "decile": 0.9,
+              "share_of_subsequent_capacity_kw_captured": 0.880483,
               "share_of_subsequent_dcfc_ports_captured": 0.872729,
               "share_of_subsequent_ports_captured": 0.9381,
               "share_of_subsequent_stations_captured": 0.944307
@@ -7118,29 +7149,42 @@
             {
               "cells_in_decile_cumulative": 50756,
               "decile": 1.0,
+              "share_of_subsequent_capacity_kw_captured": 0.924482,
               "share_of_subsequent_dcfc_ports_captured": 0.916952,
               "share_of_subsequent_ports_captured": 0.96971,
               "share_of_subsequent_stations_captured": 0.975425
             }
           ],
           "ranking": "existing_network",
+          "top_decile_capture_capacity_kw": 0.323056,
           "top_decile_capture_ports": 0.426114,
           "top_decile_capture_stations": 0.423608
         }
       ],
       "cells_evaluated": 50756,
+      "eligible_support": {
+        "baselines_share_this_support": true,
+        "capture_denominator": "ALL subsequent deployments in the window, including any landing outside the ranked cells. A deployment in an unranked cell is a miss for every ranking, not an exclusion, so the full-ranking capture is below 1.0 by exactly the share that fell outside.",
+        "cells_dropped_as_uninhabited": 382,
+        "cells_with_demand": 51138,
+        "ranked_cells": 50756,
+        "share_of_subsequent_ports_inside_ranked_cells": 0.96971,
+        "share_of_subsequent_stations_inside_ranked_cells": 0.975425,
+        "top_decile_construction": "round(0.1 * len(ranked_cells)) cells taken from the head of the ranking; ties broken by cell id so the order is deterministic."
+      },
       "evaluation_window_end": "2022-01-01",
       "geographic_coverage_states": 52,
       "lift_vs_population_ports": 0.816847,
       "lift_vs_population_stations": 0.830867,
-      "lift_vs_random_ports": 9.189786,
-      "lift_vs_random_stations": 9.396317,
+      "lift_vs_random_ports": 6.572887,
+      "lift_vs_random_stations": 6.717341,
       "model": {
         "cells_ranked": 50756,
         "gain_curve": [
           {
             "cells_in_decile_cumulative": 5076,
             "decile": 0.1,
+            "share_of_subsequent_capacity_kw_captured": 0.479681,
             "share_of_subsequent_dcfc_ports_captured": 0.453857,
             "share_of_subsequent_ports_captured": 0.630679,
             "share_of_subsequent_stations_captured": 0.645225
@@ -7148,6 +7192,7 @@
           {
             "cells_in_decile_cumulative": 10151,
             "decile": 0.2,
+            "share_of_subsequent_capacity_kw_captured": 0.558799,
             "share_of_subsequent_dcfc_ports_captured": 0.53296,
             "share_of_subsequent_ports_captured": 0.687711,
             "share_of_subsequent_stations_captured": 0.704437
@@ -7155,6 +7200,7 @@
           {
             "cells_in_decile_cumulative": 15227,
             "decile": 0.3,
+            "share_of_subsequent_capacity_kw_captured": 0.595362,
             "share_of_subsequent_dcfc_ports_captured": 0.571888,
             "share_of_subsequent_ports_captured": 0.71402,
             "share_of_subsequent_stations_captured": 0.732696
@@ -7162,6 +7208,7 @@
           {
             "cells_in_decile_cumulative": 20302,
             "decile": 0.4,
+            "share_of_subsequent_capacity_kw_captured": 0.619646,
             "share_of_subsequent_dcfc_ports_captured": 0.596906,
             "share_of_subsequent_ports_captured": 0.729662,
             "share_of_subsequent_stations_captured": 0.748914
@@ -7169,6 +7216,7 @@
           {
             "cells_in_decile_cumulative": 25378,
             "decile": 0.5,
+            "share_of_subsequent_capacity_kw_captured": 0.643344,
             "share_of_subsequent_dcfc_ports_captured": 0.62099,
             "share_of_subsequent_ports_captured": 0.74418,
             "share_of_subsequent_stations_captured": 0.763373
@@ -7176,6 +7224,7 @@
           {
             "cells_in_decile_cumulative": 30454,
             "decile": 0.6,
+            "share_of_subsequent_capacity_kw_captured": 0.666948,
             "share_of_subsequent_dcfc_ports_captured": 0.64632,
             "share_of_subsequent_ports_captured": 0.762527,
             "share_of_subsequent_stations_captured": 0.782341
@@ -7183,6 +7232,7 @@
           {
             "cells_in_decile_cumulative": 35529,
             "decile": 0.7,
+            "share_of_subsequent_capacity_kw_captured": 0.743289,
             "share_of_subsequent_dcfc_ports_captured": 0.72044,
             "share_of_subsequent_ports_captured": 0.8119,
             "share_of_subsequent_stations_captured": 0.828248
@@ -7190,6 +7240,7 @@
           {
             "cells_in_decile_cumulative": 40605,
             "decile": 0.8,
+            "share_of_subsequent_capacity_kw_captured": 0.826497,
             "share_of_subsequent_dcfc_ports_captured": 0.799958,
             "share_of_subsequent_ports_captured": 0.873561,
             "share_of_subsequent_stations_captured": 0.886415
@@ -7197,6 +7248,7 @@
           {
             "cells_in_decile_cumulative": 45680,
             "decile": 0.9,
+            "share_of_subsequent_capacity_kw_captured": 0.884901,
             "share_of_subsequent_dcfc_ports_captured": 0.85913,
             "share_of_subsequent_ports_captured": 0.919321,
             "share_of_subsequent_stations_captured": 0.927814
@@ -7204,18 +7256,31 @@
           {
             "cells_in_decile_cumulative": 50756,
             "decile": 1.0,
+            "share_of_subsequent_capacity_kw_captured": 0.924482,
             "share_of_subsequent_dcfc_ports_captured": 0.916952,
             "share_of_subsequent_ports_captured": 0.96971,
             "share_of_subsequent_stations_captured": 0.975425
           }
         ],
         "ranking": "model_cutoff_valid_demand",
+        "top_decile_capture_capacity_kw": 0.479681,
         "top_decile_capture_ports": 0.630679,
         "top_decile_capture_stations": 0.645225
       },
       "origin": "2020",
       "prediction_cutoff": "2020-01-01",
+      "random_baseline_spread": {
+        "draws": 200,
+        "single_seeded_draw": 0.068668,
+        "single_seeded_draw_percentile_among_draws": 0.005,
+        "top_decile_stations_mean": 0.096054,
+        "top_decile_stations_p5": 0.077503,
+        "top_decile_stations_p95": 0.119319,
+        "top_decile_stations_sd": 0.013539,
+        "why_a_mean": "one permutation is unbiased but high-variance, because deployment counts are heavily concentrated. The reported random baseline is the mean over these draws, which is still empirical - not a theoretical 1/10th - and is what lift is computed against."
+      },
       "reconstruction_confidence": "lowest - five to six years of station churn is invisible in a current snapshot, so the reconstructed pre-cutoff network is the most survivorship-biased of the three",
+      "subsequent_deployment_capacity_kw": 2471662.6,
       "subsequent_deployment_dcfc_ports": 9633.0,
       "subsequent_deployment_ports": 46220.0,
       "subsequent_deployments_available": 18189,
@@ -7227,6 +7292,8 @@
         "origin": "2020",
         "prediction_cutoff": "2020-01-01",
         "reconstruction_confidence": "lowest - five to six years of station churn is invisible in a current snapshot, so the reconstructed pre-cutoff network is the most survivorship-biased of the three",
+        "road_filter_audit": "The Phase 4 candidate road-proximity filter uses TIGER/Line 2024, which postdates this cutoff, so it is NOT applied here and no substitute edition is used: the historical ranking scores every inhabited cell by cutoff-valid modelled demand. Current or future road geometry therefore cannot enter a historical origin. Enumerated as a backtest-versus-production difference in docs/VALIDATION.md.",
+        "road_filter_vintage": "none - no road geometry enters this origin",
         "state_registration_released": "2020-01-01",
         "state_registration_vintage": "AFDC state EV registrations 2019",
         "surface": {
@@ -7266,77 +7333,88 @@
             {
               "cells_in_decile_cumulative": 5076,
               "decile": 0.1,
-              "share_of_subsequent_dcfc_ports_captured": 0.122597,
-              "share_of_subsequent_ports_captured": 0.108087,
-              "share_of_subsequent_stations_captured": 0.105016
+              "share_of_subsequent_capacity_kw_captured": 0.093811,
+              "share_of_subsequent_dcfc_ports_captured": 0.092894,
+              "share_of_subsequent_ports_captured": 0.097282,
+              "share_of_subsequent_stations_captured": 0.097273
             },
             {
               "cells_in_decile_cumulative": 10151,
               "decile": 0.2,
-              "share_of_subsequent_dcfc_ports_captured": 0.219892,
-              "share_of_subsequent_ports_captured": 0.191038,
-              "share_of_subsequent_stations_captured": 0.192214
+              "share_of_subsequent_capacity_kw_captured": 0.186043,
+              "share_of_subsequent_dcfc_ports_captured": 0.184156,
+              "share_of_subsequent_ports_captured": 0.194011,
+              "share_of_subsequent_stations_captured": 0.194999
             },
             {
               "cells_in_decile_cumulative": 15227,
               "decile": 0.3,
-              "share_of_subsequent_dcfc_ports_captured": 0.299958,
-              "share_of_subsequent_ports_captured": 0.274194,
-              "share_of_subsequent_stations_captured": 0.274901
+              "share_of_subsequent_capacity_kw_captured": 0.279013,
+              "share_of_subsequent_dcfc_ports_captured": 0.276558,
+              "share_of_subsequent_ports_captured": 0.291277,
+              "share_of_subsequent_stations_captured": 0.292643
             },
             {
               "cells_in_decile_cumulative": 20302,
               "decile": 0.4,
-              "share_of_subsequent_dcfc_ports_captured": 0.380774,
-              "share_of_subsequent_ports_captured": 0.363132,
-              "share_of_subsequent_stations_captured": 0.368233
+              "share_of_subsequent_capacity_kw_captured": 0.373368,
+              "share_of_subsequent_dcfc_ports_captured": 0.370383,
+              "share_of_subsequent_ports_captured": 0.388223,
+              "share_of_subsequent_stations_captured": 0.389268
             },
             {
               "cells_in_decile_cumulative": 25378,
               "decile": 0.5,
-              "share_of_subsequent_dcfc_ports_captured": 0.460008,
-              "share_of_subsequent_ports_captured": 0.453801,
-              "share_of_subsequent_stations_captured": 0.461521
+              "share_of_subsequent_capacity_kw_captured": 0.466631,
+              "share_of_subsequent_dcfc_ports_captured": 0.463117,
+              "share_of_subsequent_ports_captured": 0.483785,
+              "share_of_subsequent_stations_captured": 0.485414
             },
             {
               "cells_in_decile_cumulative": 30454,
               "decile": 0.6,
-              "share_of_subsequent_dcfc_ports_captured": 0.551477,
-              "share_of_subsequent_ports_captured": 0.543587,
-              "share_of_subsequent_stations_captured": 0.551696
+              "share_of_subsequent_capacity_kw_captured": 0.559614,
+              "share_of_subsequent_dcfc_ports_captured": 0.555086,
+              "share_of_subsequent_ports_captured": 0.581572,
+              "share_of_subsequent_stations_captured": 0.583734
             },
             {
               "cells_in_decile_cumulative": 35529,
               "decile": 0.7,
-              "share_of_subsequent_dcfc_ports_captured": 0.652018,
-              "share_of_subsequent_ports_captured": 0.658356,
-              "share_of_subsequent_stations_captured": 0.671554
+              "share_of_subsequent_capacity_kw_captured": 0.651257,
+              "share_of_subsequent_dcfc_ports_captured": 0.646272,
+              "share_of_subsequent_ports_captured": 0.676716,
+              "share_of_subsequent_stations_captured": 0.679496
             },
             {
               "cells_in_decile_cumulative": 40605,
               "decile": 0.8,
-              "share_of_subsequent_dcfc_ports_captured": 0.74099,
-              "share_of_subsequent_ports_captured": 0.746667,
-              "share_of_subsequent_stations_captured": 0.759969
+              "share_of_subsequent_capacity_kw_captured": 0.744517,
+              "share_of_subsequent_dcfc_ports_captured": 0.738724,
+              "share_of_subsequent_ports_captured": 0.773933,
+              "share_of_subsequent_stations_captured": 0.777098
             },
             {
               "cells_in_decile_cumulative": 45680,
               "decile": 0.9,
-              "share_of_subsequent_dcfc_ports_captured": 0.827382,
-              "share_of_subsequent_ports_captured": 0.872155,
-              "share_of_subsequent_stations_captured": 0.87491
+              "share_of_subsequent_capacity_kw_captured": 0.838606,
+              "share_of_subsequent_dcfc_ports_captured": 0.832081,
+              "share_of_subsequent_ports_captured": 0.871667,
+              "share_of_subsequent_stations_captured": 0.874862
             },
             {
               "cells_in_decile_cumulative": 50756,
               "decile": 1.0,
+              "share_of_subsequent_capacity_kw_captured": 0.931331,
               "share_of_subsequent_dcfc_ports_captured": 0.924261,
               "share_of_subsequent_ports_captured": 0.968013,
               "share_of_subsequent_stations_captured": 0.971806
             }
           ],
           "ranking": "random",
-          "top_decile_capture_ports": 0.108087,
-          "top_decile_capture_stations": 0.105016
+          "top_decile_capture_capacity_kw": 0.093811,
+          "top_decile_capture_ports": 0.097282,
+          "top_decile_capture_stations": 0.097273
         },
         {
           "cells_ranked": 50756,
@@ -7344,6 +7422,7 @@
             {
               "cells_in_decile_cumulative": 5076,
               "decile": 0.1,
+              "share_of_subsequent_capacity_kw_captured": 0.623476,
               "share_of_subsequent_dcfc_ports_captured": 0.598002,
               "share_of_subsequent_ports_captured": 0.747566,
               "share_of_subsequent_stations_captured": 0.755368
@@ -7351,6 +7430,7 @@
             {
               "cells_in_decile_cumulative": 10151,
               "decile": 0.2,
+              "share_of_subsequent_capacity_kw_captured": 0.775675,
               "share_of_subsequent_dcfc_ports_captured": 0.757636,
               "share_of_subsequent_ports_captured": 0.862064,
               "share_of_subsequent_stations_captured": 0.870669
@@ -7358,6 +7438,7 @@
             {
               "cells_in_decile_cumulative": 15227,
               "decile": 0.3,
+              "share_of_subsequent_capacity_kw_captured": 0.839512,
               "share_of_subsequent_dcfc_ports_captured": 0.826384,
               "share_of_subsequent_ports_captured": 0.902089,
               "share_of_subsequent_stations_captured": 0.912712
@@ -7365,6 +7446,7 @@
             {
               "cells_in_decile_cumulative": 20302,
               "decile": 0.4,
+              "share_of_subsequent_capacity_kw_captured": 0.874833,
               "share_of_subsequent_dcfc_ports_captured": 0.863837,
               "share_of_subsequent_ports_captured": 0.921916,
               "share_of_subsequent_stations_captured": 0.931523
@@ -7372,6 +7454,7 @@
             {
               "cells_in_decile_cumulative": 25378,
               "decile": 0.5,
+              "share_of_subsequent_capacity_kw_captured": 0.891735,
               "share_of_subsequent_dcfc_ports_captured": 0.880982,
               "share_of_subsequent_ports_captured": 0.933059,
               "share_of_subsequent_stations_captured": 0.942936
@@ -7379,6 +7462,7 @@
             {
               "cells_in_decile_cumulative": 30454,
               "decile": 0.6,
+              "share_of_subsequent_capacity_kw_captured": 0.908344,
               "share_of_subsequent_dcfc_ports_captured": 0.899376,
               "share_of_subsequent_ports_captured": 0.941657,
               "share_of_subsequent_stations_captured": 0.951101
@@ -7386,6 +7470,7 @@
             {
               "cells_in_decile_cumulative": 35529,
               "decile": 0.7,
+              "share_of_subsequent_capacity_kw_captured": 0.91558,
               "share_of_subsequent_dcfc_ports_captured": 0.907782,
               "share_of_subsequent_ports_captured": 0.946915,
               "share_of_subsequent_stations_captured": 0.956739
@@ -7393,6 +7478,7 @@
             {
               "cells_in_decile_cumulative": 40605,
               "decile": 0.8,
+              "share_of_subsequent_capacity_kw_captured": 0.918348,
               "share_of_subsequent_dcfc_ports_captured": 0.911278,
               "share_of_subsequent_ports_captured": 0.951274,
               "share_of_subsequent_stations_captured": 0.962288
@@ -7400,6 +7486,7 @@
             {
               "cells_in_decile_cumulative": 45680,
               "decile": 0.9,
+              "share_of_subsequent_capacity_kw_captured": 0.925528,
               "share_of_subsequent_dcfc_ports_captured": 0.918519,
               "share_of_subsequent_ports_captured": 0.956752,
               "share_of_subsequent_stations_captured": 0.967431
@@ -7407,12 +7494,14 @@
             {
               "cells_in_decile_cumulative": 50756,
               "decile": 1.0,
+              "share_of_subsequent_capacity_kw_captured": 0.931331,
               "share_of_subsequent_dcfc_ports_captured": 0.924261,
               "share_of_subsequent_ports_captured": 0.968013,
               "share_of_subsequent_stations_captured": 0.971806
             }
           ],
           "ranking": "population",
+          "top_decile_capture_capacity_kw": 0.623476,
           "top_decile_capture_ports": 0.747566,
           "top_decile_capture_stations": 0.755368
         },
@@ -7422,6 +7511,7 @@
             {
               "cells_in_decile_cumulative": 5076,
               "decile": 0.1,
+              "share_of_subsequent_capacity_kw_captured": 0.379537,
               "share_of_subsequent_dcfc_ports_captured": 0.371203,
               "share_of_subsequent_ports_captured": 0.470218,
               "share_of_subsequent_stations_captured": 0.469415
@@ -7429,6 +7519,7 @@
             {
               "cells_in_decile_cumulative": 10151,
               "decile": 0.2,
+              "share_of_subsequent_capacity_kw_captured": 0.407907,
               "share_of_subsequent_dcfc_ports_captured": 0.399334,
               "share_of_subsequent_ports_captured": 0.507666,
               "share_of_subsequent_stations_captured": 0.513037
@@ -7436,6 +7527,7 @@
             {
               "cells_in_decile_cumulative": 15227,
               "decile": 0.3,
+              "share_of_subsequent_capacity_kw_captured": 0.456845,
               "share_of_subsequent_dcfc_ports_captured": 0.44769,
               "share_of_subsequent_ports_captured": 0.548998,
               "share_of_subsequent_stations_captured": 0.557696
@@ -7443,6 +7535,7 @@
             {
               "cells_in_decile_cumulative": 20302,
               "decile": 0.4,
+              "share_of_subsequent_capacity_kw_captured": 0.501362,
               "share_of_subsequent_dcfc_ports_captured": 0.495298,
               "share_of_subsequent_ports_captured": 0.589244,
               "share_of_subsequent_stations_captured": 0.601001
@@ -7450,6 +7543,7 @@
             {
               "cells_in_decile_cumulative": 25378,
               "decile": 0.5,
+              "share_of_subsequent_capacity_kw_captured": 0.659153,
               "share_of_subsequent_dcfc_ports_captured": 0.652934,
               "share_of_subsequent_ports_captured": 0.741766,
               "share_of_subsequent_stations_captured": 0.74797
@@ -7457,6 +7551,7 @@
             {
               "cells_in_decile_cumulative": 30454,
               "decile": 0.6,
+              "share_of_subsequent_capacity_kw_captured": 0.703054,
               "share_of_subsequent_dcfc_ports_captured": 0.696463,
               "share_of_subsequent_ports_captured": 0.794664,
               "share_of_subsequent_stations_captured": 0.80314
@@ -7464,6 +7559,7 @@
             {
               "cells_in_decile_cumulative": 35529,
               "decile": 0.7,
+              "share_of_subsequent_capacity_kw_captured": 0.751518,
               "share_of_subsequent_dcfc_ports_captured": 0.745402,
               "share_of_subsequent_ports_captured": 0.834707,
               "share_of_subsequent_stations_captured": 0.844957
@@ -7471,6 +7567,7 @@
             {
               "cells_in_decile_cumulative": 40605,
               "decile": 0.8,
+              "share_of_subsequent_capacity_kw_captured": 0.794614,
               "share_of_subsequent_dcfc_ports_captured": 0.788431,
               "share_of_subsequent_ports_captured": 0.884943,
               "share_of_subsequent_stations_captured": 0.893134
@@ -7478,6 +7575,7 @@
             {
               "cells_in_decile_cumulative": 45680,
               "decile": 0.9,
+              "share_of_subsequent_capacity_kw_captured": 0.875205,
               "share_of_subsequent_dcfc_ports_captured": 0.867998,
               "share_of_subsequent_ports_captured": 0.934076,
               "share_of_subsequent_stations_captured": 0.938064
@@ -7485,29 +7583,42 @@
             {
               "cells_in_decile_cumulative": 50756,
               "decile": 1.0,
+              "share_of_subsequent_capacity_kw_captured": 0.931331,
               "share_of_subsequent_dcfc_ports_captured": 0.924261,
               "share_of_subsequent_ports_captured": 0.968013,
               "share_of_subsequent_stations_captured": 0.971806
             }
           ],
           "ranking": "existing_network",
+          "top_decile_capture_capacity_kw": 0.379537,
           "top_decile_capture_ports": 0.470218,
           "top_decile_capture_stations": 0.469415
         }
       ],
       "cells_evaluated": 50756,
+      "eligible_support": {
+        "baselines_share_this_support": true,
+        "capture_denominator": "ALL subsequent deployments in the window, including any landing outside the ranked cells. A deployment in an unranked cell is a miss for every ranking, not an exclusion, so the full-ranking capture is below 1.0 by exactly the share that fell outside.",
+        "cells_dropped_as_uninhabited": 382,
+        "cells_with_demand": 51138,
+        "ranked_cells": 50756,
+        "share_of_subsequent_ports_inside_ranked_cells": 0.968013,
+        "share_of_subsequent_stations_inside_ranked_cells": 0.971806,
+        "top_decile_construction": "round(0.1 * len(ranked_cells)) cells taken from the head of the ranking; ties broken by cell id so the order is deterministic."
+      },
       "evaluation_window_end": "2023-01-01",
       "geographic_coverage_states": 52,
       "lift_vs_population_ports": 0.794183,
       "lift_vs_population_stations": 0.822872,
-      "lift_vs_random_ports": 5.492861,
-      "lift_vs_random_stations": 5.918814,
+      "lift_vs_random_ports": 6.102918,
+      "lift_vs_random_stations": 6.389965,
       "model": {
         "cells_ranked": 50756,
         "gain_curve": [
           {
             "cells_in_decile_cumulative": 5076,
             "decile": 0.1,
+            "share_of_subsequent_capacity_kw_captured": 0.484161,
             "share_of_subsequent_dcfc_ports_captured": 0.4665,
             "share_of_subsequent_ports_captured": 0.593704,
             "share_of_subsequent_stations_captured": 0.621572
@@ -7515,6 +7626,7 @@
           {
             "cells_in_decile_cumulative": 10151,
             "decile": 0.2,
+            "share_of_subsequent_capacity_kw_captured": 0.589935,
             "share_of_subsequent_dcfc_ports_captured": 0.575364,
             "share_of_subsequent_ports_captured": 0.677487,
             "share_of_subsequent_stations_captured": 0.708273
@@ -7522,6 +7634,7 @@
           {
             "cells_in_decile_cumulative": 15227,
             "decile": 0.3,
+            "share_of_subsequent_capacity_kw_captured": 0.645541,
             "share_of_subsequent_dcfc_ports_captured": 0.633874,
             "share_of_subsequent_ports_captured": 0.720939,
             "share_of_subsequent_stations_captured": 0.744722
@@ -7529,6 +7642,7 @@
           {
             "cells_in_decile_cumulative": 20302,
             "decile": 0.4,
+            "share_of_subsequent_capacity_kw_captured": 0.677117,
             "share_of_subsequent_dcfc_ports_captured": 0.668248,
             "share_of_subsequent_ports_captured": 0.741698,
             "share_of_subsequent_stations_captured": 0.766149
@@ -7536,6 +7650,7 @@
           {
             "cells_in_decile_cumulative": 25378,
             "decile": 0.5,
+            "share_of_subsequent_capacity_kw_captured": 0.702048,
             "share_of_subsequent_dcfc_ports_captured": 0.695048,
             "share_of_subsequent_ports_captured": 0.762423,
             "share_of_subsequent_stations_captured": 0.786674
@@ -7543,6 +7658,7 @@
           {
             "cells_in_decile_cumulative": 30454,
             "decile": 0.6,
+            "share_of_subsequent_capacity_kw_captured": 0.734848,
             "share_of_subsequent_dcfc_ports_captured": 0.727923,
             "share_of_subsequent_ports_captured": 0.789305,
             "share_of_subsequent_stations_captured": 0.810087
@@ -7550,6 +7666,7 @@
           {
             "cells_in_decile_cumulative": 35529,
             "decile": 0.7,
+            "share_of_subsequent_capacity_kw_captured": 0.77417,
             "share_of_subsequent_dcfc_ports_captured": 0.768123,
             "share_of_subsequent_ports_captured": 0.81712,
             "share_of_subsequent_stations_captured": 0.833995
@@ -7557,6 +7674,7 @@
           {
             "cells_in_decile_cumulative": 40605,
             "decile": 0.8,
+            "share_of_subsequent_capacity_kw_captured": 0.847586,
             "share_of_subsequent_dcfc_ports_captured": 0.840283,
             "share_of_subsequent_ports_captured": 0.876683,
             "share_of_subsequent_stations_captured": 0.886142
@@ -7564,6 +7682,7 @@
           {
             "cells_in_decile_cumulative": 45680,
             "decile": 0.9,
+            "share_of_subsequent_capacity_kw_captured": 0.911169,
             "share_of_subsequent_dcfc_ports_captured": 0.904702,
             "share_of_subsequent_ports_captured": 0.930956,
             "share_of_subsequent_stations_captured": 0.934771
@@ -7571,18 +7690,31 @@
           {
             "cells_in_decile_cumulative": 50756,
             "decile": 1.0,
+            "share_of_subsequent_capacity_kw_captured": 0.931331,
             "share_of_subsequent_dcfc_ports_captured": 0.924261,
             "share_of_subsequent_ports_captured": 0.968013,
             "share_of_subsequent_stations_captured": 0.971806
           }
         ],
         "ranking": "model_cutoff_valid_demand",
+        "top_decile_capture_capacity_kw": 0.484161,
         "top_decile_capture_ports": 0.593704,
         "top_decile_capture_stations": 0.621572
       },
       "origin": "2021",
       "prediction_cutoff": "2021-01-01",
+      "random_baseline_spread": {
+        "draws": 200,
+        "single_seeded_draw": 0.105016,
+        "single_seeded_draw_percentile_among_draws": 0.755,
+        "top_decile_stations_mean": 0.097273,
+        "top_decile_stations_p5": 0.081052,
+        "top_decile_stations_p95": 0.115015,
+        "top_decile_stations_sd": 0.010657,
+        "why_a_mean": "one permutation is unbiased but high-variance, because deployment counts are heavily concentrated. The reported random baseline is the mean over these draws, which is still empirical - not a theoretical 1/10th - and is what lift is computed against."
+      },
       "reconstruction_confidence": "middle",
+      "subsequent_deployment_capacity_kw": 3142231.2,
       "subsequent_deployment_dcfc_ports": 12015.0,
       "subsequent_deployment_ports": 58962.0,
       "subsequent_deployments_available": 22168,
@@ -7594,6 +7726,8 @@
         "origin": "2021",
         "prediction_cutoff": "2021-01-01",
         "reconstruction_confidence": "middle",
+        "road_filter_audit": "The Phase 4 candidate road-proximity filter uses TIGER/Line 2024, which postdates this cutoff, so it is NOT applied here and no substitute edition is used: the historical ranking scores every inhabited cell by cutoff-valid modelled demand. Current or future road geometry therefore cannot enter a historical origin. Enumerated as a backtest-versus-production difference in docs/VALIDATION.md.",
+        "road_filter_vintage": "none - no road geometry enters this origin",
         "state_registration_released": "2021-01-01",
         "state_registration_vintage": "AFDC state EV registrations 2020",
         "surface": {
@@ -7633,77 +7767,88 @@
             {
               "cells_in_decile_cumulative": 5076,
               "decile": 0.1,
-              "share_of_subsequent_dcfc_ports_captured": 0.095903,
-              "share_of_subsequent_ports_captured": 0.092697,
-              "share_of_subsequent_stations_captured": 0.09906
+              "share_of_subsequent_capacity_kw_captured": 0.094146,
+              "share_of_subsequent_dcfc_ports_captured": 0.094079,
+              "share_of_subsequent_ports_captured": 0.096394,
+              "share_of_subsequent_stations_captured": 0.096926
             },
             {
               "cells_in_decile_cumulative": 10151,
               "decile": 0.2,
-              "share_of_subsequent_dcfc_ports_captured": 0.202531,
-              "share_of_subsequent_ports_captured": 0.193882,
-              "share_of_subsequent_stations_captured": 0.198997
+              "share_of_subsequent_capacity_kw_captured": 0.188371,
+              "share_of_subsequent_dcfc_ports_captured": 0.188218,
+              "share_of_subsequent_ports_captured": 0.192287,
+              "share_of_subsequent_stations_captured": 0.19295
             },
             {
               "cells_in_decile_cumulative": 15227,
               "decile": 0.3,
-              "share_of_subsequent_dcfc_ports_captured": 0.290603,
-              "share_of_subsequent_ports_captured": 0.287396,
-              "share_of_subsequent_stations_captured": 0.291141
+              "share_of_subsequent_capacity_kw_captured": 0.282794,
+              "share_of_subsequent_dcfc_ports_captured": 0.282246,
+              "share_of_subsequent_ports_captured": 0.289504,
+              "share_of_subsequent_stations_captured": 0.290521
             },
             {
               "cells_in_decile_cumulative": 20302,
               "decile": 0.4,
-              "share_of_subsequent_dcfc_ports_captured": 0.384746,
-              "share_of_subsequent_ports_captured": 0.400434,
-              "share_of_subsequent_stations_captured": 0.400575
+              "share_of_subsequent_capacity_kw_captured": 0.377427,
+              "share_of_subsequent_dcfc_ports_captured": 0.376662,
+              "share_of_subsequent_ports_captured": 0.386562,
+              "share_of_subsequent_stations_captured": 0.387623
             },
             {
               "cells_in_decile_cumulative": 25378,
               "decile": 0.5,
-              "share_of_subsequent_dcfc_ports_captured": 0.48326,
-              "share_of_subsequent_ports_captured": 0.506995,
-              "share_of_subsequent_stations_captured": 0.506697
+              "share_of_subsequent_capacity_kw_captured": 0.471729,
+              "share_of_subsequent_dcfc_ports_captured": 0.470601,
+              "share_of_subsequent_ports_captured": 0.483559,
+              "share_of_subsequent_stations_captured": 0.485119
             },
             {
               "cells_in_decile_cumulative": 30454,
               "decile": 0.6,
-              "share_of_subsequent_dcfc_ports_captured": 0.576779,
-              "share_of_subsequent_ports_captured": 0.60128,
-              "share_of_subsequent_stations_captured": 0.598743
+              "share_of_subsequent_capacity_kw_captured": 0.565269,
+              "share_of_subsequent_dcfc_ports_captured": 0.564252,
+              "share_of_subsequent_ports_captured": 0.579239,
+              "share_of_subsequent_stations_captured": 0.581178
             },
             {
               "cells_in_decile_cumulative": 35529,
               "decile": 0.7,
-              "share_of_subsequent_dcfc_ports_captured": 0.674214,
-              "share_of_subsequent_ports_captured": 0.707495,
-              "share_of_subsequent_stations_captured": 0.699508
+              "share_of_subsequent_capacity_kw_captured": 0.659503,
+              "share_of_subsequent_dcfc_ports_captured": 0.658434,
+              "share_of_subsequent_ports_captured": 0.675153,
+              "share_of_subsequent_stations_captured": 0.677657
             },
             {
               "cells_in_decile_cumulative": 40605,
               "decile": 0.8,
-              "share_of_subsequent_dcfc_ports_captured": 0.762116,
-              "share_of_subsequent_ports_captured": 0.792206,
-              "share_of_subsequent_stations_captured": 0.787464
+              "share_of_subsequent_capacity_kw_captured": 0.753646,
+              "share_of_subsequent_dcfc_ports_captured": 0.752301,
+              "share_of_subsequent_ports_captured": 0.771881,
+              "share_of_subsequent_stations_captured": 0.7745
             },
             {
               "cells_in_decile_cumulative": 45680,
               "decile": 0.9,
-              "share_of_subsequent_dcfc_ports_captured": 0.844115,
-              "share_of_subsequent_ports_captured": 0.873742,
-              "share_of_subsequent_stations_captured": 0.872449
+              "share_of_subsequent_capacity_kw_captured": 0.84879,
+              "share_of_subsequent_dcfc_ports_captured": 0.847455,
+              "share_of_subsequent_ports_captured": 0.868911,
+              "share_of_subsequent_stations_captured": 0.871388
             },
             {
               "cells_in_decile_cumulative": 50756,
               "decile": 1.0,
+              "share_of_subsequent_capacity_kw_captured": 0.944323,
               "share_of_subsequent_dcfc_ports_captured": 0.942685,
               "share_of_subsequent_ports_captured": 0.965135,
               "share_of_subsequent_stations_captured": 0.968051
             }
           ],
           "ranking": "random",
-          "top_decile_capture_ports": 0.092697,
-          "top_decile_capture_stations": 0.09906
+          "top_decile_capture_capacity_kw": 0.094146,
+          "top_decile_capture_ports": 0.096394,
+          "top_decile_capture_stations": 0.096926
         },
         {
           "cells_ranked": 50756,
@@ -7711,6 +7856,7 @@
             {
               "cells_in_decile_cumulative": 5076,
               "decile": 0.1,
+              "share_of_subsequent_capacity_kw_captured": 0.614881,
               "share_of_subsequent_dcfc_ports_captured": 0.599818,
               "share_of_subsequent_ports_captured": 0.705844,
               "share_of_subsequent_stations_captured": 0.706326
@@ -7718,6 +7864,7 @@
             {
               "cells_in_decile_cumulative": 10151,
               "decile": 0.2,
+              "share_of_subsequent_capacity_kw_captured": 0.776186,
               "share_of_subsequent_dcfc_ports_captured": 0.768868,
               "share_of_subsequent_ports_captured": 0.841408,
               "share_of_subsequent_stations_captured": 0.846296
@@ -7725,6 +7872,7 @@
             {
               "cells_in_decile_cumulative": 15227,
               "decile": 0.3,
+              "share_of_subsequent_capacity_kw_captured": 0.841119,
               "share_of_subsequent_dcfc_ports_captured": 0.837135,
               "share_of_subsequent_ports_captured": 0.888456,
               "share_of_subsequent_stations_captured": 0.898846
@@ -7732,6 +7880,7 @@
             {
               "cells_in_decile_cumulative": 20302,
               "decile": 0.4,
+              "share_of_subsequent_capacity_kw_captured": 0.875443,
               "share_of_subsequent_dcfc_ports_captured": 0.87351,
               "share_of_subsequent_ports_captured": 0.912758,
               "share_of_subsequent_stations_captured": 0.921882
@@ -7739,6 +7888,7 @@
             {
               "cells_in_decile_cumulative": 25378,
               "decile": 0.5,
+              "share_of_subsequent_capacity_kw_captured": 0.897776,
               "share_of_subsequent_dcfc_ports_captured": 0.895528,
               "share_of_subsequent_ports_captured": 0.927188,
               "share_of_subsequent_stations_captured": 0.935957
@@ -7746,6 +7896,7 @@
             {
               "cells_in_decile_cumulative": 30454,
               "decile": 0.6,
+              "share_of_subsequent_capacity_kw_captured": 0.911794,
               "share_of_subsequent_dcfc_ports_captured": 0.909942,
               "share_of_subsequent_ports_captured": 0.935865,
               "share_of_subsequent_stations_captured": 0.945015
@@ -7753,6 +7904,7 @@
             {
               "cells_in_decile_cumulative": 35529,
               "decile": 0.7,
+              "share_of_subsequent_capacity_kw_captured": 0.921102,
               "share_of_subsequent_dcfc_ports_captured": 0.919986,
               "share_of_subsequent_ports_captured": 0.942672,
               "share_of_subsequent_stations_captured": 0.952418
@@ -7760,6 +7912,7 @@
             {
               "cells_in_decile_cumulative": 40605,
               "decile": 0.8,
+              "share_of_subsequent_capacity_kw_captured": 0.926236,
               "share_of_subsequent_dcfc_ports_captured": 0.925377,
               "share_of_subsequent_ports_captured": 0.947623,
               "share_of_subsequent_stations_captured": 0.957921
@@ -7767,6 +7920,7 @@
             {
               "cells_in_decile_cumulative": 45680,
               "decile": 0.9,
+              "share_of_subsequent_capacity_kw_captured": 0.939565,
               "share_of_subsequent_dcfc_ports_captured": 0.937578,
               "share_of_subsequent_ports_captured": 0.954194,
               "share_of_subsequent_stations_captured": 0.962938
@@ -7774,12 +7928,14 @@
             {
               "cells_in_decile_cumulative": 50756,
               "decile": 1.0,
+              "share_of_subsequent_capacity_kw_captured": 0.944323,
               "share_of_subsequent_dcfc_ports_captured": 0.942685,
               "share_of_subsequent_ports_captured": 0.965135,
               "share_of_subsequent_stations_captured": 0.968051
             }
           ],
           "ranking": "population",
+          "top_decile_capture_capacity_kw": 0.614881,
           "top_decile_capture_ports": 0.705844,
           "top_decile_capture_stations": 0.706326
         },
@@ -7789,6 +7945,7 @@
             {
               "cells_in_decile_cumulative": 5076,
               "decile": 0.1,
+              "share_of_subsequent_capacity_kw_captured": 0.414904,
               "share_of_subsequent_dcfc_ports_captured": 0.407786,
               "share_of_subsequent_ports_captured": 0.460057,
               "share_of_subsequent_stations_captured": 0.447231
@@ -7796,6 +7953,7 @@
             {
               "cells_in_decile_cumulative": 10151,
               "decile": 0.2,
+              "share_of_subsequent_capacity_kw_captured": 0.445221,
               "share_of_subsequent_dcfc_ports_captured": 0.440756,
               "share_of_subsequent_ports_captured": 0.489405,
               "share_of_subsequent_stations_captured": 0.482443
@@ -7803,6 +7961,7 @@
             {
               "cells_in_decile_cumulative": 15227,
               "decile": 0.3,
+              "share_of_subsequent_capacity_kw_captured": 0.49313,
               "share_of_subsequent_dcfc_ports_captured": 0.487459,
               "share_of_subsequent_ports_captured": 0.530684,
               "share_of_subsequent_stations_captured": 0.528905
@@ -7810,6 +7969,7 @@
             {
               "cells_in_decile_cumulative": 20302,
               "decile": 0.4,
+              "share_of_subsequent_capacity_kw_captured": 0.534189,
               "share_of_subsequent_dcfc_ports_captured": 0.531892,
               "share_of_subsequent_ports_captured": 0.563852,
               "share_of_subsequent_stations_captured": 0.564019
@@ -7817,6 +7977,7 @@
             {
               "cells_in_decile_cumulative": 25378,
               "decile": 0.5,
+              "share_of_subsequent_capacity_kw_captured": 0.674433,
               "share_of_subsequent_dcfc_ports_captured": 0.670752,
               "share_of_subsequent_ports_captured": 0.709067,
               "share_of_subsequent_stations_captured": 0.702089
@@ -7824,6 +7985,7 @@
             {
               "cells_in_decile_cumulative": 30454,
               "decile": 0.6,
+              "share_of_subsequent_capacity_kw_captured": 0.7225,
               "share_of_subsequent_dcfc_ports_captured": 0.719215,
               "share_of_subsequent_ports_captured": 0.774051,
               "share_of_subsequent_stations_captured": 0.776555
@@ -7831,6 +7993,7 @@
             {
               "cells_in_decile_cumulative": 35529,
               "decile": 0.7,
+              "share_of_subsequent_capacity_kw_captured": 0.773488,
               "share_of_subsequent_dcfc_ports_captured": 0.772217,
               "share_of_subsequent_ports_captured": 0.817373,
               "share_of_subsequent_stations_captured": 0.823845
@@ -7838,6 +8001,7 @@
             {
               "cells_in_decile_cumulative": 40605,
               "decile": 0.8,
+              "share_of_subsequent_capacity_kw_captured": 0.815056,
               "share_of_subsequent_dcfc_ports_captured": 0.815061,
               "share_of_subsequent_ports_captured": 0.873994,
               "share_of_subsequent_stations_captured": 0.879608
@@ -7845,6 +8009,7 @@
             {
               "cells_in_decile_cumulative": 45680,
               "decile": 0.9,
+              "share_of_subsequent_capacity_kw_captured": 0.882973,
               "share_of_subsequent_dcfc_ports_captured": 0.881342,
               "share_of_subsequent_ports_captured": 0.927424,
               "share_of_subsequent_stations_captured": 0.929479
@@ -7852,29 +8017,42 @@
             {
               "cells_in_decile_cumulative": 50756,
               "decile": 1.0,
+              "share_of_subsequent_capacity_kw_captured": 0.944323,
               "share_of_subsequent_dcfc_ports_captured": 0.942685,
               "share_of_subsequent_ports_captured": 0.965135,
               "share_of_subsequent_stations_captured": 0.968051
             }
           ],
           "ranking": "existing_network",
+          "top_decile_capture_capacity_kw": 0.414904,
           "top_decile_capture_ports": 0.460057,
           "top_decile_capture_stations": 0.447231
         }
       ],
       "cells_evaluated": 50756,
+      "eligible_support": {
+        "baselines_share_this_support": true,
+        "capture_denominator": "ALL subsequent deployments in the window, including any landing outside the ranked cells. A deployment in an unranked cell is a miss for every ranking, not an exclusion, so the full-ranking capture is below 1.0 by exactly the share that fell outside.",
+        "cells_dropped_as_uninhabited": 382,
+        "cells_with_demand": 51138,
+        "ranked_cells": 50756,
+        "share_of_subsequent_ports_inside_ranked_cells": 0.965135,
+        "share_of_subsequent_stations_inside_ranked_cells": 0.968051,
+        "top_decile_construction": "round(0.1 * len(ranked_cells)) cells taken from the head of the ranking; ties broken by cell id so the order is deterministic."
+      },
       "evaluation_window_end": "2024-01-01",
       "geographic_coverage_states": 52,
       "lift_vs_population_ports": 0.77948,
       "lift_vs_population_stations": 0.808798,
-      "lift_vs_random_ports": 5.935391,
-      "lift_vs_random_stations": 5.766962,
+      "lift_vs_random_ports": 5.707735,
+      "lift_vs_random_stations": 5.893954,
       "model": {
         "cells_ranked": 50756,
         "gain_curve": [
           {
             "cells_in_decile_cumulative": 5076,
             "decile": 0.1,
+            "share_of_subsequent_capacity_kw_captured": 0.494402,
             "share_of_subsequent_dcfc_ports_captured": 0.484962,
             "share_of_subsequent_ports_captured": 0.550192,
             "share_of_subsequent_stations_captured": 0.571276
@@ -7882,6 +8060,7 @@
           {
             "cells_in_decile_cumulative": 10151,
             "decile": 0.2,
+            "share_of_subsequent_capacity_kw_captured": 0.609576,
             "share_of_subsequent_dcfc_ports_captured": 0.604415,
             "share_of_subsequent_ports_captured": 0.648139,
             "share_of_subsequent_stations_captured": 0.67579
@@ -7889,6 +8068,7 @@
           {
             "cells_in_decile_cumulative": 15227,
             "decile": 0.3,
+            "share_of_subsequent_capacity_kw_captured": 0.664017,
             "share_of_subsequent_dcfc_ports_captured": 0.662524,
             "share_of_subsequent_ports_captured": 0.696774,
             "share_of_subsequent_stations_captured": 0.718843
@@ -7896,6 +8076,7 @@
           {
             "cells_in_decile_cumulative": 20302,
             "decile": 0.4,
+            "share_of_subsequent_capacity_kw_captured": 0.71237,
             "share_of_subsequent_dcfc_ports_captured": 0.712064,
             "share_of_subsequent_ports_captured": 0.73799,
             "share_of_subsequent_stations_captured": 0.755954
@@ -7903,6 +8084,7 @@
           {
             "cells_in_decile_cumulative": 25378,
             "decile": 0.5,
+            "share_of_subsequent_capacity_kw_captured": 0.751798,
             "share_of_subsequent_dcfc_ports_captured": 0.751504,
             "share_of_subsequent_ports_captured": 0.765892,
             "share_of_subsequent_stations_captured": 0.782643
@@ -7910,6 +8092,7 @@
           {
             "cells_in_decile_cumulative": 30454,
             "decile": 0.6,
+            "share_of_subsequent_capacity_kw_captured": 0.785785,
             "share_of_subsequent_dcfc_ports_captured": 0.78436,
             "share_of_subsequent_ports_captured": 0.790336,
             "share_of_subsequent_stations_captured": 0.806312
@@ -7917,6 +8100,7 @@
           {
             "cells_in_decile_cumulative": 35529,
             "decile": 0.7,
+            "share_of_subsequent_capacity_kw_captured": 0.822744,
             "share_of_subsequent_dcfc_ports_captured": 0.821927,
             "share_of_subsequent_ports_captured": 0.819699,
             "share_of_subsequent_stations_captured": 0.834559
@@ -7924,6 +8108,7 @@
           {
             "cells_in_decile_cumulative": 40605,
             "decile": 0.8,
+            "share_of_subsequent_capacity_kw_captured": 0.866029,
             "share_of_subsequent_dcfc_ports_captured": 0.86358,
             "share_of_subsequent_ports_captured": 0.870237,
             "share_of_subsequent_stations_captured": 0.87844
@@ -7931,6 +8116,7 @@
           {
             "cells_in_decile_cumulative": 45680,
             "decile": 0.9,
+            "share_of_subsequent_capacity_kw_captured": 0.923352,
             "share_of_subsequent_dcfc_ports_captured": 0.921575,
             "share_of_subsequent_ports_captured": 0.934985,
             "share_of_subsequent_stations_captured": 0.938684
@@ -7938,18 +8124,31 @@
           {
             "cells_in_decile_cumulative": 50756,
             "decile": 1.0,
+            "share_of_subsequent_capacity_kw_captured": 0.944323,
             "share_of_subsequent_dcfc_ports_captured": 0.942685,
             "share_of_subsequent_ports_captured": 0.965135,
             "share_of_subsequent_stations_captured": 0.968051
           }
         ],
         "ranking": "model_cutoff_valid_demand",
+        "top_decile_capture_capacity_kw": 0.494402,
         "top_decile_capture_ports": 0.550192,
         "top_decile_capture_stations": 0.571276
       },
       "origin": "2022",
       "prediction_cutoff": "2022-01-01",
+      "random_baseline_spread": {
+        "draws": 200,
+        "single_seeded_draw": 0.09906,
+        "single_seeded_draw_percentile_among_draws": 0.655,
+        "top_decile_stations_mean": 0.096926,
+        "top_decile_stations_p5": 0.085119,
+        "top_decile_stations_p95": 0.110215,
+        "top_decile_stations_sd": 0.007795,
+        "why_a_mean": "one permutation is unbiased but high-variance, because deployment counts are heavily concentrated. The reported random baseline is the mean over these draws, which is still empirical - not a theoretical 1/10th - and is what lift is computed against."
+      },
       "reconstruction_confidence": "highest of the three, though still an approximate reconstruction",
+      "subsequent_deployment_capacity_kw": 4370221.9,
       "subsequent_deployment_dcfc_ports": 17622.0,
       "subsequent_deployment_ports": 63616.0,
       "subsequent_deployments_available": 20533,
@@ -7961,6 +8160,8 @@
         "origin": "2022",
         "prediction_cutoff": "2022-01-01",
         "reconstruction_confidence": "highest of the three, though still an approximate reconstruction",
+        "road_filter_audit": "The Phase 4 candidate road-proximity filter uses TIGER/Line 2024, which postdates this cutoff, so it is NOT applied here and no substitute edition is used: the historical ranking scores every inhabited cell by cutoff-valid modelled demand. Current or future road geometry therefore cannot enter a historical origin. Enumerated as a backtest-versus-production difference in docs/VALIDATION.md.",
+        "road_filter_vintage": "none - no road geometry enters this origin",
         "state_registration_released": "2022-01-01",
         "state_registration_vintage": "AFDC state EV registrations 2021",
         "surface": {
@@ -8002,6 +8203,8 @@
       "origin": "2020",
       "prediction_cutoff": "2020-01-01",
       "reconstruction_confidence": "lowest - five to six years of station churn is invisible in a current snapshot, so the reconstructed pre-cutoff network is the most survivorship-biased of the three",
+      "road_filter_audit": "The Phase 4 candidate road-proximity filter uses TIGER/Line 2024, which postdates this cutoff, so it is NOT applied here and no substitute edition is used: the historical ranking scores every inhabited cell by cutoff-valid modelled demand. Current or future road geometry therefore cannot enter a historical origin. Enumerated as a backtest-versus-production difference in docs/VALIDATION.md.",
+      "road_filter_vintage": "none - no road geometry enters this origin",
       "state_registration_released": "2020-01-01",
       "state_registration_vintage": "AFDC state EV registrations 2019",
       "tract_geography": "2010"
@@ -8014,6 +8217,8 @@
       "origin": "2021",
       "prediction_cutoff": "2021-01-01",
       "reconstruction_confidence": "middle",
+      "road_filter_audit": "The Phase 4 candidate road-proximity filter uses TIGER/Line 2024, which postdates this cutoff, so it is NOT applied here and no substitute edition is used: the historical ranking scores every inhabited cell by cutoff-valid modelled demand. Current or future road geometry therefore cannot enter a historical origin. Enumerated as a backtest-versus-production difference in docs/VALIDATION.md.",
+      "road_filter_vintage": "none - no road geometry enters this origin",
       "state_registration_released": "2021-01-01",
       "state_registration_vintage": "AFDC state EV registrations 2020",
       "tract_geography": "2010"
@@ -8026,6 +8231,8 @@
       "origin": "2022",
       "prediction_cutoff": "2022-01-01",
       "reconstruction_confidence": "highest of the three, though still an approximate reconstruction",
+      "road_filter_audit": "The Phase 4 candidate road-proximity filter uses TIGER/Line 2024, which postdates this cutoff, so it is NOT applied here and no substitute edition is used: the historical ranking scores every inhabited cell by cutoff-valid modelled demand. Current or future road geometry therefore cannot enter a historical origin. Enumerated as a backtest-versus-production difference in docs/VALIDATION.md.",
+      "road_filter_vintage": "none - no road geometry enters this origin",
       "state_registration_released": "2022-01-01",
       "state_registration_vintage": "AFDC state EV registrations 2021",
       "tract_geography": "2010"
@@ -8150,8 +8357,8 @@
       {
         "label": "ACS 2020 5-year (2016-2020)",
         "period_end": "2020-12-31",
-        "release_date_certain": false,
-        "release_evidence": "reported to have slipped from December 2021 to March 2022 because of pandemic collection problems; NOT verified against a primary source by this project",
+        "release_date_certain": true,
+        "release_evidence": "official Census release date for the 2016-2020 ACS 5-year estimates, recorded on external review 2026-08-31. It slipped from the usual December schedule because of pandemic collection problems, and it falls AFTER the 2022-01-01 cutoff, so the 2022 origin still resolves to ACS 2019",
         "released": "2022-03-17",
         "source_id": "census_acs_tracts"
       },

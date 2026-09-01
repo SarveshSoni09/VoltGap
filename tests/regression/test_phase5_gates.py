@@ -284,3 +284,94 @@ def test_p5_f_every_origin_uses_2010_tract_geography_and_matching_weights(
         surface = entry["vintages_used"]["surface"]
         assert surface["tract_geography"] == "2010"
         assert "CenPop2010" in str(surface["population_weight_vintage"])
+
+
+# --- external review corrections, 2026-08-31 ------------------------------------------
+
+def test_p5_g_capacity_captured_is_reported_alongside_ports(
+    evidence: dict[str, Any],
+) -> None:
+    """§10.2.4 requires ports AND capacity captured, not only station counts (G1)."""
+    for entry in evidence["deployment_alignment"]:
+        assert entry["subsequent_deployment_capacity_kw"] > 0
+        for ranking in [entry["model"], *entry["baselines"]]:
+            assert "top_decile_capture_capacity_kw" in ranking, ranking["ranking"]
+            for point in ranking["gain_curve"]:
+                assert "share_of_subsequent_capacity_kw_captured" in point
+
+
+def test_p5_g_every_ranking_is_scored_over_the_same_eligible_support(
+    evidence: dict[str, Any],
+) -> None:
+    """A lift figure is meaningless if the model and its baselines see different
+    universes. The full-ranking capture is identical for all of them by construction."""
+    for entry in evidence["deployment_alignment"]:
+        full = [r["gain_curve"][-1]["share_of_subsequent_stations_captured"]
+                for r in [entry["model"], *entry["baselines"]]]
+        assert len(set(full)) == 1, entry["origin"]
+        support = entry["eligible_support"]
+        assert support["baselines_share_this_support"] is True
+        assert support["ranked_cells"] > 0
+        # The full-ranking capture is exactly the share that fell inside the support.
+        assert full[0] == pytest.approx(
+            support["share_of_subsequent_stations_inside_ranked_cells"], abs=1e-6)
+
+
+def test_p5_g_the_capture_denominator_and_top_decile_are_documented(
+    evidence: dict[str, Any],
+) -> None:
+    for entry in evidence["deployment_alignment"]:
+        support = entry["eligible_support"]
+        assert "ALL subsequent deployments" in str(support["capture_denominator"])
+        assert "round(0.1 *" in str(support["top_decile_construction"])
+
+
+def test_p5_g_the_random_baseline_reports_its_sampling_noise(
+    evidence: dict[str, Any],
+) -> None:
+    """The 2020 single-draw figure sat at percentile 0 of its own distribution, which
+    overstated lift there. The baseline is now a mean over draws - still empirical - and
+    the spread ships with it."""
+    for entry in evidence["deployment_alignment"]:
+        spread = entry["random_baseline_spread"]
+        assert spread["draws"] >= 100
+        assert spread["top_decile_stations_sd"] > 0
+        assert (spread["top_decile_stations_p5"]
+                <= spread["top_decile_stations_mean"]
+                <= spread["top_decile_stations_p95"])
+        random_curve = next(b for b in entry["baselines"] if b["ranking"] == "random")
+        assert random_curve["top_decile_capture_stations"] == pytest.approx(
+            spread["top_decile_stations_mean"], abs=1e-6)
+
+
+def test_p5_g_random_capture_is_now_consistent_across_origins(
+    evidence: dict[str, Any],
+) -> None:
+    """The anomaly this correction addressed: 0.0687 / 0.1050 / 0.0991 from single
+    draws, against a support that barely moves between origins."""
+    captures = [next(b for b in e["baselines"] if b["ranking"] == "random")
+                ["top_decile_capture_stations"]
+                for e in evidence["deployment_alignment"]]
+    assert max(captures) - min(captures) < 0.01, captures
+
+
+def test_p5_g_no_road_geometry_enters_any_historical_origin(
+    evidence: dict[str, Any],
+) -> None:
+    """D1. TIGER/Line 2024 postdates every cutoff; no earlier edition was retrieved."""
+    for plan in evidence["origin_plans"]:
+        assert plan["road_filter_vintage"] == (
+            "none - no road geometry enters this origin")
+        assert "NOT applied here" in str(plan["road_filter_audit"])
+
+
+def test_p5_g_the_acs_2020_release_date_is_recorded_as_established(
+    evidence: dict[str, Any],
+) -> None:
+    """Recorded on external review. It postdates the 2022 cutoff, so selection is
+    unchanged - but the exclusion reason is now demonstrable rather than precautionary."""
+    acs2020 = next(v for v in evidence["vintage_ledger"]["declared_vintages"]
+                   if "ACS 2020" in v["label"])
+    assert acs2020["released"] == "2022-03-17"
+    assert acs2020["release_date_certain"] is True
+    assert [p["acs_api_year"] for p in evidence["origin_plans"]] == [2018, 2019, 2019]
