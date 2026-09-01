@@ -24,9 +24,11 @@ other.
 
 from __future__ import annotations
 
+import functools
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, field
 from pathlib import Path
+from types import MappingProxyType
 
 from pipeline.model.build_demand import TractEstimate
 from pipeline.model.uncertainty import COMPONENT_NAMES
@@ -258,10 +260,11 @@ def assert_provenance_survived(cells: Sequence[HexCell]) -> None:
                 )
 
 
+@functools.lru_cache(maxsize=8)
 def load_hex_supply(
     path: Path | None = None, resolution: int = RESOLUTION_NATIONAL,
     cluster_eps_m: float | None = None,
-) -> dict[str, HexSupply]:
+) -> Mapping[str, HexSupply]:
     """Existing public operational supply, placed on the grid by site coordinates.
 
     The filters are Phase 2's, imported rather than restated so the two cannot drift:
@@ -272,6 +275,16 @@ def load_hex_supply(
     **This is the only place supply enters siting, and it is a saturation filter, not a
     demand feature.** Directive D2 governs the demand model; where capacity already
     exists is exactly what a siting decision must know.
+
+    **Cached**, on the reasoning already applied to ``allocation_penalty``: this is a pure
+    function of an immutable on-disk snapshot, and re-reading and re-clustering the
+    national export costs about 6.5 seconds each time. One Phase 4 run asks for three
+    clustering conditions, and the test suite asks for the same three repeatedly.
+
+    The result is a **read-only mapping**, so a caller cannot mutate the shared entry and
+    change what a later caller sees. ``HexSupply`` is frozen, so the values need no
+    protection of their own. Call ``load_hex_supply.cache_clear()`` if a snapshot is ever
+    rewritten in place within one process.
     """
     from pipeline.model.ablation import (
         DCFC_LEVEL,
@@ -300,7 +313,7 @@ def load_hex_supply(
                      ports, str(row.get("station_id"))))
 
     if not rows:
-        return {}
+        return MappingProxyType({})
     if cluster_eps_m is not None:
         rows = _assign_to_site_centroids(rows, cluster_eps_m)
     cells = cells_for_points([r[0] for r in rows], [r[1] for r in rows], resolution)
@@ -313,12 +326,12 @@ def load_hex_supply(
         elif level == L2_LEVEL:
             l2[cell] = l2.get(cell, 0.0) + ports
         stations.setdefault(cell, set()).add(station)
-    return {
+    return MappingProxyType({
         cell: HexSupply(station_count=len(members),
                         dcfc_ports=dcfc.get(cell, 0.0),
                         l2_ports=l2.get(cell, 0.0))
         for cell, members in stations.items()
-    }
+    })
 
 
 def _assign_to_site_centroids(

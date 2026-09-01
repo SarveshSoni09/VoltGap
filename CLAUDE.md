@@ -1502,3 +1502,38 @@ formal plan change under §15.6. A **useful enhancement** — another visualisat
 dataset, frontend feature, optimisation method, scenario, or dashboard — goes to
 `docs/FUTURE_WORK.md` and does not interrupt the current phase. The objective from here is to
 build the system that has been designed, not to keep making the design more ambitious.
+
+### Amendments of 2026-08-31 — gate mechanics, arising from gate-runtime optimisation
+
+Authorised by the project owner. These change **how the gate is executed, not what it
+verifies.** Nothing below removes an acceptance criterion, a test, a test selection, a
+coverage threshold, a determinism check, a smoke-forward check, a lint, or a regression
+suite. The baseline was `make gate PHASE=4` at **13 min 11 s**, of which the complete test
+suite ran **twice**.
+
+| ID | Section | Was | Now |
+|---|---|---|---|
+| A25 | §15.1 G-A/G-B, §15.6 | The gate ran the complete test suite once plain (`pytest`) and then the identical suite again under coverage (`pytest --cov`) | **One coverage-instrumented invocation satisfies both.** It runs the same complete selection with no deselection, fails on any test failure, produces the coverage report, and enforces every existing threshold. The second, uninstrumented run proved nothing the instrumented run does not, and doubled every gate. Full-suite testing remains mandatory; coverage remains mandatory; the thresholds are unchanged (100% line **and** branch on `model`/`spatial`/`validation`/`quality`/`schemas`/`discovery`, ≥85% on `sources`/`transform`, ≥70% repository wide) |
+| A26 | §15.1 G-C, §15.6 | Read as licence to run `make gate PHASE=n` for every earlier n when validating a phase | **G-C requires replaying every prior phase's phase-specific gate suite, not re-running each earlier phase's complete gate ceremony.** Recursing re-ran the identical whole-repository suite, coverage, lint and determinism work once per phase — the repository has one test suite and one set of coverage thresholds, and the current gate already ran both — so it added no validation evidence. `make gate PHASE=4` is the authoritative Phase 4 gate. Its G-C step runs each prior suite as its own invocation and prints its name with PASS/FAIL and its test count |
+
+**What G-C replays, as of Phase 4.** `test_source_findings.py` (Phase 0),
+`test_domain_rules.py` (Phase 1, G1–G14), `test_phase2_gates.py` (P2-A–P2-H),
+`test_phase3_gates.py` (P3-A–P3-H), `test_phase3_corrections.py`,
+`test_smoke_forward.py`, `test_smoke_forward_phase2.py`, `test_smoke_forward_phase3.py`.
+This list is named once in the `Makefile` and asserted from
+`tests/regression/test_gate_protocol.py`, which fails if the Makefile and the required
+list disagree **in either direction** — so a suite cannot be dropped from the gate, and an
+added suite cannot go unrecorded.
+
+**Wall-clock acceptance criteria are not measured under coverage instrumentation.** The
+≤2 s greedy budget (§15.5 Phase 4) is measured by `python -m pipeline.model.run_phase4`,
+which the gate runs uninstrumented at its rebuild step, and the criterion is asserted
+against the figure that run recorded. No second repository-wide `pytest` invocation exists
+for timing, and none may be reintroduced for that purpose.
+
+**A note on caching.** `load_hex_supply` is memoised (`functools.lru_cache`), on the
+reasoning already applied to `allocation_penalty`: it is a pure function of an immutable
+on-disk snapshot, costing ~6.5 s per call, and one Phase 4 run asks for three clustering
+conditions. It returns a **read-only mapping** of frozen values so no caller can mutate a
+shared entry, which is what keeps tests order-independent. `cache_clear()` is available if
+a snapshot is ever rewritten within one process.
