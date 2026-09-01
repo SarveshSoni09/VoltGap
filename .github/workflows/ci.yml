@@ -101,6 +101,12 @@ jobs:
       - name: PORTABLE budget — app shell <= 600 KB gzipped (§11.3)
         # Deterministic: gzip of the emitted files. Identical semantics to the gate.
         run: make web-budget
+      - name: Visible rendering of the analytical layer
+        # Needs a WebGL context, which a GitHub-hosted runner does not have, so this is
+        # skipped there rather than faked. It IS enforced by `make gate PHASE=6`, and its
+        # structural half is covered by the guards job on every PR.
+        if: vars.PERF_GPU_RUNNER != ''
+        run: make web-render-check
       - name: PORTABLE budget — greedy state solve <= 2.0 s (§11.3)
         # The accepted real Texas fixture: 3,532 published cells, the largest frontier
         # state. CPU-bound JavaScript with a large margin, so it holds on any runner.

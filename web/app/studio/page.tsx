@@ -4,6 +4,7 @@ import dynamic from "next/dynamic";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { cellBoundaries, type Boundaries } from "../../lib/data/geometry";
+import { perVertexColors } from "../../lib/render";
 import { STATE_NAMES } from "../../lib/data/states";
 import { hexRow, loadHexTable, type HexRow } from "../../lib/data/hexes";
 import type { ColumnTable } from "../../lib/data/table";
@@ -133,24 +134,21 @@ export default function SitingStudio() {
   }, [stateRows]);
 
   // Selected cells are highlighted by recolouring the buffer, not by a second layer.
+  // Per-VERTEX, which is what deck.gl's binary attribute path reads (see lib/render.ts).
   const colors = useMemo<Uint8Array | null>(() => {
-    if (stateRows.length === 0) return null;
+    if (stateRows.length === 0 || boundaries === null) return null;
     const scale = quantileScale(stateRows.map((r) => r.demand_bev));
-    const out = new Uint8Array(stateRows.length * 4);
-    for (let i = 0; i < stateRows.length; i += 1) {
-      const row = stateRows[i]!;
+    return perVertexColors(boundaries, (cell) => {
+      const row = stateRows[cell];
+      if (row === undefined) return [0, 0, 0, 0] as const;
       const chosen = selected.has(row.h3_index);
       const [r, g, b, a] = chosen
         ? ([255, 214, 102, 245] as const)
         : cellColor(scale(row.demand_bev), row.confidence_tier);
       const dim = selected.size > 0 && !chosen;
-      out[i * 4] = r;
-      out[i * 4 + 1] = g;
-      out[i * 4 + 2] = b;
-      out[i * 4 + 3] = dim ? 60 : a;
-    }
-    return out;
-  }, [stateRows, selected]);
+      return [r, g, b, dim ? 60 : a] as const;
+    });
+  }, [stateRows, boundaries, selected]);
 
   const centre = useMemo(() => {
     if (stateRows.length === 0) return undefined;

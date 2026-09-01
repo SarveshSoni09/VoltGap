@@ -27,21 +27,23 @@ WEB = PATHS.root / "web"
 SCRIPTS = WEB / "scripts"
 TTI = SCRIPTS / "perf-tti.mjs"
 FPS = SCRIPTS / "perf-fps.mjs"
+RENDER = SCRIPTS / "render-check.mjs"
 PROVENANCE = PATHS.root / "docs" / "evidence" / "P6-1_performance.json"
 
 TTI_SOURCE = TTI.read_text(encoding="utf-8")
 FPS_SOURCE = FPS.read_text(encoding="utf-8")
+RENDER_SOURCE = RENDER.read_text(encoding="utf-8")
 
 
 # --- 1. the harnesses are present and executable --------------------------------------
 
-@pytest.mark.parametrize("script", [TTI, FPS])
+@pytest.mark.parametrize("script", [TTI, FPS, RENDER])
 def test_the_harness_is_present(script: Path) -> None:
     assert script.is_file(), script.name
     assert script.stat().st_size > 2000
 
 
-@pytest.mark.parametrize("script", [TTI, FPS])
+@pytest.mark.parametrize("script", [TTI, FPS, RENDER])
 def test_the_harness_parses_and_is_executable_by_node(script: Path) -> None:
     """Syntax-checked without running it: a harness that cannot start would otherwise be
     discovered only on the reference environment, long after the PR merged."""
@@ -240,3 +242,51 @@ def test_the_gate_quiesces_the_machine_before_the_dependent_benchmarks() -> None
     settle_at = gate.index("directory web-perf-settle")
     measure_at = gate.index("directory web-perf-tti")
     assert settle_at < measure_at, "the machine must settle before it is measured"
+
+
+# --- the analytical layer must be VISIBLY rendered, not merely populated --------------
+
+def test_the_render_check_compares_rendered_output_not_loaded_state() -> None:
+    """The defect this exists for: deck.gl reported all 53,208 cells, held valid US
+    coordinates and non-zero alpha, and drew nothing a person could see. Every check the
+    project had passed. Only rendered output distinguishes populated from visible."""
+    assert "?layer=off" in RENDER_SOURCE or "layer=off" in RENDER_SOURCE
+    assert "screenshot" in RENDER_SOURCE
+    assert "MIN_CHANGED_SHARE" in RENDER_SOURCE
+
+
+def test_the_render_check_asserts_the_palette_not_only_a_pixel_count() -> None:
+    """A count-only check passes the real defect: with `_normalize: false` the layer drew
+    the whole surface in WHITE on a white basemap, changing 5.2% of pixels while being
+    invisible. Measured: 0.9% of changed pixels carried the palette in that state against
+    51.6% when correct."""
+    assert "MIN_CHROMATIC_SHARE_OF_CHANGED" in RENDER_SOURCE
+    assert "saturation" in RENDER_SOURCE
+    assert "luminance" in RENDER_SOURCE
+
+
+def test_the_render_check_is_a_difference_not_a_golden_image() -> None:
+    """A golden screenshot would break on a basemap tile change or a browser update and
+    would be quietly re-blessed."""
+    assert "golden" in RENDER_SOURCE.lower()
+    assert "pngjs" in RENDER_SOURCE
+
+
+@pytest.mark.parametrize(
+    "guard",
+    ["MIN_CELLS", "US_BOUNDS", "CONUS", "colours PER VERTEX", "not closed"],
+)
+def test_the_render_check_keeps_its_structural_guards(guard: str) -> None:
+    assert guard in RENDER_SOURCE, guard
+
+
+def test_the_frame_rate_harness_requires_a_per_vertex_colour_buffer() -> None:
+    """A frame rate measured over an invisible layer measures an idle GPU."""
+    assert "colours PER VERTEX" in FPS_SOURCE
+    assert "web-render-check" in FPS_SOURCE
+
+
+def test_the_gate_runs_the_render_check() -> None:
+    makefile = (PATHS.root / "Makefile").read_text(encoding="utf-8")
+    gate = makefile[makefile.index("\ngate-6:"):]
+    assert "directory web-render-check" in gate

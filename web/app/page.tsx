@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 
 import { EvidencePanel } from "../components/EvidencePanel";
 import { cellBoundaries, type Boundaries } from "../lib/data/geometry";
+import { perVertexColors } from "../lib/render";
 import { loadHexTable, summarise } from "../lib/data/hexes";
 import type { ColumnTable } from "../lib/data/table";
 import { cellColor, formatCompact, quantileScale, rampColor } from "../lib/scales";
@@ -37,6 +38,21 @@ export default function NationalOverview() {
   const [demandWeight, setDemandWeight] = useState(0.6);
   const [boundaries, setBoundaries] = useState<Boundaries | null>(null);
 
+  /**
+   * Test affordance: `?layer=off` renders the map WITHOUT the analytical overlay.
+   *
+   * It exists so the rendering regression test can compare real rendered output with the
+   * layer against the same view without it. That comparison is the only thing that would
+   * have caught the defect where the layer attached, reported all 53,208 cells, held valid
+   * coordinates and non-zero alpha, and drew nothing. Read once, never written.
+   */
+  const [analyticalLayer, setAnalyticalLayer] = useState(true);
+  useEffect(() => {
+    setAnalyticalLayer(
+      new URLSearchParams(window.location.search).get("layer") !== "off",
+    );
+  }, []);
+
   useEffect(() => {
     loadHexTable()
       .then((loaded) => {
@@ -48,24 +64,19 @@ export default function NationalOverview() {
       .catch((e: Error) => setError(e.message));
   }, []);
 
-  // A flat RGBA buffer, built straight from the columns and handed to the GPU. No row
-  // objects, and no per-cell array allocated for the renderer to walk.
+  // Per-VERTEX RGBA, built straight from the columns and handed to the GPU. No row
+  // objects. Per-vertex rather than per-cell because that is what deck.gl's binary
+  // attribute path reads - a per-cell buffer renders the wrong colours (see lib/render.ts).
   const colors = useMemo<Uint8Array | null>(() => {
-    if (table === null) return null;
+    if (table === null || boundaries === null) return null;
     const tiers = table.strs("confidence_tier");
     const values =
       metric === "priority" ? priorityColumn(table, demandWeight) : table.nums(metric);
     const scale = quantileScale(Array.from(values));
-    const out = new Uint8Array(table.length * 4);
-    for (let i = 0; i < table.length; i += 1) {
-      const [r, g, b, a] = cellColor(scale(values[i] ?? 0), (tiers[i] ?? "C") as Tier);
-      out[i * 4] = r;
-      out[i * 4 + 1] = g;
-      out[i * 4 + 2] = b;
-      out[i * 4 + 3] = a;
-    }
-    return out;
-  }, [table, metric, demandWeight]);
+    return perVertexColors(boundaries, (cell) =>
+      cellColor(scale(values[cell] ?? 0), (tiers[cell] ?? "C") as Tier),
+    );
+  }, [table, boundaries, metric, demandWeight]);
 
   const summary = useMemo(() => (table === null ? null : summarise(table)), [table]);
 
@@ -154,7 +165,11 @@ export default function NationalOverview() {
           <div className="loading">Loading {METRIC_LABELS[metric]}…</div>
         ) : (
           <>
-            <HexMap boundaries={boundaries} colors={colors} />
+            <HexMap
+              boundaries={boundaries}
+              colors={colors}
+              analyticalLayer={analyticalLayer}
+            />
             <div className="legend">
               <div>{METRIC_LABELS[metric]}</div>
               <div className="scale">

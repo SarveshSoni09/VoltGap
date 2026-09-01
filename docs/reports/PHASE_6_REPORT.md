@@ -880,3 +880,115 @@ reporting a number. Assumption **A-6.5** remains open and this is its evidence.
 Every other criterion, including all four performance budgets under the amended §11.3
 semantics, is met and enforced. **A-6.8 remains open**: the workflow is locally validated
 but has never been observed running on GitHub, and I do not claim otherwise.
+
+---
+
+## 16. The analytical layer rendered nothing — 2026-09-01
+
+Appended. Manual inspection by the project owner found that the National Overview drew the
+basemap, reported 53,208 cells, populated every sidebar statistic and the legend, and drew
+**no analytical polygons at all**. Severity **S1**: the primary output of the application
+was invisible.
+
+**No automated check caught it, and I had verified the map visually exactly once — before
+the binary refactor — and never looked again after changing the rendering path.** That
+process failure is the reason a three-part rendering bug shipped behind a green gate.
+
+### 16.1 Three defects, all from the object-to-binary refactor
+
+Isolated by changing one variable at a time against identical coordinate buffers:
+
+| # | Defect | Symptom |
+|---|---|---|
+| 1 | `_normalize: false` on `SolidPolygonLayer` | The whole surface drew in **white** — invisible on a light basemap |
+| 2 | Colour buffer built **per polygon**, where deck.gl's binary path reads **per vertex** | One seventh of the expected length; colours read from wrong offsets |
+| 3 | Map created before its CSS grid column resolved | deck.gl's drawing buffer stuck at **34×420**, the size of the "Loading map…" placeholder, for the life of the page. Neither `map.resize()` nor `deck.setProps({width, height})` recovered it |
+
+### 16.2 Why everything passed
+
+- `__voltgapLayerCells` reported **53,208** throughout. It counts cells *handed to* the
+  layer, not cells *drawn* — the distinction this defect exists to teach.
+- The frame-rate harness required ≥50,000 cells and got them, so it measured 58–60 fps
+  over an **invisible** layer.
+- The geometry was **correct**: 7 vertices per cell, rings closed, first cell at
+  (−158.21, 64.64) in Alaska, bounds −175.6..−84.1 lon and 31.5..71.3 lat.
+- Every cell carried **non-zero alpha**; the layer was attached, `visible: true`,
+  `opacity: 1`, on a correctly sized CSS box.
+- The frontend unit tests exercise the solver, exporters and vocabulary. None renders.
+
+### 16.3 Frontend only — proven, not assumed
+
+The same coordinate buffers pushed through deck.gl's **non-binary object path** rendered
+the national surface correctly on the first attempt. The published parquet artifacts are
+unaffected; no pipeline output changed.
+
+### 16.4 The regression, and why a pixel count is not enough
+
+`web/scripts/render-check.mjs` renders the same view twice — with the analytical layer and
+with `?layer=off` — and compares the output.
+
+**A pixel count alone passes the real defect.** The white rendering still changed **5.22%**
+of map pixels. So the check also asserts the changed pixels carry the layer's *palette*:
+viridis is saturated or dark throughout, and white is neither.
+
+| | pixels changed | of those, chromatic |
+|---|---:|---:|
+| Defective (`_normalize: false`) | 5.22% | **0.9%** |
+| Correct | 9.97% | **51.6%** |
+
+A 57-fold separation, threshold at 20%.
+
+**Verified to fail on the real defects, not merely to pass on the fix.** Reintroducing
+`_normalize: false` fails it on the palette assertion; reintroducing the per-polygon colour
+buffer fails it on the structural buffer-length assertion.
+
+Structural guards retained: ≥50,000 polygons, all geometry within US bounds, a
+continental-US spot check with a closed ring, per-vertex colour buffer length, and visible
+alpha. **A golden screenshot was deliberately not used** — it would break on a basemap tile
+change or a browser update and be quietly re-blessed.
+
+The frame-rate harness now also requires a per-vertex colour buffer, because a frame rate
+measured over an invisible layer measures an idle GPU.
+
+### 16.5 Every map surface revalidated
+
+Confirmed visibly rendering, not inferred from sidebar values: **National Overview** on all
+four metrics — estimated BEV demand, existing DCFC ports, DCFC access gap, and priority
+score with the weight slider — and the **Siting Studio** for Washington, showing 674
+candidates with the selected portfolio highlighted and the ranked table populated. Access &
+Equity is a table-and-curve view with no map surface.
+
+### 16.6 Gate re-run, thresholds unchanged
+
+`make gate PHASE=6` — **PASS**, 35 m 06 s, from a clean generated state.
+
+```
+PASS: app shell 219.1 KB of 600.0 KB (36.5% of budget).
+
+  continental-US spot check: cell 183, 7 vertices,
+    lon -112.094..-111.998, lat 48.831..48.895 — within -125..-66 / 24..50
+  rendered difference: 89,539 of 897,820 pixels changed (9.97%), threshold 2%
+  of those, 51.6% carry the layer's palette (threshold 20%)
+PASS: the analytical layer is visibly rendered.
+
+Machine validity: median benchmarkIndex 3911 (floor 3500).
+  median Time to Interactive      2.92 s   (budget 3.0 s)
+PASS: Time to Interactive 2.92 s of 3.0 s (97.2% of budget).
+
+  cells in the rendered layer: 53,208
+  colour buffer: 1,489,824 bytes for 372,456 vertices (per-vertex, correct)
+  SUSTAINED (worst 1 s window)  59.0 fps   (budget 55 fps)
+PASS: sustained 59.0 fps against a 55 fps budget.
+```
+
+**No threshold was changed because visible rendering is more expensive.** The frame rate
+with the layer genuinely visible is 58–59 fps against the same 55 fps budget.
+
+Impact-log entry **I-29**, severity **S1**.
+
+### 16.7 Status
+
+**Phase 6 has one unmet acceptance criterion: the unmoderated human usability check**,
+which must not be attempted until now — the map was not functional when the protocol was
+written. It remains outstanding and requires an unfamiliar participant. **A-6.8** remains
+open: the workflow is locally validated but has never been observed running on GitHub.

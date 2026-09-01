@@ -107,6 +107,33 @@ try {
   );
   const cells = await page.evaluate(() => window.__voltgapLayerCells ?? 0);
   console.log(`  cells in the rendered layer: ${cells.toLocaleString()}`);
+  // A populated layer is not a visible one. A defect had deck.gl report every cell while
+  // drawing nothing, and a frame rate measured over an invisible layer measures an idle
+  // GPU. The colour buffer must be per-VERTEX, which is the shape that actually renders.
+  const buffers = await page.evaluate(() => {
+    const map = window.__voltgapMap;
+    const overlay = map ? (map._controls || []).find((c) => c && c._deck) : null;
+    const layer = overlay && overlay._deck.props.layers[0];
+    if (!layer) return null;
+    const d = layer.props.data;
+    return {
+      vertices: d.attributes.getPolygon.value.length / 2,
+      colours: d.attributes.getFillColor.value.length,
+    };
+  });
+  if (buffers === null || buffers.colours !== buffers.vertices * 4) {
+    console.error(
+      `FAIL: colour buffer is ${buffers ? buffers.colours : "absent"} for ` +
+        `${buffers ? buffers.vertices : "?"} vertices. deck.gl reads colours PER VERTEX; ` +
+        "a mismatched buffer renders the wrong colours or nothing. A frame rate measured " +
+        "over an invisible layer is meaningless. See `make web-render-check`.",
+    );
+    process.exit(1);
+  }
+  console.log(
+    `  colour buffer: ${buffers.colours.toLocaleString()} bytes for ` +
+      `${buffers.vertices.toLocaleString()} vertices (per-vertex, correct)`,
+  );
   if (cells < MIN_CELLS) {
     console.error(
       `FAIL: the layer holds ${cells} cells, fewer than the ${MIN_CELLS} this benchmark ` +

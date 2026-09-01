@@ -15,11 +15,22 @@ import type { Boundaries } from "../lib/data/geometry";
  * than by hoping the bundler splits them.
  *
  * **Binary rendering path.** Cell geometry arrives as a `Float64Array` of vertices with
- * polygon start indices, computed in a worker, and colours as a `Uint8Array`. deck.gl
- * uploads both straight to the GPU without walking 53,208 objects. That is what the
- * sustained frame-rate budget needs, and it is why this uses `SolidPolygonLayer` from
- * `@deck.gl/layers` rather than `H3HexagonLayer` from the much larger
- * `@deck.gl/geo-layers` - the latter's job is precisely the conversion the worker does.
+ * polygon start indices, computed in a worker, and colours as a **per-vertex**
+ * `Uint8Array`. deck.gl uploads both straight to the GPU without walking 53,208 objects.
+ * That is what the sustained frame-rate budget needs, and it is why this uses
+ * `SolidPolygonLayer` from `@deck.gl/layers` rather than `H3HexagonLayer` from the much
+ * larger `@deck.gl/geo-layers` - the latter's job is precisely the conversion the worker
+ * does.
+ *
+ * Two things about that path are load-bearing and were each responsible for an invisible
+ * layer, so neither may be "simplified" back:
+ *
+ * 1. **`_normalize` stays at its default.** Setting it to `false` makes deck.gl draw
+ *    nothing here, while still reporting the full feature count.
+ * 2. **Colours are per VERTEX, not per polygon.** A per-polygon buffer is a seventh of the
+ *    length the layer reads and produces wrong colours.
+ *
+ * See `lib/render.ts` and the Phase 6 report for the diagnosis.
  *
  * The basemap is **OpenFreeMap**, which needs no key (§2: "No keyed provider"). §12 records
  * that it is a single point of failure and that a self-hosted Protomaps fallback belongs on
@@ -37,8 +48,14 @@ export interface SiteDatum {
 
 export interface HexMapProps {
   readonly boundaries: Boundaries | null;
-  /** RGBA per cell, length = boundaries.length * 4. */
+  /** RGBA per VERTEX: length = (positions.length / 2) * 4. See lib/render.ts. */
   readonly colors: Uint8Array | null;
+  /**
+   * Draw the analytical layer. Off is used by the rendering regression test, which
+   * compares rendered output with the layer on against the same view with it off - a
+   * check that the layer is *visible*, not merely populated.
+   */
+  readonly analyticalLayer?: boolean;
   readonly sites?: readonly SiteDatum[];
   readonly initialViewState?: { longitude: number; latitude: number; zoom: number };
 }
@@ -65,17 +82,51 @@ export default function HexMap({
   boundaries,
   colors,
   sites,
+  analyticalLayer = true,
   initialViewState = DEFAULT_VIEW,
 }: HexMapProps) {
   const container = useRef<HTMLDivElement | null>(null);
   const map = useRef<maplibregl.Map | null>(null);
   const overlay = useRef<MapboxOverlay | null>(null);
+  const sizeObserver = useRef<ResizeObserver | null>(null);
   const [basemapFailed, setBasemapFailed] = useState(false);
 
   useEffect(() => {
-    if (container.current === null || map.current !== null) return;
+    const node = container.current;
+    if (node === null || map.current !== null) return;
+
+    // Do not create the map until the container has real layout.
+    //
+    // The map sits in a CSS grid column that resolves after first paint, and the view
+    // renders a "Loading map..." placeholder before it. Creating the WebGL context against
+    // that intermediate box left deck.gl's drawing buffer stuck at 34x420 - the
+    // placeholder's size - for the life of the page, so the analytical layer drew into a
+    // narrow strip while the basemap, which tracks its container independently, looked
+    // correct. Neither `map.resize()` nor `deck.setProps({width, height})` recovered it.
+    let cancelled = false;
+    let observer: ResizeObserver | null = null;
+
+    const create = () => {
+      if (cancelled || map.current !== null) return;
+      buildMap(node);
+    };
+
+    if (node.clientWidth > 0 && node.clientHeight > 0) {
+      create();
+    } else {
+      observer = new ResizeObserver(() => {
+        if (node.clientWidth > 0 && node.clientHeight > 0) {
+          observer?.disconnect();
+          observer = null;
+          create();
+        }
+      });
+      observer.observe(node);
+    }
+
+    function buildMap(element: HTMLDivElement) {
     const instance = new maplibregl.Map({
-      container: container.current,
+      container: element,
       style: BASEMAP,
       center: [initialViewState.longitude, initialViewState.latitude],
       zoom: initialViewState.zoom,
@@ -91,12 +142,22 @@ export default function HexMap({
     instance.addControl(deck);
     map.current = instance;
     overlay.current = deck;
+    // Keep the drawing buffer in step with the container from here on.
+    const resize = new ResizeObserver(() => instance.resize());
+    resize.observe(element);
+    sizeObserver.current = resize;
     // Exposed for the reproducible frame-rate benchmark, which needs to drive the camera
     // deterministically. Reading a handle is inert; nothing in the app uses it.
     (window as unknown as { __voltgapMap?: maplibregl.Map }).__voltgapMap = instance;
+    }
+
     return () => {
-      deck.finalize();
-      instance.remove();
+      cancelled = true;
+      observer?.disconnect();
+      sizeObserver.current?.disconnect();
+      sizeObserver.current = null;
+      overlay.current?.finalize();
+      map.current?.remove();
       map.current = null;
       overlay.current = null;
     };
@@ -107,7 +168,7 @@ export default function HexMap({
   useEffect(() => {
     if (overlay.current === null) return;
     const layers = [];
-    if (boundaries !== null && colors !== null) {
+    if (analyticalLayer && boundaries !== null && colors !== null) {
       layers.push(
         new SolidPolygonLayer({
           id: "hex6",
@@ -119,7 +180,6 @@ export default function HexMap({
               getFillColor: { value: colors, size: 4, normalized: false },
             },
           },
-          _normalize: false,
           positionFormat: "XY",
           extruded: false,
           filled: true,
@@ -145,10 +205,12 @@ export default function HexMap({
     }
     overlay.current.setProps({ layers });
     // Published so the frame-rate benchmark can assert it is measuring a full layer
-    // rather than an empty map, which would otherwise hit vsync trivially.
+    // rather than an empty map, which would otherwise hit vsync trivially. This counts
+    // cells HANDED to the layer, which this defect showed is not the same as cells
+    // DRAWN - the rendering regression test covers that separately.
     (window as unknown as { __voltgapLayerCells?: number }).__voltgapLayerCells =
-      boundaries?.length ?? 0;
-  }, [boundaries, colors, sites]);
+      analyticalLayer ? (boundaries?.length ?? 0) : 0;
+  }, [boundaries, colors, sites, analyticalLayer]);
 
   return (
     <>

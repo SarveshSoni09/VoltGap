@@ -30,6 +30,7 @@
     "@types/react": "^19.1.13",
     "@types/react-dom": "^19.1.9",
     "lighthouse": "^12.8.2",
+    "pngjs": "^7.0.0",
     "puppeteer": "^24.43.1",
     "typescript": "^5.9.2",
     "vitest": "^3.2.4"

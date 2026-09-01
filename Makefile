@@ -7,7 +7,7 @@ REPLAY := tests/fixtures/replay
 .PHONY: help setup test coverage lint copy-lint probe probe-live gate gate-0 gate-1 \
 	artifacts web-install web-build web-test web-budget web-typecheck \
 	web-perf web-perf-tti web-perf-fps web-perf-greedy web-perf-guards \
-	web-perf-settle \
+	web-perf-settle web-render-check \
 	gate-2 gate-3 gate-4 gate-5 build build-fixture phase3 phase4 phase5 \
 	determinism \
 	determinism-1 clean \
@@ -145,6 +145,12 @@ web-build:
 # breach, which is what makes them enforcement rather than reporting.
 web-budget:
 	@cd web && node scripts/bundle-budget.mjs
+
+# Does the analytical layer actually DRAW? A populated layer is not a visible layer:
+# a defect made deck.gl report all 53,208 cells while rendering nothing a person could
+# see. Pixel-difference against the same view with the layer off, plus structural guards.
+web-render-check:
+	@cd web && node scripts/render-check.mjs
 
 # Wait for the machine to quiesce. Part of establishing the reference conditions, not
 # part of any measurement: the gate runs ~20 minutes of full load immediately before these.
@@ -521,6 +527,8 @@ gate-6:
 	@echo "    portable class: enforced here AND in PR CI"
 	@$(MAKE) --no-print-directory web-budget
 	@$(MAKE) --no-print-directory web-perf-greedy
+	@echo "    visible rendering of the analytical layer"
+	@$(MAKE) --no-print-directory web-render-check
 	@echo "    protection for the environment-dependent class (also run in PR CI)"
 	@$(MAKE) --no-print-directory web-perf-guards
 	@echo "    environment-dependent class: reference-environment hard gate"

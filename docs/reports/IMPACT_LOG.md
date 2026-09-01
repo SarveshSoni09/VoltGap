@@ -1014,6 +1014,73 @@ rasteriser, and asserting the layer is not empty).
 **Not resolved by this entry.** The unmoderated usability check remains outstanding and is
 not to be simulated, automated or self-administered.
 
+### I-29 — the analytical H3 layer rendered nothing, and every check passed
+
+| Field | Value |
+|---|---|
+| Opened | 2026-09-01, manual inspection by the project owner |
+| Discovering phase | 6 (manual inspection — no automated check caught it) |
+| Affected phase | 6 (`web/components/HexMap.tsx`, `web/app/page.tsx`, `web/app/studio/page.tsx`) |
+| Severity | **S1 Blocking** — the primary output of the application was invisible. Frontend only; no published artifact is wrong |
+| Status | **RESOLVED 2026-09-01** |
+
+**Observed.** The basemap rendered, the sidebar reported 53,208 cells, demand and confidence
+aggregates populated, the legend populated — and no analytical polygons were drawn.
+
+**Three defects, all mine, all introduced by the object-to-binary `SolidPolygonLayer`
+performance refactor.** Each was isolated by changing one variable at a time against the
+identical coordinate buffers:
+
+| # | Defect | Symptom |
+|---|---|---|
+| 1 | `_normalize: false` on `SolidPolygonLayer` | The whole surface drew in **white**. On a light basemap that is invisible |
+| 2 | Colour buffer built **per polygon**, where deck.gl's binary path reads **per vertex** | A buffer one seventh of the expected length; colours read from wrong offsets |
+| 3 | The map was created before its CSS grid column resolved | deck.gl's drawing buffer stuck at **34×420** — the size of the "Loading map…" placeholder — for the life of the page. Neither `map.resize()` nor `deck.setProps({width, height})` recovered it |
+
+**Why every existing check passed.** This is the important part.
+
+- `__voltgapLayerCells` reported **53,208** throughout. It counts cells *handed to* the
+  layer, which is not the same as cells *drawn*.
+- The frame-rate harness required ≥50,000 cells and got them.
+- Geometry was **correct**: 7 vertices per cell, rings closed, first cell at
+  (−158.21, 64.64) in Alaska, sample bounds −175.6..−84.1 lon and 31.5..71.3 lat.
+- Every cell carried **non-zero alpha**.
+- The layer was attached, `visible: true`, `opacity: 1`, on a correctly sized CSS box.
+- The frontend unit tests exercise the solver, the exporters and the vocabulary — none
+  renders anything.
+- I had verified the map visually **once**, before the refactor, using `H3HexagonLayer`,
+  and never looked again after changing the rendering path. That is the process failure
+  behind the technical one.
+
+**Are the artifacts wrong?** **No — frontend only.** Proven rather than assumed: the same
+coordinate buffers, passed through deck.gl's non-binary object path, rendered the national
+surface correctly. The published parquet is unaffected.
+
+**Response taken.** All three defects fixed: `_normalize` left at its default, colours built
+per vertex (`web/lib/render.ts`), and the map created only once its container has real
+layout, with a `ResizeObserver` keeping the drawing buffer in step thereafter.
+
+**The regression that would have caught it.** `web/scripts/render-check.mjs` renders the
+same view twice — with the analytical layer and with `?layer=off` — and compares the
+output. A pixel count alone is **not** sufficient, and this defect proves it: the white
+rendering still changed 5.22% of pixels. So the check also asserts that the changed pixels
+carry the layer's palette, viridis being saturated or dark throughout while white is
+neither. Measured: **0.9%** of changed pixels were chromatic in the defective state against
+**51.6%** when correct — a 57-fold separation, with the threshold at 20%.
+
+Verified to fail on the real defects, not merely to pass on the fix: reintroducing
+`_normalize: false` fails it on the palette assertion, and reintroducing the per-polygon
+colour buffer fails it on the structural buffer-length assertion.
+
+Structural guards retained alongside: ≥50,000 polygons, all geometry within US bounds, a
+continental-US spot check with a closed ring, per-vertex colour buffer length, and visible
+alpha. A golden screenshot was deliberately not used — it would break on a basemap tile
+change and be quietly re-blessed.
+
+**Performance re-measured with the layer actually visible**, thresholds unchanged:
+sustained **58.0 fps** against the 55 fps budget, colour buffer confirmed per-vertex at
+1,489,824 bytes for 372,456 vertices.
+
 ---
 
 ## Phase 0 note
