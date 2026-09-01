@@ -286,3 +286,33 @@ def test_the_tti_measurement_names_what_it_measures() -> None:
     # every machine that runs it.
     assert "cpuSlowdownMultiplier: 4" in text
     assert "throttlingMethod: \"simulate\"" in text
+
+
+def test_the_tti_harness_does_not_present_a_legacy_metric_as_current() -> None:
+    """Lighthouse 10 removed Time to Interactive from the performance score and the report
+    display. It is still computed — in 12.8.2 as `{weight: 0, group: 'hidden'}` — and that
+    is what the pre-registered §11.3 criterion is measured from. The harness must say so
+    rather than let a reader assume TTI is a current scored metric or a Core Web Vital."""
+    text = (PATHS.root / "web" / "scripts" / "perf-tti.mjs").read_text(encoding="utf-8")
+    assert "LEGACY" in text
+    assert "not a Core Web Vital" in text or "NOT a Core Web Vital" in text
+    assert "weight: 0" in text and "hidden" in text
+    # And it must refuse to silently substitute a modern metric if TTI ever disappears.
+    assert "does not emit the `interactive` audit" in text
+    assert "Do NOT substitute LCP, TBT" in text
+
+
+def test_the_tti_harness_reports_contemporary_metrics_as_diagnostics() -> None:
+    """Kept available for modern frontend diagnostics, and explicitly not substituted."""
+    text = (PATHS.root / "web" / "scripts" / "perf-tti.mjs").read_text(encoding="utf-8")
+    for metric in ("cumulative-layout-shift", "speed-index", "largest-contentful-paint",
+                   "total-blocking-time"):
+        assert metric in text, metric
+    assert "NOT substituted for the budget" in text
+
+
+def test_the_harness_records_the_versions_that_produced_the_number() -> None:
+    """A performance figure without the toolchain that produced it is not reproducible."""
+    text = (PATHS.root / "web" / "scripts" / "perf-tti.mjs").read_text(encoding="utf-8")
+    assert "lighthouseVersion" in text
+    assert "hostUserAgent" in text

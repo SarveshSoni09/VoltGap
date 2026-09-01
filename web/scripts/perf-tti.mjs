@@ -5,10 +5,28 @@
  *   | Time to interactive, cold, national view | ≤ 3.0 s |
  *
  * **What is measured, exactly.** Lighthouse's `interactive` audit — Time to Interactive:
- * the point after First Contentful Paint at which the main thread has been quiet enough,
- * for long enough, that the page reliably responds to input. That is the metric the
- * budget names, and it is the one asserted. FCP, LCP and TBT are reported alongside as
- * context, not as substitutes.
+ * the first 5-second window after First Contentful Paint in which the main thread has no
+ * long task and no more than two network requests are in flight. That is the metric §11.3
+ * names, and it is the one asserted.
+ *
+ * **TTI is a LEGACY metric, and this harness does not pretend otherwise.** Lighthouse 10
+ * removed Time to Interactive from the performance score and from the report display. It
+ * is *still computed and still emitted* by current Lighthouse — in 12.8.2 the audit is
+ * registered as `{id: 'interactive', weight: 0, group: 'hidden', acronym: 'TTI'}`, i.e.
+ * unscored and hidden, but fully calculated by the original algorithm. So:
+ *
+ *   - **TTI is NOT a current Lighthouse scored metric and is NOT a Core Web Vital.**
+ *     It is a pre-registered project criterion from CLAUDE.md §11.3, retained because that
+ *     is what the specification fixed, and asserted from the value current Lighthouse still
+ *     computes. No Lighthouse version is pinned below 10 to obtain it.
+ *   - The contemporary metrics are printed alongside as **diagnostics** — LCP, TBT, CLS,
+ *     Speed Index and the overall performance score — so modern auditing stays available.
+ *     None of them substitutes for the TTI budget.
+ *
+ * That the audit genuinely computes TTI rather than aliasing another metric was verified
+ * by a controlled experiment: two pages identical except for a 2-second long task starting
+ * after LCP gave TTI 64 ms → 4,035 ms while LCP moved 64 ms → 80 ms. Recorded in
+ * `docs/reports/PHASE_6_REPORT.md` §13.
  *
  * **Under what conditions.** A cold load of the National Overview — the view the budget
  * names — from a local static server serving the production `next build` export, in
@@ -87,11 +105,26 @@ for (let run = 1; run <= RUNS; run += 1) {
       URL_UNDER_TEST, { port, output: "json", logLevel: "silent" }, CONFIG,
     );
     const audits = report.lhr.audits;
+    if (audits.interactive?.numericValue === undefined) {
+      // If a future Lighthouse stops computing it, this must fail loudly rather than
+      // quietly falling back to a metric that is not the pre-registered criterion.
+      console.error(
+        "FAIL: this Lighthouse build does not emit the `interactive` audit, so the " +
+          "pre-registered TTI criterion cannot be measured. Do NOT substitute LCP, TBT " +
+          "or INP; amend docs/reports/PLAN_CHANGE_6.md for an owner decision.",
+      );
+      process.exit(1);
+    }
     results.push({
       tti: audits.interactive.numericValue / 1000,
       fcp: audits["first-contentful-paint"].numericValue / 1000,
       lcp: audits["largest-contentful-paint"].numericValue / 1000,
       tbt: audits["total-blocking-time"].numericValue,
+      cls: audits["cumulative-layout-shift"].numericValue,
+      si: audits["speed-index"].numericValue / 1000,
+      score: report.lhr.categories.performance.score,
+      lighthouseVersion: report.lhr.lighthouseVersion,
+      chrome: report.lhr.environment.hostUserAgent.match(/Chrome\/[\d.]+/)?.[0] ?? "?",
     });
     console.log(
       `  run ${run}/${RUNS}   TTI ${results.at(-1).tti.toFixed(2)}s   ` +
@@ -114,11 +147,20 @@ const tti = median(results.map((r) => r.tti));
 console.log("");
 console.log("Cold load of the National Overview, Lighthouse simulated desktop");
 console.log("throttling: 40 ms RTT, 10 Mbps, 4x CPU slowdown.");
+console.log(`Lighthouse ${results[0].lighthouseVersion}, ${results[0].chrome}.`);
 console.log("");
-console.log(`  median Time to Interactive   ${tti.toFixed(2)} s   (budget ${BUDGET_SECONDS.toFixed(1)} s)`);
-console.log(`  median First Contentful Paint ${median(results.map((r) => r.fcp)).toFixed(2)} s`);
+console.log("  PRE-REGISTERED CRITERION (CLAUDE.md 11.3). Time to Interactive is a LEGACY");
+console.log("  metric: unscored and hidden in Lighthouse >= 10, still computed by it.");
+console.log("  It is not a Core Web Vital and not a current Lighthouse scored metric.");
+console.log(`  median Time to Interactive      ${tti.toFixed(2)} s   (budget ${BUDGET_SECONDS.toFixed(1)} s)`);
+console.log("");
+console.log("  Contemporary diagnostics, reported but NOT substituted for the budget:");
+console.log(`  median First Contentful Paint   ${median(results.map((r) => r.fcp)).toFixed(2)} s`);
 console.log(`  median Largest Contentful Paint ${median(results.map((r) => r.lcp)).toFixed(2)} s`);
-console.log(`  median Total Blocking Time    ${median(results.map((r) => r.tbt)).toFixed(0)} ms`);
+console.log(`  median Total Blocking Time      ${median(results.map((r) => r.tbt)).toFixed(0)} ms`);
+console.log(`  median Cumulative Layout Shift  ${median(results.map((r) => r.cls)).toFixed(3)}`);
+console.log(`  median Speed Index              ${median(results.map((r) => r.si)).toFixed(2)} s`);
+console.log(`  median performance score        ${(median(results.map((r) => r.score)) * 100).toFixed(0)} / 100`);
 console.log("");
 
 if (tti > BUDGET_SECONDS) {

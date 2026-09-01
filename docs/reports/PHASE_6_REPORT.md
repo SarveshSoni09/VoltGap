@@ -482,3 +482,172 @@ outstanding and requires a human participant.
 `make gate PHASE=6` exits zero — it verifies everything that can be verified automatically —
 but the gate passing is not the same as the phase's declared criteria all being met, and
 this report does not claim otherwise.
+
+---
+
+## 13. Provenance check on the TTI measurement — 2026-09-01
+
+Appended. External review asked, before accepting the time-to-interactive evidence, where
+the `interactive = 2.84 s` value comes from — on the grounds that Lighthouse removed Time
+to Interactive beginning with Lighthouse 10. **The concern was well founded and the check
+was worth running.** The finding is that the measurement is legitimate, but that my §12
+wording let TTI read as a current Lighthouse metric, which it is not.
+
+### 13.1 Exact installed versions
+
+| Component | Version | How obtained |
+|---|---|---|
+| **Lighthouse** | **12.8.2** | `node_modules/lighthouse/package.json`; also self-reported in the run as `lhr.lighthouseVersion` |
+| **Lighthouse CI (`@lhci/cli`)** | **NOT INSTALLED** | §13.2 below |
+| **Chrome** | **Google Chrome for Testing 148.0.7778.97** | the binary puppeteer resolves, `--version`; the run reports `HeadlessChrome/148.0.0.0` |
+| puppeteer / puppeteer-core | 24.43.1 | bundles the Chrome above |
+
+The harness now prints the Lighthouse and Chrome versions in its own output, so a figure
+cannot be quoted without the toolchain that produced it.
+
+### 13.2 Lighthouse CI is not installed, and §11.3 asks for it
+
+§11.3 says *"CI fails on bundle budget violation. Lighthouse CI runs on every PR."* Stated
+plainly:
+
+- **`@lhci/cli` is not installed.** The harness calls the **Lighthouse Node API** directly
+  from `web/scripts/perf-tti.mjs`. That is a deliberate choice — it lets the budget assert
+  one specific audit under one pinned throttling profile, which is what §11.3's numeric
+  budget needs — but it is not Lighthouse CI and this report should not have implied it was.
+- **`.github/workflows/` does not exist at all.** No workflow files have been written yet;
+  §3 and §13.1 of the specification place `ci.yml` in **Phase 7**. So "runs on every PR" is
+  not satisfied today by anything.
+- What *is* true: the budgets are enforced by `make gate PHASE=6`, which exits non-zero on
+  breach. That is enforcement in the gate, not enforcement on a pull request.
+
+Recorded as assumption **A-6.6**. Wiring these into `ci.yml` is Phase 7 work; I am flagging
+it here rather than letting the §12 phrase "CI-enforced" carry more than it earns.
+
+### 13.3 Where the value comes from, and what Lighthouse 10 actually changed
+
+`web/scripts/perf-tti.mjs` reads `lhr.audits.interactive.numericValue`. Inspecting the
+installed Lighthouse 12.8.2 rather than relying on recollection:
+
+- **The audit exists and is registered.** `core/audits/metrics/interactive.js` is present
+  and listed in `core/config/default-config.js` line 168 as `'metrics/interactive'`.
+- **It is unscored and hidden**, which is precisely what changed in Lighthouse 10. In the
+  performance category it appears as:
+
+  ```js
+  {id: 'interactive', weight: 0, group: 'hidden', acronym: 'TTI'}
+  ```
+
+  `weight: 0` removes it from the performance score; `group: 'hidden'` removes it from the
+  rendered report. **It does not remove it from the computation or from the JSON.**
+- **The algorithm is intact, not a stub.** `core/computed/metrics/interactive.js` carries
+  the original definition — `REQUIRED_QUIET_WINDOW = 5000`, `ALLOWED_CONCURRENT_REQUESTS = 2`,
+  `_findNetworkQuietPeriods`, `_findCPUQuietPeriods`, `findOverlappingQuietPeriods`, and
+  both `computeSimulatedMetric` (via `LanternInteractive`, the path this harness uses under
+  `throttlingMethod: "simulate"`) and `computeObservedMetric`.
+- **The run emits it as a real audit**, not a leftover key:
+
+  ```
+  audits.interactive:
+    id               : interactive
+    title            : Time to Interactive
+    numericValue     : 2902.6423 millisecond
+    scoreDisplayMode : numeric
+    score            : 0.82
+    categoryRef      : {"id":"interactive","weight":0,"group":"hidden","acronym":"TTI"}
+  ```
+
+So the review's premise is right about **scoring and display** and does not extend to
+**computation**: Lighthouse ≥ 10 still produces the `interactive` audit. Item 4 of the
+review therefore resolves as *investigated, no measurement defect found*.
+
+### 13.4 Falsification: is it really TTI, or an alias?
+
+Version archaeology is not proof that the number means what its title says. Two pages,
+identical except for a two-second synchronous main-thread task starting two seconds after
+load — well after LCP — measured with throttling off so the arithmetic is legible:
+
+| Page | TTI | LCP | TBT |
+|---|---:|---:|---:|
+| no long task | 64 ms | 64 ms | 0 ms |
+| 2 s long task starting at 2 s | **4,035 ms** | **80 ms** | 1,951 ms |
+
+TTI moves to the end of the long task (~4,000 ms) while LCP is essentially unchanged. It
+responds to main-thread availability independently of paint, which is the defining
+behaviour of Time to Interactive and rules out aliasing to LCP.
+
+This also explains a coincidence I noticed earlier and did not chase: an initial probe
+reported `interactive` and `largest-contentful-paint` as both 29,382 ms. That is not
+aliasing — under heavy throttling the last long task happened to end at the same moment as
+the largest paint. In the shipped measurement they differ (2.84 s against 2.48 s).
+
+### 13.5 The correction to §12's wording
+
+No Lighthouse version is pinned below 10, and none should be: an older Lighthouse would
+bring an older Lantern simulator and an older Chrome, which is a worse measurement, not a
+more faithful one. **TTI is measured from what current Lighthouse still computes.**
+
+What §12 should have said, and what the harness now prints on every run:
+
+> **Time to Interactive is a legacy metric.** Lighthouse 10 removed it from the performance
+> score and from the report display; Lighthouse 12.8.2 still computes it. It is **not** a
+> Core Web Vital and **not** a current Lighthouse scored metric. It is retained here because
+> CLAUDE.md §11.3 pre-registered it as this project's criterion, and it is asserted from the
+> value current Lighthouse still produces.
+
+**Contemporary auditing is kept available**, as the review asked. The harness now reports
+LCP, TBT, CLS, Speed Index and the overall performance score as **diagnostics**, printed
+under a heading that says they are not substituted for the budget:
+
+```
+  PRE-REGISTERED CRITERION (CLAUDE.md 11.3). Time to Interactive is a LEGACY
+  metric: unscored and hidden in Lighthouse >= 10, still computed by it.
+  It is not a Core Web Vital and not a current Lighthouse scored metric.
+  median Time to Interactive      2.86 s   (budget 3.0 s)
+
+  Contemporary diagnostics, reported but NOT substituted for the budget:
+  median First Contentful Paint   0.20 s
+  median Largest Contentful Paint 2.50 s
+  median Total Blocking Time      280 ms
+  median Cumulative Layout Shift  0.000
+  median Speed Index              1.36 s
+  median performance score        74 / 100
+```
+
+**No substitution is possible by accident.** If a future Lighthouse stops emitting the
+audit, the harness exits non-zero with a message directing the reader to amend
+`PLAN_CHANGE_6.md` rather than falling back to LCP, TBT or INP. Four tests in
+`tests/regression/test_gate_protocol.py` assert the legacy labelling, the diagnostics, the
+refusal-to-substitute path, and that the toolchain versions are recorded.
+
+### 13.6 Gate re-run after the correction
+
+`make gate PHASE=6` — **PASS**, 18 m 50 s, from a clean generated state.
+
+```
+PASS: app shell 218.9 KB of 600.0 KB (36.5% of budget).
+
+Lighthouse 12.8.2, Chrome/148.0.0.0.
+  PRE-REGISTERED CRITERION (CLAUDE.md 11.3). Time to Interactive is a LEGACY
+  metric: unscored and hidden in Lighthouse >= 10, still computed by it.
+  It is not a Core Web Vital and not a current Lighthouse scored metric.
+  median Time to Interactive      2.87 s   (budget 3.0 s)
+  Contemporary diagnostics, reported but NOT substituted for the budget:
+  median Largest Contentful Paint 2.49 s
+  median Total Blocking Time      280 ms
+  median Cumulative Layout Shift  0.000
+  median Speed Index              1.35 s
+  median performance score        75 / 100
+PASS: Time to Interactive 2.87 s of 3.0 s (95.7% of budget).
+
+  renderer: ANGLE (Apple, ANGLE Metal Renderer: Apple M4, Unspecified Version)
+  cells in the rendered layer: 53,208
+  SUSTAINED (worst 1 s window)  59.0 fps   (budget 55 fps)
+PASS: sustained 59.0 fps against a 55 fps budget.
+```
+
+### 13.7 What did not change
+
+No threshold, no frontend performance implementation, and no measured value. TTI remains
+**2.84–2.86 s** against the 3.0 s budget across runs. No plan change is required, because
+the pre-registered criterion **can** be reproduced legitimately on current tooling — which
+is the condition the review set for needing one.
