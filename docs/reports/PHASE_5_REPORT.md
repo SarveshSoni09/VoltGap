@@ -597,6 +597,13 @@ the per-origin reconstruction-confidence discussion, which remains about survivo
 
 ### C.3 §10.2.4 infrastructure quantities — ports were present, capacity was not
 
+> **Partly superseded by §D.1 (2026-09-01).** The capacity *numbers* in this section stand
+> unchanged. Its claim that the reconstruction **overstates** older capacity, and that the
+> capacity-capture result is therefore a **lower bound**, is **withdrawn**: the biases compete
+> and the net direction is unknown. The text below is left as originally written so the audit
+> trail survives — read §D.1 and §D.2 for the corrected interpretation.
+
+
 Ports and DCFC ports were already reported per decile and per ranking
 (`share_of_subsequent_ports_captured`, `share_of_subsequent_dcfc_ports_captured`).
 **Capacity in kW was absent**, so it was added under existing G1 semantics: non-overlapping
@@ -684,3 +691,85 @@ permits at these origins. A-5.3 stays **OPEN** with that reasoning recorded.
 
 `make gate PHASE=5`, the single authoritative gate, with the Phase 5 validation artifact
 regenerated. Six new gate checks (`test_p5_g_*`) cover the corrections.
+
+---
+
+## Correction — 2026-09-01
+
+Appended, not merged. §§1–11 and the 2026-08-31 correction section above are left as
+written. **One interpretation correction. No model, ranking, baseline, threshold or numeric
+result changed** — every headline metric is identical before and after, and the only artifact
+changes are the metadata strings that themselves carried the incorrect claim.
+
+### D.1 The directional-bias claim on reconstructed capacity — withdrawn
+
+**What §C.3 claimed.** That the current-snapshot capacity reconstruction is biased toward
+**overstating** the capacity of older deployments, and that the 0.48–0.49 capacity-capture
+result is therefore a **lower bound** on the effect.
+
+**Why that was wrong.** The direction is not known. The reconstruction carries **competing**
+biases:
+
+- a surviving station may carry **higher** power now than when it was installed — inflating;
+- stations that **closed or left the feed** are absent entirely — deflating;
+- upgrades and closures need **not** be distributed equally between model-selected and
+  non-selected cells, so even the capture *fraction* — a ratio, in which a bias applying
+  equally to numerator and denominator would cancel — has no guaranteed direction.
+
+§C.3 reasoned only from the first. Having noticed that upgrades inflate surviving stations, I
+asserted a net direction without accounting for the missing stations pulling the other way, or
+for the fact that a capture fraction is a ratio. That turned a bounded, honest limitation into
+a quantified one-sided error it is not.
+
+**Therefore neither the reconstructed total nor the model's capacity-capture fraction has a
+guaranteed upward or downward bias relative to true installation-time capacity.**
+
+### D.2 The corrected interpretation
+
+> Within the survivorship-biased current-snapshot reconstruction, the model's top-decile cells
+> capture 48–49% of reconstructed capacity compared with 57–65% of subsequent deployment
+> events. This indicates weaker alignment with reconstructed charging capacity than with
+> deployment counts. Because historical power changes and closed stations cannot be
+> reconstructed, the direction and magnitude of bias relative to installation-time capacity are
+> unknown and are more consequential for older origins.
+
+**The "many small stations" reading is also withdrawn.** What is observable is that the
+deployments the model's top decile selects have **lower reconstructed (current-snapshot)
+capacity on average** than deployments overall. Original installation-time capacity is
+unavailable, so no claim about the size of the stations actually built at the time is
+supported.
+
+### D.3 The corrected table
+
+The column previously headed *"Capacity deployed (kW)"* is relabelled, because the old heading
+read as a measured installation-time quantity:
+
+| Origin | Reconstructed capacity associated with deployments (current-snapshot kW) | Model | Population | Existing-network | Random |
+|---|---:|---:|---:|---:|---:|
+| 2020 | 2,471,663 | 0.4797 | 0.6365 | 0.3231 | 0.0924 |
+| 2021 | 3,142,231 | 0.4842 | 0.6235 | 0.3795 | 0.0938 |
+| 2022 | 4,370,222 | 0.4944 | 0.6149 | 0.4149 | 0.0941 |
+
+**Every figure is unchanged.** Only the label and the interpretation are corrected.
+
+### D.4 What changed, precisely
+
+| Location | Change |
+|---|---|
+| `CAPACITY_BASIS` in `pipeline/validation/deployment_alignment.py` | Rewritten: names all three competing effects, states the net direction is **UNKNOWN**, and carries no directional word. This string is attached to every capacity figure in the artifact, so the correction reaches a reader of the JSON alone |
+| `Deployment.capacity_kw` docstring | Same correction, with the withdrawn claim noted so it is not reintroduced |
+| `docs/VALIDATION.md` §2.6.3 | Relabelled column, competing-biases explanation, corrected interpretation, "many small stations" withdrawn |
+| `docs/reports/ASSUMPTION_LEDGER.md` A-5.6 | **Stays OPEN.** Restated with no bias direction claimed |
+| `docs/reports/IMPACT_LOG.md` | Entry **I-26**, severity S3 |
+| `tests/regression/test_phase5_gates.py` | The gate check now asserts the basis string contains **no** directional word — `OVERSTATING`, `overstates`, `lower bound`, `upper bound` — so the claim cannot return silently |
+| `docs/evidence/P5-1_validation.json` | Regenerated. Only the `capacity_kw_basis` metadata strings differ; every numeric value is identical |
+
+### D.5 Headline metrics, unchanged
+
+| Origin | Model top-decile | Lift vs random | Lift vs population |
+|---|---:|---:|---:|
+| 2020 | 0.6452 | 6.72 | **0.83** |
+| 2021 | 0.6216 | 6.39 | **0.82** |
+| 2022 | 0.5713 | 5.89 | **0.81** |
+
+A-0.5, A-5.3 and A-5.6 remain **OPEN** as documented limitations.

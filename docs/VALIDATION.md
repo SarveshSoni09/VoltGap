@@ -221,27 +221,42 @@ in kW (§7.1.1), resolved through Phase 2's own power ladder — reported → em
 documented type default — with a unit's capacity the **maximum** of its mutually alternative
 connector outputs, never their sum.
 
-| Origin | Capacity deployed (kW) | Model top-decile capacity | Population | Existing-network | Random |
+| Origin | Reconstructed capacity associated with deployments (current-snapshot kW) | Model top-decile capacity | Population | Existing-network | Random |
 |---|---:|---:|---:|---:|---:|
 | 2020 | 2,471,663 | 0.4797 | 0.6365 | 0.3231 | 0.0924 |
 | 2021 | 3,142,231 | 0.4842 | 0.6235 | 0.3795 | 0.0938 |
 | 2022 | 4,370,222 | 0.4944 | 0.6149 | 0.4149 | 0.0941 |
 
-**This is retrospectively reconstructed capacity, not known installation-time capacity.**
-The power values are read from the **current** AFDC snapshot and attributed to each station's
-open date. A station later upgraded — 50 kW to 350 kW, or ports added — carries its *present*
-power here, not the power it had when it opened, because the snapshot records no history
-(**G10**, **G11**). Stations that closed or left the feed are absent entirely. The bias runs
-toward **overstating** the capacity of older deployments and grows with age — the same
-direction and the same cause as the survivorship bias on the station count itself, so the 2020
-origin's capacity figures are the least trustworthy of the three. Every published capacity
+**This is reconstructed capacity in current-snapshot kW, not known installation-time
+capacity.** The power values are read from the **current** AFDC snapshot and attributed to
+each station's open date, because the snapshot records no history (**G10**, **G11**).
+
+**The biases compete, and their net direction is unknown.** Three effects pull against each
+other:
+
+- a surviving station may carry **higher** power now than when it was installed, which would
+  inflate the reconstructed figure;
+- stations that **closed or left the feed** are absent entirely, which would deflate it;
+- upgrades and closures need **not** be distributed equally between model-selected and
+  non-selected cells, so even the capture *fraction* — a ratio, where a uniform bias would
+  cancel — has no guaranteed direction.
+
+So neither the reconstructed total nor the model's capacity-capture fraction has a guaranteed
+upward or downward bias relative to true installation-time capacity. Every published capacity
 figure carries this basis string in the artifact.
 
-**The model captures noticeably less capacity than it does station count** — 0.48–0.49 against
-0.57–0.65. Its top decile is skewed toward cells receiving many small stations rather than
-high-power sites. The ordering against the baselines is unchanged. Because the reconstruction
-overstates older capacity, this gap is a lower bound on the effect rather than a precise
-measure of it.
+**Interpretation.** Within the survivorship-biased current-snapshot reconstruction, the
+model's top-decile cells capture **48–49% of reconstructed capacity** compared with **57–65%
+of subsequent deployment events**. This indicates **weaker alignment with reconstructed
+charging capacity than with deployment counts**. Because historical power changes and closed
+stations cannot be reconstructed, the direction and magnitude of bias relative to
+installation-time capacity are **unknown**, and are more consequential for older origins.
+
+Stated narrowly: the deployments the model's top decile selects have **lower reconstructed
+(current-snapshot) capacity on average** than deployments overall. Original installation-time
+capacity is unavailable, so this cannot be restated as a claim about the size of the stations
+that were actually built at the time. The ordering against the baselines is unchanged, and
+population leads on capacity as it does on station count.
 
 ### 2.7 The headline finding is negative, and it is reported as such
 
