@@ -48,6 +48,8 @@ import { spawn } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
 import lighthouse from "lighthouse";
+
+import { recordBenchmark } from "./perf-provenance.mjs";
 import puppeteer from "puppeteer";
 
 const BUDGET_SECONDS = 3.0;
@@ -56,6 +58,23 @@ const URL_UNDER_TEST = `http://localhost:${PORT}/`;
 /** The national surface is 53,208 cells. Far below it means the page failed to
  *  load its data, and the measurement would be of an error page. */
 const MIN_CELLS = 50000;
+
+/**
+ * Lighthouse's own CPU benchmark, below which this machine is not performing as the
+ * reference environment and its numbers must not be compared against the budget.
+ *
+ * §11.3 (amendment A27) makes TTI an ENVIRONMENT-DEPENDENT budget. That cuts both ways: as
+ * well as not comparing an arbitrary runner's figure against 3.0 s, this machine's own
+ * figure is only admissible while it is behaving like the reference environment.
+ *
+ * Derived from measurement, not chosen: quiescent runs on the reference machine report
+ * 4032-4136. Under eight competing CPU burners the same machine reports 2840 and TTI rises
+ * from 2.91 s to 3.84 s — the contention, not the application. The floor is set at 3500,
+ * about 85% of the observed quiescent range, which admits normal variation and rejects the
+ * loaded case. It is a VALIDITY GUARD of the same class as refusing an empty page: it
+ * changes which measurements may be reported, never the budget they are reported against.
+ */
+const REFERENCE_BENCHMARK_INDEX_FLOOR = 3500;
 
 const RUNS = Number(
   process.argv.find((a) => a.startsWith("--runs="))?.split("=")[1] ?? 3,
@@ -157,6 +176,7 @@ for (let run = 1; run <= RUNS; run += 1) {
       lcp: audits["largest-contentful-paint"].numericValue / 1000,
       tbt: audits["total-blocking-time"].numericValue,
       cls: audits["cumulative-layout-shift"].numericValue,
+      benchmarkIndex: report.lhr.environment.benchmarkIndex,
       si: audits["speed-index"].numericValue / 1000,
       score: report.lhr.categories.performance.score,
       lighthouseVersion: report.lhr.lighthouseVersion,
@@ -165,7 +185,8 @@ for (let run = 1; run <= RUNS; run += 1) {
     console.log(
       `  run ${run}/${RUNS}   TTI ${results.at(-1).tti.toFixed(2)}s   ` +
         `FCP ${results.at(-1).fcp.toFixed(2)}s   LCP ${results.at(-1).lcp.toFixed(2)}s   ` +
-        `TBT ${results.at(-1).tbt.toFixed(0)}ms`,
+        `TBT ${results.at(-1).tbt.toFixed(0)}ms   ` +
+        `benchmarkIndex ${results.at(-1).benchmarkIndex.toFixed(0)}`,
     );
   } finally {
     await browser.close().catch(() => {});
@@ -180,10 +201,36 @@ const median = (values) => {
 };
 
 const tti = median(results.map((r) => r.tti));
+const benchmarkIndex = median(results.map((r) => r.benchmarkIndex));
+
+// VALIDITY GUARD. Refuse to compare against the budget when this machine was not
+// performing as the reference environment. Reported as "not measured", never as a pass or
+// a fail of the application.
+if (benchmarkIndex < REFERENCE_BENCHMARK_INDEX_FLOOR) {
+  console.error("");
+  console.error(
+    `NOT MEASURED: median Lighthouse benchmarkIndex ${benchmarkIndex.toFixed(0)} is below ` +
+      `the ${REFERENCE_BENCHMARK_INDEX_FLOOR} floor for this reference environment ` +
+      `(quiescent range 4032-4136), so the machine was contended during measurement.`,
+  );
+  console.error(
+    `  The observed median was ${tti.toFixed(2)} s, and it is NOT evidence about the ` +
+      `${BUDGET_SECONDS.toFixed(1)} s budget either way: measured contention inflates it ` +
+      "by roughly 0.9 s. Re-run on a quiescent machine.",
+  );
+  console.error(
+    "  This is a validity guard, not a budget failure. See CLAUDE.md 11.3 amendment A27.",
+  );
+  process.exit(2);
+}
 console.log("");
 console.log("Cold load of the National Overview, Lighthouse simulated desktop");
 console.log("throttling: 40 ms RTT, 10 Mbps, 4x CPU slowdown.");
 console.log(`Lighthouse ${results[0].lighthouseVersion}, ${results[0].chrome}.`);
+console.log(
+  `Machine validity: median benchmarkIndex ${benchmarkIndex.toFixed(0)} ` +
+    `(floor ${REFERENCE_BENCHMARK_INDEX_FLOOR}).`,
+);
 console.log("");
 console.log("  PRE-REGISTERED CRITERION (CLAUDE.md 11.3). Time to Interactive is a LEGACY");
 console.log("  metric: unscored and hidden in Lighthouse >= 10, still computed by it.");
@@ -198,6 +245,49 @@ console.log(`  median Cumulative Layout Shift  ${median(results.map((r) => r.cls
 console.log(`  median Speed Index              ${median(results.map((r) => r.si)).toFixed(2)} s`);
 console.log(`  median performance score        ${(median(results.map((r) => r.score)) * 100).toFixed(0)} / 100`);
 console.log("");
+
+recordBenchmark("time_to_interactive", {
+  budget_seconds: BUDGET_SECONDS,
+  measured_seconds: Number(tti.toFixed(3)),
+  within_budget: tti <= BUDGET_SECONDS,
+  metric: "Lighthouse `interactive` audit (Time to Interactive)",
+  metric_status:
+    "LEGACY. Removed from the Lighthouse performance score and report display in " +
+    "Lighthouse 10 (registered as weight 0, group hidden); still computed in full. NOT a " +
+    "Core Web Vital and NOT a current Lighthouse scored metric. Retained because " +
+    "CLAUDE.md 11.3 pre-registered it.",
+  enforcement_class: "environment-dependent (CLAUDE.md 11.3, amendment A27)",
+  harness: "web/scripts/perf-tti.mjs",
+  runs: RUNS,
+  aggregation: "median",
+  lighthouse_version: results[0].lighthouseVersion,
+  benchmark_index_median: Math.round(benchmarkIndex),
+  benchmark_index_floor: REFERENCE_BENCHMARK_INDEX_FLOOR,
+  benchmark_index_note:
+    "Lighthouse's own CPU benchmark for the machine during measurement. Quiescent runs " +
+    "on the reference environment report 4032-4136; under eight competing CPU burners " +
+    "the same machine reports 2840 and TTI rises 2.91 s -> 3.84 s. Below the floor the " +
+    "harness refuses to report against the budget at all.",
+  chrome: results[0].chrome,
+  throttling: CONFIG.settings.throttling,
+  form_factor: CONFIG.settings.formFactor,
+  throttling_method: CONFIG.settings.throttlingMethod,
+  host_dependence:
+    "Lighthouse `simulate` normalises the NETWORK but derives CPU task durations from a " +
+    "trace taken on this host. Same code and profile measured 2.38 s at " +
+    "cpuSlowdownMultiplier 1, 2.86 s at 4, 3.40 s at 8, 3.96 s at 12. An absolute value " +
+    "from a different machine is not comparable with this one.",
+  validity_guard:
+    `refuses to report unless the page under test holds at least ${MIN_CELLS} cells`,
+  diagnostics_not_substitutes: {
+    first_contentful_paint_s: Number(median(results.map((r) => r.fcp)).toFixed(3)),
+    largest_contentful_paint_s: Number(median(results.map((r) => r.lcp)).toFixed(3)),
+    total_blocking_time_ms: Math.round(median(results.map((r) => r.tbt))),
+    cumulative_layout_shift: Number(median(results.map((r) => r.cls)).toFixed(4)),
+    speed_index_s: Number(median(results.map((r) => r.si)).toFixed(3)),
+    performance_score: median(results.map((r) => r.score)),
+  },
+});
 
 if (tti > BUDGET_SECONDS) {
   console.error(

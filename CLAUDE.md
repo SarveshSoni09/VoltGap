@@ -1045,17 +1045,54 @@ Plus a **Methodology and Validation** page that is a first-class view, not a foo
 
 Forecast Explorer. Site archetype queueing detail.
 
-### 11.3 Performance budget (CI-enforced)
+### 11.3 Performance budget
 
-| Metric | Budget |
-|---|---|
-| App shell, gzipped | ≤ 600 KB |
-| Time to interactive, cold, national view | ≤ 3.0 s |
-| National hex layer render | ≥ 55 fps sustained pan and zoom |
-| Greedy re-solve, state-level | ≤ 2.0 s |
-| DuckDB-WASM | Lazy, Web Worker, Studio and SQL panel only, never on first paint |
+> **Amended 2026-09-01 (§19 A27).** The budgets and their numeric values are unchanged.
+> What changed is *where each one is enforced*, because direct measurement established that
+> two of them cannot preserve their accepted measurement semantics on a GitHub-hosted
+> runner. See the enforcement class column and §19 A27.
 
-CI fails on bundle budget violation. Lighthouse CI runs on every PR.
+**Every budget is enforced.** Budgets divide into two enforcement classes:
+
+- **Portable.** Their accepted measurement semantics hold identically on any CI runner, so
+  they are **hard gates in pull-request CI**.
+- **Environment-dependent.** Their numeric value is only meaningful on a documented
+  reference environment, so they are **hard gates in the authoritative gate**
+  (`make gate PHASE=n`) on that environment. PR CI does not measure them; it **protects**
+  them (see below).
+
+| Metric | Budget | Enforcement class |
+|---|---|---|
+| App shell, gzipped | ≤ 600 KB | **Portable** — PR CI hard gate |
+| Greedy re-solve, state-level | ≤ 2.0 s | **Portable** — PR CI hard gate, on the accepted real state fixture |
+| Time to interactive, cold, national view | ≤ 3.0 s | **Environment-dependent** — reference-environment hard gate, accepted Lighthouse harness and profile |
+| National hex layer render | ≥ 55 fps sustained pan and zoom | **Environment-dependent** — hardware-rendered reference-environment hard gate |
+| DuckDB-WASM | Lazy, Web Worker, Studio and SQL panel only, never on first paint | Structural; asserted by test |
+
+**Arbitrary-runner absolute values are never compared against an environment-dependent
+threshold.** A time-to-interactive figure measured on an undocumented runner is not
+evidence about the 3.0 s budget.
+
+**What PR CI must do for the environment-dependent budgets.** It does not measure them, and
+it must never report them as passing. It asserts all of:
+
+1. their harnesses are present and executable;
+2. the authoritative thresholds are not duplicated or changed anywhere;
+3. the TTI harness refuses a page holding fewer than the required national cell count;
+4. the frame-rate harness refuses fewer than 50,000 rendered cells, and refuses software
+   rendering or an absent WebGL context;
+5. no fallback metric may replace TTI;
+6. benchmark provenance and reference-environment metadata exist;
+7. the PR status explicitly reports TTI and frame rate as **not executed on this runner** —
+   never as PASS — when valid infrastructure is unavailable.
+
+**Never substitute a degraded, empty-data, software-rendered or proxy measurement** for any
+budget, in CI or anywhere else. A measurement that cannot be taken is reported as not taken.
+
+**Optional escalation, not a Core dependency.** The `PERF_DATA_RUNNER` and
+`PERF_GPU_RUNNER` repository variables let the environment-dependent checks execute in CI
+where such a runner exists. A self-hosted runner is **not** a Core project dependency
+(directive D4), and Core must remain buildable and verifiable without one.
 
 ### 11.4 Loading strategy
 
@@ -1515,6 +1552,46 @@ suite ran **twice**.
 |---|---|---|---|
 | A25 | §15.1 G-A/G-B, §15.6 | The gate ran the complete test suite once plain (`pytest`) and then the identical suite again under coverage (`pytest --cov`) | **One coverage-instrumented invocation satisfies both.** It runs the same complete selection with no deselection, fails on any test failure, produces the coverage report, and enforces every existing threshold. The second, uninstrumented run proved nothing the instrumented run does not, and doubled every gate. Full-suite testing remains mandatory; coverage remains mandatory; the thresholds are unchanged (100% line **and** branch on `model`/`spatial`/`validation`/`quality`/`schemas`/`discovery`, ≥85% on `sources`/`transform`, ≥70% repository wide) |
 | A26 | §15.1 G-C, §15.6 | Read as licence to run `make gate PHASE=n` for every earlier n when validating a phase | **G-C requires replaying every prior phase's phase-specific gate suite, not re-running each earlier phase's complete gate ceremony.** Recursing re-ran the identical whole-repository suite, coverage, lint and determinism work once per phase — the repository has one test suite and one set of coverage thresholds, and the current gate already ran both — so it added no validation evidence. `make gate PHASE=4` is the authoritative Phase 4 gate. Its G-C step runs each prior suite as its own invocation and prints its name with PASS/FAIL and its test count |
+
+### Amendments of 2026-09-01 — Phase 6 performance enforcement classes
+
+Authorised by the project owner on review of `docs/reports/PLAN_CHANGE_6.md`, after the
+Phase 6 CI integration produced direct measurements showing the original wording conflated
+two different classes of measurement. **No budget, threshold or measured value changed. No
+measurement was weakened, and no dedicated runner infrastructure was added.**
+
+| ID | Section | Was | Now |
+|---|---|---|---|
+| A27 | §11.3 | "Performance budget (CI-enforced) … CI fails on bundle budget violation. Lighthouse CI runs on every PR." — one enforcement location for every budget | **Two enforcement classes.** *Portable* budgets, whose accepted semantics hold identically on any runner, are PR CI hard gates: app shell ≤ 600 KB and greedy re-solve ≤ 2.0 s. *Environment-dependent* budgets, whose numeric value is only meaningful on a documented reference environment, are hard gates in the authoritative gate: TTI ≤ 3.0 s and ≥ 55 fps sustained. PR CI **protects** the latter with seven named assertions rather than measuring them, and must never report them as PASS when they were not executed |
+| A28 | §11.3, §13.1 | "Lighthouse CI runs on every PR" read as requiring `@lhci/cli` | The **Lighthouse Node API** is an acceptable implementation. It asserts one specific audit under one pinned throttling profile with a non-zero exit; `@lhci/cli` would add a second configuration surface carrying its own thresholds to drift from the project's. The requirement is that it runs automatically on PRs and fails the PR on breach |
+
+**Why, in evidence rather than assertion.** Measured on the development machine during the
+Phase 6 CI integration:
+
+- **A GPU-less Chrome serves no WebGL context at all** — not a software fallback. Both
+  `--use-gl=swiftshader` and `--disable-gpu` produce no context, so the national layer
+  cannot render and **no frame rate exists to measure** on a GitHub-hosted runner. This is
+  the absence of the measurand, not a degraded measurement.
+- **Time to interactive is host-CPU dependent.** Lighthouse's `simulate` method normalises
+  the network but derives CPU task durations from a trace taken on the host. Same code, same
+  page, same pinned profile: 2.38 s at `cpuSlowdownMultiplier` 1, **2.86 s at 4 (the shipped
+  profile)**, 3.40 s at 8, 3.96 s at 12. A shared runner's absolute figure is therefore not
+  interchangeable with the accepted one.
+- **The published artifacts cannot be built on a CI runner.** `data/cache/` is git-ignored
+  and 4.4 GB. Without it the National Overview renders its error state, and the TTI harness
+  measured **0.96 s — a comfortable pass — against a page with no map and no data.** That
+  defect is now guarded in the harness itself.
+
+The alternative to this amendment was provisioning a self-hosted GPU runner holding the
+source cache. That was declined: it would make Core depend on private infrastructure, which
+directive **D4** and §2's static-hosting constraint both argue against, to satisfy a phrase
+rather than a measurement.
+
+**What did not change.** The four numeric budgets, the harnesses, the pinned Lighthouse
+profile, the frame-rate definition (worst 1-second window), the validity guards, or any
+measured result. `PERF_DATA_RUNNER` and `PERF_GPU_RUNNER` remain available as an optional
+path to executing the environment-dependent checks in CI.
+
 
 **What G-C replays, as of Phase 4.** `test_source_findings.py` (Phase 0),
 `test_domain_rules.py` (Phase 1, G1–G14), `test_phase2_gates.py` (P2-A–P2-H),

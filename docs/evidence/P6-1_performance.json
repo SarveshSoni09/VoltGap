@@ -1,0 +1,81 @@
+{
+  "note": "Benchmark provenance for the ENVIRONMENT-DEPENDENT performance budgets of CLAUDE.md 11.3 (amendment A27). These numeric values are only meaningful on the reference environment recorded with each of them. An absolute figure measured on an undocumented runner is NOT evidence about these budgets, and PR CI does not produce one.",
+  "time_to_interactive": {
+    "budget_seconds": 3,
+    "measured_seconds": 2.889,
+    "within_budget": true,
+    "metric": "Lighthouse `interactive` audit (Time to Interactive)",
+    "metric_status": "LEGACY. Removed from the Lighthouse performance score and report display in Lighthouse 10 (registered as weight 0, group hidden); still computed in full. NOT a Core Web Vital and NOT a current Lighthouse scored metric. Retained because CLAUDE.md 11.3 pre-registered it.",
+    "enforcement_class": "environment-dependent (CLAUDE.md 11.3, amendment A27)",
+    "harness": "web/scripts/perf-tti.mjs",
+    "runs": 5,
+    "aggregation": "median",
+    "lighthouse_version": "12.8.2",
+    "benchmark_index_median": 4076,
+    "benchmark_index_floor": 3500,
+    "benchmark_index_note": "Lighthouse's own CPU benchmark for the machine during measurement. Quiescent runs on the reference environment report 4032-4136; under eight competing CPU burners the same machine reports 2840 and TTI rises 2.91 s -> 3.84 s. Below the floor the harness refuses to report against the budget at all.",
+    "chrome": "Chrome/148.0.0.0",
+    "throttling": {
+      "rttMs": 40,
+      "throughputKbps": 10240,
+      "cpuSlowdownMultiplier": 4,
+      "requestLatencyMs": 0,
+      "downloadThroughputKbps": 0,
+      "uploadThroughputKbps": 0
+    },
+    "form_factor": "desktop",
+    "throttling_method": "simulate",
+    "host_dependence": "Lighthouse `simulate` normalises the NETWORK but derives CPU task durations from a trace taken on this host. Same code and profile measured 2.38 s at cpuSlowdownMultiplier 1, 2.86 s at 4, 3.40 s at 8, 3.96 s at 12. An absolute value from a different machine is not comparable with this one.",
+    "validity_guard": "refuses to report unless the page under test holds at least 50000 cells",
+    "diagnostics_not_substitutes": {
+      "first_contentful_paint_s": 0.201,
+      "largest_contentful_paint_s": 2.472,
+      "total_blocking_time_ms": 297,
+      "cumulative_layout_shift": 0.0001,
+      "speed_index_s": 1.341,
+      "performance_score": 0.74
+    },
+    "reference_environment": {
+      "platform": "darwin 25.6.0",
+      "arch": "arm64",
+      "cpu_model": "Apple M4",
+      "cpu_cores": 10,
+      "total_memory_gb": 16,
+      "node": "v24.9.0"
+    },
+    "measured_at": "2026-09-01T22:34:06.639Z"
+  },
+  "sustained_frame_rate": {
+    "budget_fps": 55,
+    "measured_fps": 58.99,
+    "within_budget": true,
+    "metric": "presented animation frames during a deterministic pan-and-zoom over the national layer; the reported value is the MINIMUM frame rate over any 1-second sliding window, not the mean",
+    "enforcement_class": "environment-dependent, hardware-rendered (CLAUDE.md 11.3, amendment A27)",
+    "harness": "web/scripts/perf-fps.mjs",
+    "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M4, Unspecified Version)",
+    "cells_rendered": 53208,
+    "measure_seconds": 6.02,
+    "warmup_ms": 1500,
+    "viewport": "1600x1000",
+    "mean_fps": 59.83,
+    "frame_time_p50_ms": 16.7,
+    "frame_time_p95_ms": 16.8,
+    "frame_time_p99_ms": 16.8,
+    "longest_frame_ms": 33.3,
+    "validity_guards": [
+      "refuses fewer than 50000 rendered cells",
+      "refuses a software rasteriser (SwiftShader, llvmpipe, software)",
+      "refuses an absent WebGL context, which is what a GPU-less runner produces"
+    ],
+    "not_measured_by_proxy": "bundle size, first-render success and script execution time are never used as stand-ins for frame performance",
+    "reference_environment": {
+      "platform": "darwin 25.6.0",
+      "arch": "arm64",
+      "cpu_model": "Apple M4",
+      "cpu_cores": 10,
+      "total_memory_gb": 16,
+      "node": "v24.9.0"
+    },
+    "measured_at": "2026-09-01T22:34:45.373Z"
+  }
+}

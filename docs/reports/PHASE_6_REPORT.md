@@ -774,3 +774,109 @@ PASS: sustained 59.0 fps against a 55 fps budget.
 
 No threshold, implementation or measured result changed. The unmoderated usability check
 remains outstanding.
+
+---
+
+## 15. Approved specification amendment and the enforcement split — 2026-09-01
+
+Appended. The owner reviewed `PLAN_CHANGE_6.md`, **declined to provision a self-hosted
+GPU/data runner**, and approved a bounded specification amendment instead — on the finding
+that the original wording *"all performance budgets CI-enforced"* conflated two different
+classes of measurement.
+
+**CLAUDE.md §11.3 is amended, formally and dated, as §19 amendments A27 and A28.** No
+budget, threshold, harness, profile or measured value changed. What changed is where each
+budget is enforced and what PR CI does about the ones it cannot measure.
+
+### 15.1 The two enforcement classes
+
+| Budget | Enforcement |
+|---|---|
+| App shell ≤ 600 KB gzipped | **PR CI hard gate** |
+| Greedy state solve ≤ 2.0 s | **PR CI hard gate**, on the accepted real Texas fixture (3,532 published cells) |
+| TTI ≤ 3.0 s | **Reference-environment hard gate.** An arbitrary runner's absolute figure is never compared against the 3.0 s threshold |
+| National hex render ≥ 55 fps | **Hardware-rendered reference-environment hard gate.** Never run or passed under software rendering, absent WebGL, or an empty or degraded layer |
+
+PR CI **protects** the two environment-dependent budgets with the seven assertions §11.3
+now requires — `make web-perf-guards`, 27 checks in
+`tests/regression/test_performance_guards.py`, none of which is a performance measurement.
+The PR status prints them as **"NOT EXECUTED ON THIS RUNNER — this is not a PASS. Nothing
+was measured."** `PERF_DATA_RUNNER` and `PERF_GPU_RUNNER` are retained as an optional path
+and are not a Core dependency.
+
+### 15.2 The gate failed first, and what that exposed
+
+The first gate run after the amendment **failed**: TTI 3.20 s against the 3.0 s budget, with
+the page confirmed holding 53,208 cells — so a genuine breach, not a harness fault.
+
+Investigated rather than re-run until green. Two measurements settled it:
+
+- **Induced load reproduces it.** Same code, same page, same profile: **2.91 s quiescent,
+  3.84 s under eight competing CPU burners.**
+- **Lighthouse's own `benchmarkIndex` detects it**: ~4092 quiescent, **2840** under the same
+  load.
+
+The gate runs roughly twenty minutes of full-load work — the whole suite under coverage, a
+national artifact rebuild, a production frontend build — and then measured immediately. It
+was measuring its own load.
+
+**Two things were wrong, and both were fixed without touching a threshold, the harness
+semantics, or the application:**
+
+1. **No machine-validity guard.** The TTI harness now refuses to report against the budget
+   when the median `benchmarkIndex` falls below **3500** — about 85% of the observed
+   quiescent range 4032–4136, and comfortably above the 2840 the loaded case produced. It
+   exits with a distinct status and the message **"NOT MEASURED … This is a validity guard,
+   not a budget failure."** It is the same class of check as refusing software rendering or
+   a page with no data: it governs which measurements may be reported, never the budget they
+   are reported against. Verified firing: an invocation at `benchmarkIndex` 3388 was refused
+   while ones at 4016 and 3616 reported 2.90 s and 2.93 s.
+2. **No quiescence step.** `web/scripts/perf-settle.mjs` waits for load per core to fall to
+   0.6 before the environment-dependent benchmarks. This is part of establishing the
+   reference conditions, not part of any measurement, and the `benchmarkIndex` guard
+   independently verifies that it worked.
+
+I am recording that **this machine is a developer laptop, not a controlled benchmark rig** —
+during this investigation `mediaanalysisd` alone reached 234% CPU unprompted. The
+validity guard exists because that is the honest state of the reference environment.
+
+### 15.3 Gate re-run
+
+`make gate PHASE=6` — **PASS**, 32 m 44 s, from a clean generated state.
+
+```
+PASS: app shell 218.9 KB of 600.0 KB (36.5% of budget).
+      greedy state solve: 2 passed          (portable class)
+      environment-dependent protection: 27 passed
+
+  settled after 75 s, load 5.85
+  page under test holds 53,208 cells
+Machine validity: median benchmarkIndex 4076 (floor 3500).
+  median Time to Interactive      2.89 s   (budget 3.0 s)
+PASS: Time to Interactive 2.89 s of 3.0 s (96.3% of budget).
+
+  settled after 25 s, load 5.94
+  renderer: ANGLE (Apple, ANGLE Metal Renderer: Apple M4, Unspecified Version)
+  cells in the rendered layer: 53,208
+  SUSTAINED (worst 1 s window)  59.0 fps   (budget 55 fps)
+PASS: sustained 59.0 fps against a 55 fps budget.
+```
+
+`docs/evidence/P6-1_performance.json` records each figure with the reference environment
+that produced it — platform, CPU model and cores, Node, Lighthouse and Chrome versions,
+throttling profile, `benchmarkIndex` and its floor, renderer string and cells rendered.
+
+### 15.4 The margin, stated plainly
+
+TTI sits at **2.89–2.93 s against a 3.0 s budget** on valid measurements: **a 2–4% margin.**
+That is smaller than the run-to-run variation an uncontrolled machine produces, which is
+exactly why the validity guard had to exist. On a machine that is genuinely quiescent the
+budget is met consistently; on one that is not, the harness now says so rather than
+reporting a number. Assumption **A-6.5** remains open and this is its evidence.
+
+### 15.5 Status
+
+**Phase 6 has one unmet acceptance criterion: the unmoderated human usability check.**
+Every other criterion, including all four performance budgets under the amended §11.3
+semantics, is met and enforced. **A-6.8 remains open**: the workflow is locally validated
+but has never been observed running on GitHub, and I do not claim otherwise.

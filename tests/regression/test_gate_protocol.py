@@ -190,7 +190,8 @@ def test_the_phase_5_gate_runs_its_own_acceptance_and_smoke_forward_suites() -> 
     "step", ["web-install", "artifacts", "web-build", "lint", "web-typecheck",
              "coverage", "prior-gate-suites", "determinism", "copy-lint",
              "determinism-1", "build-fixture", "phase4", "phase5", "web-test",
-             "web-budget", "web-perf-tti", "web-perf-fps"],
+             "web-budget", "web-perf-greedy", "web-perf-guards", "web-perf-settle",
+             "web-perf-tti", "web-perf-fps"],
 )
 def test_the_phase_6_gate_runs_every_step_it_declares(step: str) -> None:
     assert f"--no-print-directory {step}" in GATE_6, step

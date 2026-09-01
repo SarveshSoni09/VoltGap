@@ -6,7 +6,8 @@ REPLAY := tests/fixtures/replay
 
 .PHONY: help setup test coverage lint copy-lint probe probe-live gate gate-0 gate-1 \
 	artifacts web-install web-build web-test web-budget web-typecheck \
-	web-perf web-perf-tti web-perf-fps \
+	web-perf web-perf-tti web-perf-fps web-perf-greedy web-perf-guards \
+	web-perf-settle \
 	gate-2 gate-3 gate-4 gate-5 build build-fixture phase3 phase4 phase5 \
 	determinism \
 	determinism-1 clean \
@@ -125,6 +126,18 @@ web-typecheck:
 web-test:
 	@cd web && npx vitest run --reporter=basic
 
+# 11.3 PORTABLE budget: greedy state-level re-solve <= 2.0 s, on the accepted real Texas
+# fixture (3,532 published cells). Portable because it is CPU-bound JavaScript with a
+# 100x margin, not a rendering or network measurement, so it holds on any runner.
+web-perf-greedy:
+	@cd web && npx vitest run --reporter=basic -t "performance budget"
+
+# 11.3 PROTECTION for the ENVIRONMENT-DEPENDENT budgets (amendment A27). PR CI does not
+# measure TTI or frame rate; it asserts their harnesses, thresholds, validity guards and
+# provenance are intact, and that no fallback metric may replace them.
+web-perf-guards:
+	@$(PY) -m pytest tests/regression/test_performance_guards.py -q
+
 web-build:
 	@cd web && npx next build
 
@@ -132,6 +145,11 @@ web-build:
 # breach, which is what makes them enforcement rather than reporting.
 web-budget:
 	@cd web && node scripts/bundle-budget.mjs
+
+# Wait for the machine to quiesce. Part of establishing the reference conditions, not
+# part of any measurement: the gate runs ~20 minutes of full load immediately before these.
+web-perf-settle:
+	@cd web && node scripts/perf-settle.mjs
 
 # 11.3: time to interactive, cold, national view <= 3.0 s. Lighthouse `interactive` under
 # a pinned simulated-desktop profile (40 ms RTT, 10 Mbps, 4x CPU), median of five runs.
@@ -499,8 +517,15 @@ gate-6:
 	@$(MAKE) --no-print-directory phase4
 	@$(MAKE) --no-print-directory phase5
 	@$(MAKE) --no-print-directory web-test
-	@echo "--- 9. performance budgets (11.3), all CI-enforced ---"
+	@echo "--- 9. performance budgets (11.3, amendment A27) ---"
+	@echo "    portable class: enforced here AND in PR CI"
 	@$(MAKE) --no-print-directory web-budget
+	@$(MAKE) --no-print-directory web-perf-greedy
+	@echo "    protection for the environment-dependent class (also run in PR CI)"
+	@$(MAKE) --no-print-directory web-perf-guards
+	@echo "    environment-dependent class: reference-environment hard gate"
+	@$(MAKE) --no-print-directory web-perf-settle
 	@$(MAKE) --no-print-directory web-perf-tti
+	@$(MAKE) --no-print-directory web-perf-settle
 	@$(MAKE) --no-print-directory web-perf-fps
 	@echo "=== Phase 6 gate: PASS ==="

@@ -26,7 +26,13 @@ def workflow() -> dict[Any, Any]:
 
 
 def steps_of(workflow: dict[Any, Any], job: str) -> str:
+    """The job's steps as text. Structural assertions use the parsed YAML; CONTENT
+    assertions use the raw file, because `safe_dump` line-wraps long strings and a
+    substring check against the round-trip would fail on formatting rather than meaning."""
     return yaml.safe_dump(workflow["jobs"][job]["steps"])
+
+
+RAW = WORKFLOW.read_text(encoding="utf-8")
 
 
 def triggers_of(workflow: dict[Any, Any]) -> list[str]:
@@ -71,6 +77,8 @@ def test_the_test_knows_about_every_job_the_workflow_defines(
         ("frontend", "make web-build"),
         ("frontend", "make web-test"),
         ("frontend", "make web-budget"),
+        ("frontend", "make web-perf-greedy"),
+        ("python", "make web-perf-guards"),
         ("tti", "make web-perf-tti"),
         ("fps", "make web-perf-fps"),
     ],
@@ -113,18 +121,45 @@ def test_the_gap_is_reported_on_every_pull_request(workflow: dict[Any, Any]) -> 
     """So a green CI cannot be read as more than it is."""
     status = workflow["jobs"]["performance-enforcement-status"]
     assert "if" not in status, "the status report must always run"
-    body = steps_of(workflow, "performance-enforcement-status")
-    assert "NOT ENFORCED" in body
-    assert "ENFORCED on this PR" in body
-    assert "PLAN_CHANGE_6.md" in body
+    assert "PORTABLE class" in RAW
+    assert "ENVIRONMENT-DEPENDENT class" in RAW
+    assert "PLAN_CHANGE_6.md" in RAW
+
+
+def test_an_unexecuted_budget_is_never_reported_as_a_pass(
+    workflow: dict[Any, Any],
+) -> None:
+    """§11.3, amendment A27: "the PR status explicitly reports TTI and frame rate as not
+    executed on this runner, never as PASS, when valid infrastructure is unavailable"."""
+    assert "NOT EXECUTED ON THIS RUNNER" in RAW
+    assert "This is not a PASS. Nothing was measured." in RAW
+
+
+def test_the_portable_budgets_are_hard_gates_on_every_pull_request(
+    workflow: dict[Any, Any],
+) -> None:
+    """App shell and greedy solve keep their semantics on any runner, so they are measured
+    here rather than merely protected."""
+    frontend = steps_of(workflow, "frontend")
+    assert "make web-budget" in frontend
+    assert "make web-perf-greedy" in frontend
+    assert "if" not in workflow["jobs"]["frontend"]
+
+
+def test_the_environment_dependent_budgets_are_protected_on_every_pull_request(
+    workflow: dict[Any, Any],
+) -> None:
+    """Not measured here, but their harnesses, thresholds, guards and provenance are."""
+    python_job = steps_of(workflow, "python")
+    assert "make web-perf-guards" in python_job
+    assert "if" not in workflow["jobs"]["python"]
 
 
 def test_the_status_job_fails_if_the_limitation_stops_being_documented(
     workflow: dict[Any, Any],
 ) -> None:
-    body = steps_of(workflow, "performance-enforcement-status")
-    assert "grep -q" in body
-    assert "PLAN_CHANGE_6.md" in body
+    assert "grep -q" in RAW
+    assert "PLAN_CHANGE_6.md" in RAW
 
 
 def test_the_plan_change_records_the_limitation_and_the_options() -> None:
@@ -137,6 +172,9 @@ def test_the_plan_change_records_the_limitation_and_the_options() -> None:
     assert "acceptance benchmark" in text
     for option in ("**Option A", "**Option B", "**Option C"):
         assert option in text, option
+    # And the owner's decision on it, so the record is not left open-ended.
+    assert "Owner decision" in text
+    assert "A27" in text
 
 
 # --- Phase 6 scope only ----------------------------------------------------------------

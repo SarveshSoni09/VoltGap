@@ -33,6 +33,8 @@ import { fileURLToPath } from "node:url";
 
 import puppeteer from "puppeteer";
 
+import { recordBenchmark } from "./perf-provenance.mjs";
+
 const BUDGET_FPS = 55;
 const MEASURE_MS = 6000;
 const WARMUP_MS = 1500;
@@ -186,6 +188,37 @@ try {
   console.log(`  frame time p50 / p95 / p99    ${result.p50.toFixed(1)} / ${result.p95.toFixed(1)} / ${result.p99.toFixed(1)} ms`);
   console.log(`  longest single frame          ${result.longest.toFixed(1)} ms`);
   console.log("");
+
+  recordBenchmark("sustained_frame_rate", {
+    budget_fps: BUDGET_FPS,
+    measured_fps: Number(result.worstWindow.toFixed(2)),
+    within_budget: result.worstWindow >= BUDGET_FPS,
+    metric:
+      "presented animation frames during a deterministic pan-and-zoom over the national " +
+      "layer; the reported value is the MINIMUM frame rate over any 1-second sliding " +
+      "window, not the mean",
+    enforcement_class:
+      "environment-dependent, hardware-rendered (CLAUDE.md 11.3, amendment A27)",
+    harness: "web/scripts/perf-fps.mjs",
+    renderer,
+    cells_rendered: cells,
+    measure_seconds: Number(result.elapsed.toFixed(2)),
+    warmup_ms: WARMUP_MS,
+    viewport: "1600x1000",
+    mean_fps: Number(result.mean.toFixed(2)),
+    frame_time_p50_ms: Number(result.p50.toFixed(2)),
+    frame_time_p95_ms: Number(result.p95.toFixed(2)),
+    frame_time_p99_ms: Number(result.p99.toFixed(2)),
+    longest_frame_ms: Number(result.longest.toFixed(2)),
+    validity_guards: [
+      `refuses fewer than ${MIN_CELLS} rendered cells`,
+      "refuses a software rasteriser (SwiftShader, llvmpipe, software)",
+      "refuses an absent WebGL context, which is what a GPU-less runner produces",
+    ],
+    not_measured_by_proxy:
+      "bundle size, first-render success and script execution time are never used as " +
+      "stand-ins for frame performance",
+  });
 
   if (result.worstWindow < BUDGET_FPS) {
     console.error(

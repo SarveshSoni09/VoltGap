@@ -225,6 +225,52 @@ cannot, and says so on every PR. The literal requirement remains unmet and visib
 is the only one of the three that does not require a decision from you — and it hides
 nothing.
 
+### Owner decision — 2026-09-01: Option B, with the semantics below
+
+**A self-hosted GPU/data runner will not be provisioned.** Making Core depend on private
+infrastructure to satisfy a phrase — rather than to improve a measurement — is the wrong
+trade against directive **D4** and §2's static-hosting constraint.
+
+The evidence establishes that the original wording *"all performance budgets CI-enforced"*
+conflated two classes of measurement. The specification is amended to say what was actually
+meant, rather than the measurements being weakened to fit the old wording. Recorded as
+**CLAUDE.md §19 amendment A27** (and **A28**, on the Lighthouse Node API being an acceptable
+implementation of "Lighthouse CI").
+
+**The amended requirement.** Performance budgets are automatically enforced in PR CI where
+their accepted measurement semantics are portable across CI runners. Environment-dependent
+budgets are enforced by the authoritative gate on a documented reference environment. PR CI
+verifies their harnesses, thresholds, validity guards and benchmark provenance, and must
+never substitute degraded, empty-data, software-rendered or proxy measurements.
+
+| Budget | Enforcement |
+|---|---|
+| App shell ≤ 600 KB gzipped | **PR CI hard gate** |
+| Greedy state solve ≤ 2.0 s | **PR CI hard gate**, on the accepted real Texas fixture |
+| TTI ≤ 3.0 s | **Reference-environment hard gate**, accepted Lighthouse harness and profile. An arbitrary GitHub-runner absolute figure is never compared against the 3.0 s threshold |
+| National hex render ≥ 55 fps | **Hardware-rendered reference-environment hard gate.** Never run or passed under software rendering, absent WebGL, or an empty or degraded layer |
+
+**What PR CI asserts for the two environment-dependent budgets** — `make web-perf-guards`,
+23 checks in `tests/regression/test_performance_guards.py`, none of which is a performance
+measurement:
+
+1. the harnesses are present and executable (`node --check`);
+2. the thresholds are the pre-registered ones, declared exactly once, and restated nowhere
+   in the Makefile or the workflow;
+3. the TTI harness refuses a page holding fewer than 50,000 national cells;
+4. the frame-rate harness refuses fewer than 50,000 rendered cells, a software rasteriser,
+   and an absent WebGL context, and measures the worst 1-second window rather than the mean;
+5. TTI is read from the `interactive` audit and no fallback metric may replace it — if a
+   future Lighthouse drops the audit the harness fails and names this document;
+6. `docs/evidence/P6-1_performance.json` carries each benchmark's value **and the reference
+   environment that produced it** — platform, CPU model and core count, Node version,
+   Lighthouse and Chrome versions, throttling profile, renderer string, cells rendered;
+7. the PR status prints TTI and frame rate as **NOT EXECUTED ON THIS RUNNER — this is not a
+   PASS. Nothing was measured.**
+
+`PERF_DATA_RUNNER` and `PERF_GPU_RUNNER` are **retained as an optional path**: setting
+either turns the corresponding job on with no code change. Neither is a Core dependency.
+
 ## What I did in the meantime
 
 Built the task the protocol needs, so whichever option is chosen the check is ready to run:

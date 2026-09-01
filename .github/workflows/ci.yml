@@ -15,16 +15,19 @@
 # configuration surface with its own thresholds to drift from ours. The requirement it must
 # satisfy is "runs automatically on PRs and fails the PR on breach".
 #
-# WHAT THIS FILE CAN AND CANNOT ENFORCE. Two prerequisites are absent from a GitHub-hosted
-# runner, both measured rather than assumed — see docs/reports/PLAN_CHANGE_6.md:
+# TWO ENFORCEMENT CLASSES (CLAUDE.md §11.3, amendment A27, approved 2026-09-01):
 #
-#   * the 4.4 GB source-data cache (`data/cache/`, git-ignored), without which the Python
-#     suite and the published artifacts cannot be built;
-#   * a GPU. A Chrome launched without GPU access here served NO WebGL context at all, so
-#     the map cannot render and no frame rate exists to measure.
+#   * PORTABLE budgets keep their accepted semantics on any runner, so they are hard gates
+#     here: the app shell (<= 600 KB gzipped) and the greedy state solve (<= 2.0 s).
+#   * ENVIRONMENT-DEPENDENT budgets — time to interactive and sustained frame rate — are
+#     hard gates in the authoritative gate on a documented reference environment, because
+#     direct measurement showed their semantics do not survive a GitHub-hosted runner:
+#     a GPU-less Chrome here serves NO WebGL context at all, and Lighthouse `simulate`
+#     derives CPU task durations from a trace taken on the host.
 #
-# The jobs below are split accordingly. Nothing is measured with weakened semantics, and no
-# proxy stands in for a budget.
+# This workflow does NOT measure the second class. It PROTECTS it, with the seven
+# assertions §11.3 requires, run as `make web-perf-guards`. Nothing is measured with
+# weakened semantics and no proxy stands in for a budget.
 
 name: CI
 
@@ -66,6 +69,14 @@ jobs:
         # Reads only the Makefile, the workflow and the scripts, so it runs without the
         # source-data cache. It is what stops this workflow silently losing a job.
         run: .venv/bin/python -m pytest tests/regression/test_gate_protocol.py -q
+      - name: CI workflow regression suite
+        run: .venv/bin/python -m pytest tests/regression/test_ci_workflow.py -q
+      - name: PROTECT the environment-dependent budgets (§11.3, amendment A27)
+        # Does not measure TTI or frame rate. Asserts their harnesses are present and
+        # executable, their thresholds are neither duplicated nor changed, their validity
+        # guards are intact, no fallback metric may replace TTI, and the benchmark
+        # provenance and reference-environment metadata exist.
+        run: make web-perf-guards
 
   frontend:
     name: Frontend typecheck, build, tests, app-shell budget
@@ -87,9 +98,13 @@ jobs:
         # Fixtures are committed, including the real 3,532-cell Texas surface, so the
         # greedy port and the 2-second solve budget are genuinely exercised here.
         run: make web-test
-      - name: App shell budget (§11.3, <= 600 KB gzipped)
+      - name: PORTABLE budget — app shell <= 600 KB gzipped (§11.3)
         # Deterministic: gzip of the emitted files. Identical semantics to the gate.
         run: make web-budget
+      - name: PORTABLE budget — greedy state solve <= 2.0 s (§11.3)
+        # The accepted real Texas fixture: 3,532 published cells, the largest frontier
+        # state. CPU-bound JavaScript with a large margin, so it holds on any runner.
+        run: make web-perf-greedy
 
   # =================================================================================
   # Enforced here ONLY where the prerequisite exists. Each job runs the accepted harness
@@ -159,31 +174,44 @@ jobs:
       - uses: actions/checkout@v4
       - name: Report
         run: |
-          echo "App shell <= 600 KB gzipped   : ENFORCED on this PR (job 'frontend')."
+          echo "PORTABLE class — enforced on this PR as hard gates:"
+          echo "  App shell <= 600 KB gzipped   : ENFORCED (job 'frontend')"
+          echo "  Greedy state solve <= 2.0 s   : ENFORCED (job 'frontend')"
+          echo ""
+          echo "ENVIRONMENT-DEPENDENT class (CLAUDE.md 11.3, amendment A27):"
           if [ -n "${{ vars.PERF_DATA_RUNNER }}" ]; then
-            echo "Time to Interactive <= 3.0 s  : ENFORCED on this PR (job 'tti')."
+            echo "  Time to Interactive <= 3.0 s  : ENFORCED (job 'tti')"
           else
-            echo "Time to Interactive <= 3.0 s  : NOT ENFORCED on this PR."
-            echo "  Needs the 4.4 GB source cache to build the artifacts the page loads."
-            echo "  Enforced by 'make gate PHASE=6'. Set the PERF_DATA_RUNNER variable to"
-            echo "  a runner holding data/cache/ to enforce it here too."
+            echo "  Time to Interactive <= 3.0 s  : NOT EXECUTED ON THIS RUNNER."
+            echo "    This is not a PASS. Nothing was measured."
+            echo "    Lighthouse 'simulate' derives CPU task durations from the host, so a"
+            echo "    runner's absolute figure is not evidence about the 3.0 s budget."
+            echo "    Enforced by 'make gate PHASE=6' on the reference environment."
           fi
           if [ -n "${{ vars.PERF_GPU_RUNNER }}" ]; then
-            echo "Sustained >= 55 fps           : ENFORCED on this PR (job 'fps')."
+            echo "  Sustained >= 55 fps           : ENFORCED (job 'fps')"
           else
-            echo "Sustained >= 55 fps           : NOT ENFORCED on this PR."
-            echo "  GitHub-hosted runners have no GPU; Chrome there serves no WebGL at all,"
-            echo "  so no frame rate exists to measure. No software substitute is used."
-            echo "  Enforced by 'make gate PHASE=6' on a GPU machine. Set PERF_GPU_RUNNER."
+            echo "  Sustained >= 55 fps           : NOT EXECUTED ON THIS RUNNER."
+            echo "    This is not a PASS. Nothing was measured."
+            echo "    GitHub-hosted runners have no GPU; Chrome there serves no WebGL at"
+            echo "    all, so no frame rate exists. No software substitute is used."
+            echo "    Enforced by 'make gate PHASE=6' on the reference environment."
           fi
           echo ""
-          echo "Full Python suite and coverage : NOT RUN on this PR."
+          echo "  Both are PROTECTED on this PR by 'make web-perf-guards': harnesses"
+          echo "  present and executable, thresholds unchanged and unduplicated, validity"
+          echo "  guards intact, no fallback metric may replace TTI, and the benchmark"
+          echo "  provenance and reference-environment metadata exist."
+          echo ""
+          echo "Full Python suite and coverage : NOT EXECUTED ON THIS RUNNER."
           echo "  Most tests read the git-ignored 4.4 GB source cache. Enforced by"
           echo "  'make gate PHASE=6'. Lint, types and the copy lint DO run here."
           echo ""
-          echo "See docs/reports/PLAN_CHANGE_6.md for the evidence and the open decision."
-      - name: The limitation must stay documented
+          echo "See CLAUDE.md 19 amendment A27 and docs/reports/PLAN_CHANGE_6.md."
+      - name: The enforcement split must stay documented
         run: |
           grep -q "CI runner limits" docs/reports/PLAN_CHANGE_6.md
           grep -q "PERF_GPU_RUNNER" docs/reports/PLAN_CHANGE_6.md
           grep -q "PERF_DATA_RUNNER" docs/reports/PLAN_CHANGE_6.md
+          grep -q "A27" CLAUDE.md
+          grep -q "environment-dependent" CLAUDE.md
