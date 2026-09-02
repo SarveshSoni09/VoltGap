@@ -7,7 +7,7 @@ REPLAY := tests/fixtures/replay
 .PHONY: help setup test coverage lint copy-lint probe probe-live gate gate-0 gate-1 \
 	artifacts web-install web-build web-test web-budget web-typecheck \
 	web-perf web-perf-tti web-perf-fps web-perf-greedy web-perf-guards \
-	web-perf-settle web-render-check \
+	web-perf-settle web-render-check web-ux-check \
 	gate-2 gate-3 gate-4 gate-5 build build-fixture phase3 phase4 phase5 \
 	determinism \
 	determinism-1 clean \
@@ -151,6 +151,12 @@ web-budget:
 # see. Pixel-difference against the same view with the layer off, plus structural guards.
 web-render-check:
 	@cd web && node scripts/render-check.mjs
+
+# Cold-user semantics, read from the RENDERED page rather than the emitted HTML: does the
+# interface explain itself to someone who knows nothing about VoltGap, without weakening
+# any claim safeguard?
+web-ux-check:
+	@cd web && node scripts/ux-check.mjs
 
 # Wait for the machine to quiesce. Part of establishing the reference conditions, not
 # part of any measurement: the gate runs ~20 minutes of full load immediately before these.
@@ -529,6 +535,8 @@ gate-6:
 	@$(MAKE) --no-print-directory web-perf-greedy
 	@echo "    visible rendering of the analytical layer"
 	@$(MAKE) --no-print-directory web-render-check
+	@echo "    cold-user semantics"
+	@$(MAKE) --no-print-directory web-ux-check
 	@echo "    protection for the environment-dependent class (also run in PR CI)"
 	@$(MAKE) --no-print-directory web-perf-guards
 	@echo "    environment-dependent class: reference-environment hard gate"

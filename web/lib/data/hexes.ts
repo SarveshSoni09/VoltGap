@@ -15,9 +15,12 @@ export const HEX_SPEC: ColumnSpec = {
     "households", "equity_population", "uncertainty_score", "confidence_tier",
     "sub_state_anchored_share", "dominant_evidence_grain", "station_count",
     "dcfc_ports", "l2_ports", "km_to_nearest_dcfc_site", "km_to_nearest_public_site",
-    "passes_road_filter",
+    "passes_road_filter", "county_name", "state_code",
   ],
-  stringColumns: ["h3_index", "state_fips", "confidence_tier", "dominant_evidence_grain"],
+  stringColumns: [
+    "h3_index", "state_fips", "confidence_tier", "dominant_evidence_grain",
+    "county_name", "state_code",
+  ],
   boolColumns: ["passes_road_filter"],
 };
 
@@ -48,6 +51,9 @@ export interface HexRow {
   readonly km_to_nearest_dcfc_site: number;
   readonly km_to_nearest_public_site: number;
   readonly passes_road_filter: boolean;
+  /** The county contributing the most population to this area. Display only. */
+  readonly county_name: string;
+  readonly state_code: string;
 }
 
 export function hexRow(table: ColumnTable, index: number): HexRow {
@@ -71,6 +77,8 @@ export function hexRow(table: ColumnTable, index: number): HexRow {
     km_to_nearest_dcfc_site: table.nums("km_to_nearest_dcfc_site")[index] ?? 0,
     km_to_nearest_public_site: table.nums("km_to_nearest_public_site")[index] ?? 0,
     passes_road_filter: table.bools("passes_road_filter")[index] === 1,
+    county_name: table.strs("county_name")[index] ?? "",
+    state_code: table.strs("state_code")[index] ?? "",
   };
 }
 

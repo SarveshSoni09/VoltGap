@@ -17,8 +17,10 @@ from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Any
 
+from pipeline.config.settings import PATHS
 from pipeline.model.build_demand import TractEstimate
 from pipeline.model.hexes import (
     HexCell,
@@ -69,6 +71,14 @@ HEX6_COLUMNS: tuple[str, ...] = (
     # --- access, Phase 2's straight-line measure ------------------------------------
     "km_to_nearest_dcfc_site",
     "km_to_nearest_public_site",
+    # --- where this is, in words -----------------------------------------------------
+    # Presentation metadata, derived from geography the pipeline already holds. A user
+    # should never need to read an H3 index to know where a candidate is. It names the
+    # county contributing the most population to the cell - a cell can straddle several,
+    # so this is the DOMINANT county, not the only one.
+    "county_name",
+    "state_code",
+    "county_population_share",
     # --- Phase 4's road filter, precomputed -----------------------------------------
     # The browser cannot run this filter itself: TIGER carries ~380,000 vertices for one
     # state, which has no business in a page. Precomputing it here is what lets the
@@ -153,6 +163,12 @@ def cell_row(cell: HexCell, state_fips: str, b_c_threshold: float) -> dict[str, 
         "station_count": cell.supply.station_count,
         "dcfc_ports": round(cell.supply.dcfc_ports, 2),
         "l2_ports": round(cell.supply.l2_ports, 2),
+        # Filled in by `build_national` from the population weights, which `cell_row`
+        # does not see. Present here so a row is always complete: a partial row would
+        # fail the writer's column check far from the cause.
+        "county_name": "",
+        "state_code": "",
+        "county_population_share": 0.0,
     }
 
 
@@ -225,6 +241,47 @@ def public_site_coordinates(
     return list(dcfc.values()), list(public.values())
 
 
+COUNTY_FILE = PATHS.root / "data" / "cache" / "raw" / "national_county2020.txt"
+
+
+def load_county_names(path: Path | None = None) -> dict[str, tuple[str, str]]:
+    """County FIPS (state+county, 5 digits) to (county name, state code)."""
+    source = path or COUNTY_FILE
+    out: dict[str, tuple[str, str]] = {}
+    for line in source.read_text(encoding="utf-8").splitlines()[1:]:
+        parts = line.split("|")
+        if len(parts) < 5:
+            continue
+        state, state_fips, county_fips, _ns, name = parts[:5]
+        out[f"{state_fips}{county_fips}"] = (name, state)
+    return out
+
+
+def dominant_counties(
+    weights: Mapping[str, Any], counties: Mapping[str, tuple[str, str]],
+) -> dict[str, tuple[str, str, float]]:
+    """For each cell, the county contributing the most population, and its share.
+
+    A resolution-6 cell is about 38 km2 and can straddle a county line, so this reports
+    which county dominates and by how much rather than implying the cell sits in one.
+    """
+    by_cell: dict[str, dict[str, float]] = {}
+    for tract_weights in weights.values():
+        county = tract_weights.tract_geoid[:5]
+        for cell, share in tract_weights.weights.items():
+            people = share * tract_weights.population
+            by_cell.setdefault(cell, {})
+            by_cell[cell][county] = by_cell[cell].get(county, 0.0) + people
+
+    out: dict[str, tuple[str, str, float]] = {}
+    for cell, tally in by_cell.items():
+        total = sum(tally.values())
+        county, people = max(sorted(tally.items()), key=lambda kv: kv[1])
+        name, state = counties.get(county, ("", ""))
+        out[cell] = (name, state, people / total if total > 0 else 0.0)
+    return out
+
+
 def attach_road_filter(rows: Sequence[dict[str, Any]], state_fips: str) -> None:
     """Add Phase 4's road-proximity result to one state's rows, in place.
 
@@ -271,6 +328,8 @@ def build_national(
     wanted = tuple(states) if states else ALL_STATE_FIPS
     supply = load_hex_supply(resolution=resolution)
 
+    counties = load_county_names()
+    placenames: dict[str, tuple[str, str, float]] = {}
     scores: list[float] = []
     grains: list[str] = []
     by_state: dict[str, list[HexCell]] = {}
@@ -285,6 +344,7 @@ def build_national(
         assert_provenance_survived(cells)
         unallocated_total += sum(unallocated.values())
         by_state[state] = cells
+        placenames.update(dominant_counties(weights, counties))
         for cell in cells:
             scores.append(cell.uncertainty_score)
             grains.append(cell.dominant_evidence_grain)
@@ -297,6 +357,11 @@ def build_national(
     published: list[dict[str, Any]] = []
     for state, cells in by_state.items():
         state_rows = [cell_row(cell, state, threshold) for cell in cells]
+        for row in state_rows:
+            name, code, share = placenames.get(str(row["h3_index"]), ("", "", 0.0))
+            row["county_name"] = name
+            row["state_code"] = code
+            row["county_population_share"] = round(share, 4)
         attach_road_filter(state_rows, state)
         published.extend(state_rows)
 

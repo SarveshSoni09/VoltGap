@@ -10,7 +10,7 @@ import { describe, expect, it } from "vitest";
 
 import { toGeoJson, EXPORT_PROVENANCE, type PortfolioRow } from "../lib/exporters";
 import { freshness, type Manifest } from "../lib/data/manifest";
-import { TIER_OPACITY, cellColor } from "../lib/scales";
+import { CELL_ALPHA, TIER_OPACITY, cellColor } from "../lib/scales";
 import {
   CEJST_NOTE,
   DEPLOYMENT_ALIGNMENT_NOTE,
@@ -19,6 +19,7 @@ import {
   NOT_OPTIMALITY_NOTE,
   TIER_DESCRIPTIONS,
   TIER_LABELS,
+  TIER_LABELS_PLAIN,
   VALIDATION_TERMS,
 } from "../lib/vocabulary";
 
@@ -35,16 +36,28 @@ describe("tier vocabulary (§11.5, amendment A3)", () => {
     expect(TIER_DESCRIPTIONS.A).toMatch(/ZIP|county/);
   });
 
-  it("renders lower confidence more faintly, so it cannot look authoritative", () => {
+  it("no longer hides low-reliability areas by fading them out", () => {
+    // Encoding reliability as transparency made an unreliable estimate look like the
+    // 78.8% of the country that has no cell at all. Colour now carries the metric and
+    // only the metric; reliability is reported separately.
+    const opaque = cellColor(0.5);
+    const faint = cellColor(0.0);
+    expect(opaque[3]).toBe(CELL_ALPHA);
+    expect(faint[3]).toBe(CELL_ALPHA);
+  });
+
+  it("keeps the tier opacities defined, because the tiers themselves are unchanged", () => {
     expect(TIER_OPACITY.A).toBeGreaterThan(TIER_OPACITY.B);
     expect(TIER_OPACITY.B).toBeGreaterThan(TIER_OPACITY.C);
   });
 
-  it("requires a tier to produce a colour at all", () => {
-    const [, , , alphaA] = cellColor(0.5, "A");
-    const [, , , alphaC] = cellColor(0.5, "C");
-    expect(alphaA).toBe(TIER_OPACITY.A);
-    expect(alphaC).toBe(TIER_OPACITY.C);
+  it("offers a plain label for each tier without overstating it", () => {
+    expect(TIER_LABELS_PLAIN.A).toBe("Higher reliability");
+    // "Higher" must not become "observed" in the plain wording either.
+    for (const label of Object.values(TIER_LABELS_PLAIN)) {
+      expect(label).not.toMatch(/\bobserved\b/i);
+      expect(label).not.toMatch(/\bconfirmed\b/i);
+    }
   });
 });
 

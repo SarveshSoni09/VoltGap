@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import { gapAtThreshold, loadAccessTable } from "../../lib/data/access";
 import type { ColumnTable } from "../../lib/data/table";
 import { formatCompact } from "../../lib/scales";
+import { Disclosure } from "../../components/Disclosure";
 import { CEJST_NOTE } from "../../lib/vocabulary";
 
 const THRESHOLDS = [1, 2, 3, 5, 8, 10, 16.1, 20, 25, 30, 40, 50];
@@ -37,15 +38,17 @@ export default function AccessAndEquity() {
   return (
     <div className="view">
       <aside className="sidebar">
-        <h1>Access &amp; Equity</h1>
-        <p className="sub">
-          Population beyond a drive distance from operational public DC fast charging,
-          measured from block-group population-weighted points.
-        </p>
+        <div className="lede">
+          <h1>Where is charging access weakest?</h1>
+          <p>
+            How many people live far from public fast charging, and how that changes with
+            the distance you consider &ldquo;far&rdquo;.
+          </p>
+        </div>
 
         <div className="field">
           <label htmlFor="threshold">
-            DCFC access gap threshold: {threshold.toFixed(1)} km
+            Count people further than {threshold.toFixed(1)} km from fast charging
           </label>
           <input
             id="threshold"
@@ -58,58 +61,69 @@ export default function AccessAndEquity() {
           />
         </div>
 
-        <div className="note">
-          <strong>This is a DCFC access gap.</strong> It measures distance to DC fast
-          charging only and says nothing about Level 2 availability.
-        </div>
-
         {summary !== null && (
           <>
-            <h3>At {threshold.toFixed(1)} km</h3>
-            <div className="stat">
-              <span className="k">Population in gap</span>
-              <span className="v">{formatCompact(summary.population)}</span>
+            <div className="figures">
+              <div className="figure">
+                <div className="n">{formatCompact(summary.population)}</div>
+                <div className="l">people that far from fast charging</div>
+              </div>
+              <div className="figure">
+                <div className="n">{(summary.share * 100).toFixed(1)}%</div>
+                <div className="l">of the US population</div>
+              </div>
+              <div className="figure">
+                <div className="n">{formatCompact(summary.equityPopulation)}</div>
+                <div className="l">of them in lower-income households</div>
+              </div>
+              <div className="figure">
+                <div className="n">{formatCompact(summary.points)}</div>
+                <div className="l">neighbourhoods affected</div>
+              </div>
             </div>
-            <div className="stat">
-              <span className="k">Share of population</span>
-              <span className="v">{(summary.share * 100).toFixed(2)}%</span>
-            </div>
-            <div className="stat">
-              <span className="k">Block groups in gap</span>
-              <span className="v">{formatCompact(summary.points)}</span>
-            </div>
-            <div className="stat">
-              <span className="k">Lower-income population in gap</span>
-              <span className="v">{formatCompact(summary.equityPopulation)}</span>
-            </div>
-            <p className="sub" style={{ fontSize: "0.75rem", marginTop: "0.4rem" }}>
-              &ldquo;Lower-income&rdquo; is one named ACS indicator — population in
-              households below $35,000 a year — not a composite disadvantage index.
-            </p>
           </>
         )}
 
-        <div className="note warn">
-          <strong>Straight-line distance.</strong> Core ships network-free distance, which
-          always understates real travel distance. The population actually beyond this
-          drive distance is at least as large as reported here, never smaller.
-        </div>
+        <Disclosure question="What counts as &ldquo;far&rdquo;?">
+          <p>
+            Distance here is straight-line, not driving distance, so real journeys are
+            longer. The number of people actually beyond this drive distance is at least
+            as large as shown, never smaller.
+          </p>
+          <p>
+            It measures public <strong>fast</strong> charging only. Slower Level 2 charging
+            is not counted, so this is not a picture of all charging.
+          </p>
+        </Disclosure>
 
-        <h3>Archived overlay</h3>
-        <div className="field">
+        <Disclosure question="Who is counted as lower-income?" tone="quiet">
+          <p>
+            One named measure from the American Community Survey: people in households
+            with income below $35,000 a year. It is a single indicator, not a combined
+            score of disadvantage, so it is narrower than the phrase might suggest.
+          </p>
+        </Disclosure>
+
+        <Disclosure question="Historical equity overlay" tone="quiet">
+          <p>{CEJST_NOTE}</p>
           <button onClick={() => setShowCejst(!showCejst)}>
-            {showCejst ? "Hide" : "Show"} archived CEJST context
+            {showCejst ? "Hide" : "Show"} it anyway
           </button>
-        </div>
-        {showCejst && <div className="note warn">{CEJST_NOTE}</div>}
+          {showCejst && (
+            <p style={{ marginTop: "0.5rem" }}>
+              Displayed for historical context only. It reflects a framework that is no
+              longer in force.
+            </p>
+          )}
+        </Disclosure>
       </aside>
 
       <div className="canvas" style={{ padding: "1.5rem", overflowY: "auto" }}>
-        <h2 style={{ marginTop: 0 }}>Threshold sensitivity</h2>
+        <h2 style={{ marginTop: 0 }}>How the answer changes with the distance you pick</h2>
         <p className="sub">
-          How the affected population changes across the threshold range. The curve is
-          recomputed in the browser from the per-point distances, so every row is the same
-          arithmetic rather than an interpolation between fixed points.
+          There is no single correct definition of &ldquo;too far&rdquo;, so the whole
+          range is shown. Every row is recalculated from the underlying neighbourhood
+          distances rather than interpolated.
         </p>
         {points === null ? (
           <div className="loading" style={{ position: "static", padding: "3rem" }}>
@@ -119,16 +133,16 @@ export default function AccessAndEquity() {
           <table>
             <thead>
               <tr>
-                <th className="num">Threshold (km)</th>
-                <th className="num">Population in gap</th>
-                <th className="num">Share</th>
+                <th className="num">Distance</th>
+                <th className="num">People further than this</th>
+                <th className="num">Share of US</th>
                 <th style={{ width: "45%" }} />
               </tr>
             </thead>
             <tbody>
               {curve.map((point) => (
                 <tr key={point.t}>
-                  <td className="num">{point.t.toFixed(1)}</td>
+                  <td className="num">{point.t.toFixed(1)} km</td>
                   <td className="num">{formatCompact(point.population)}</td>
                   <td className="num">{(point.share * 100).toFixed(2)}%</td>
                   <td>

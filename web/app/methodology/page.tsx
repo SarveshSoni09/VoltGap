@@ -17,11 +17,17 @@ import {
 export default function Methodology() {
   return (
     <div className="prose">
-      <h1>Methodology &amp; Validation</h1>
+      <h1>How it works</h1>
+      <p className="standfirst">
+        VoltGap estimates how many electric vehicles are in each part of the country, where
+        public fast charging already exists, and which areas a given budget could cover. It
+        is built from public data, and this page is the honest account of what that does
+        and does not establish.
+      </p>
       <p>
-        VoltGap estimates where EV charging demand is, what supply already exists, and
-        which cells a budget could most usefully cover. This page states what has been
-        validated, what has not, and what the numbers cannot support.
+        Everything below is the technical record: the models, the three separate
+        validations, and the limits. It is written for someone who wants to check the
+        work rather than take it on trust.
       </p>
 
       <div className="note warn">

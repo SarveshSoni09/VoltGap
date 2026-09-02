@@ -101,6 +101,10 @@ jobs:
       - name: PORTABLE budget — app shell <= 600 KB gzipped (§11.3)
         # Deterministic: gzip of the emitted files. Identical semantics to the gate.
         run: make web-budget
+      - name: Cold-user semantics
+        # Reads the RENDERED page, so it needs a browser with WebGL for the map views.
+        if: vars.PERF_GPU_RUNNER != ''
+        run: make web-ux-check
       - name: Visible rendering of the analytical layer
         # Needs a WebGL context, which a GitHub-hosted runner does not have, so this is
         # skipped there rather than faked. It IS enforced by `make gate PHASE=6`, and its

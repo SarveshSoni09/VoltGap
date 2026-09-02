@@ -3,19 +3,23 @@
 import dynamic from "next/dynamic";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
+import { Disclosure } from "../../components/Disclosure";
 import { cellBoundaries, type Boundaries } from "../../lib/data/geometry";
-import { perVertexColors } from "../../lib/render";
-import { STATE_NAMES } from "../../lib/data/states";
 import { hexRow, loadHexTable, type HexRow } from "../../lib/data/hexes";
+import { STATE_NAMES } from "../../lib/data/states";
 import type { ColumnTable } from "../../lib/data/table";
 import { downloadBlob, toCsv, toGeoJson, type PortfolioRow } from "../../lib/exporters";
 import { buildCandidates } from "../../lib/optimizer/candidates";
 import type { Outgoing, SolvedMessage } from "../../lib/optimizer/worker";
-import { cellColor, formatCompact, quantileScale } from "../../lib/scales";
+import { areaName, cohortOf, headlineReason, reasonsFor } from "../../lib/reasons";
+import { perVertexColors } from "../../lib/render";
+import { formatCompact } from "../../lib/scales";
 import {
-  INTERACTIVE_SOLVER_NOTE,
-  NOT_OPTIMALITY_NOTE,
+  RECOMMENDATION_NOTE,
+  TIER_DESCRIPTIONS,
   TIER_LABELS,
+  TIER_LABELS_PLAIN,
+  type Tier,
 } from "../../lib/vocabulary";
 
 const HexMap = dynamic(() => import("../../components/HexMap"), {
@@ -23,16 +27,33 @@ const HexMap = dynamic(() => import("../../components/HexMap"), {
   loading: () => <div className="loading">Loading map…</div>,
 });
 
-const FRONTIER_STATES = ["53", "47", "30", "50", "48", "06"] as const;
+const STATES = ["53", "47", "30", "50", "48", "06"] as const;
+
+/** Plain presets over the objective weights. Advanced exposes the slider itself. */
+const PRIORITIES = [
+  { id: "demand", label: "Demand", weight: 1.0,
+    hint: "Favour areas with the most estimated EV demand." },
+  { id: "balanced", label: "Balanced", weight: 0.6,
+    hint: "Weigh demand and underserved population together." },
+  { id: "underserved", label: "Underserved communities", weight: 0.2,
+    hint: "Favour areas reaching more lower-income households." },
+] as const;
+
+/** Map colours. Selection is a shape difference, not a shade difference. */
+const SELECTED: readonly [number, number, number, number] = [255, 193, 61, 255];
+const ELIGIBLE: readonly [number, number, number, number] = [120, 132, 152, 70];
 
 export default function SitingStudio() {
   const [table, setTable] = useState<ColumnTable | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [state, setState] = useState<string>("53");
   const [budget, setBudget] = useState(20);
+  const [priority, setPriority] = useState<string>("balanced");
   const [demandWeight, setDemandWeight] = useState(0.6);
-  const [excludeSaturated, setExcludeSaturated] = useState(true);
+  const [advanced, setAdvanced] = useState(false);
   const [result, setResult] = useState<SolvedMessage | null>(null);
+  const [openRow, setOpenRow] = useState<string | null>(null);
+  const [boundaries, setBoundaries] = useState<Boundaries | null>(null);
   const worker = useRef<Worker | null>(null);
 
   useEffect(() => {
@@ -40,9 +61,8 @@ export default function SitingStudio() {
   }, []);
 
   useEffect(() => {
-    const instance = new Worker(new URL("../../lib/optimizer/worker.ts", import.meta.url), {
-      type: "module",
-    });
+    const instance = new Worker(
+      new URL("../../lib/optimizer/worker.ts", import.meta.url), { type: "module" });
     instance.onmessage = (event: MessageEvent<Outgoing>) => {
       if (event.data.kind === "solved") setResult(event.data);
       else setError(event.data.message);
@@ -54,7 +74,10 @@ export default function SitingStudio() {
     };
   }, []);
 
-  // Materialise only this state's cells - a few thousand, not the national 53,208.
+  const effectiveWeight = advanced
+    ? demandWeight
+    : (PRIORITIES.find((p) => p.id === priority)?.weight ?? 0.6);
+
   const stateRows = useMemo<HexRow[]>(() => {
     if (table === null) return [];
     const states = table.strs("state_fips");
@@ -66,8 +89,8 @@ export default function SitingStudio() {
   }, [table, state]);
 
   const candidateSet = useMemo(
-    () => (stateRows.length === 0 ? null : buildCandidates(stateRows, excludeSaturated ? 2.0 : Infinity)),
-    [stateRows, excludeSaturated],
+    () => (stateRows.length === 0 ? null : buildCandidates(stateRows, 2.0)),
+    [stateRows],
   );
 
   useEffect(() => {
@@ -78,20 +101,58 @@ export default function SitingStudio() {
       coverage: [...candidateSet.coverage.entries()],
     });
     worker.current.postMessage({
-      kind: "solve",
-      budget,
-      weights: { demand: demandWeight, equity: 1 - demandWeight },
+      kind: "solve", budget,
+      weights: { demand: effectiveWeight, equity: 1 - effectiveWeight },
     });
-  }, [candidateSet, budget, demandWeight]);
+  }, [candidateSet, budget, effectiveWeight]);
 
-  const selected = useMemo(
-    () => new Set(result?.selected ?? []),
-    [result],
+  const selected = useMemo(() => new Set(result?.selected ?? []), [result]);
+  const byIndex = useMemo(
+    () => new Map(stateRows.map((r) => [r.h3_index, r])), [stateRows]);
+
+  // Only ELIGIBLE areas are drawn. Screened-out geography is not candidate data and is
+  // not rendered as if it were: the map answers "where are the recommended areas", and
+  // everything drawn is something that could have been chosen.
+  const eligible = useMemo(
+    () => (candidateSet === null
+      ? []
+      : candidateSet.candidates.map((c) => byIndex.get(c.h3_index)).filter(
+          (r): r is HexRow => r !== undefined)),
+    [candidateSet, byIndex],
   );
 
-  const byIndex = useMemo(
-    () => new Map(stateRows.map((r) => [r.h3_index, r])),
-    [stateRows],
+  useEffect(() => {
+    if (eligible.length === 0) {
+      setBoundaries(null);
+      return;
+    }
+    let cancelled = false;
+    cellBoundaries(eligible.map((r) => r.h3_index)).then((b) => {
+      if (!cancelled) setBoundaries(b);
+    });
+    return () => { cancelled = true; };
+  }, [eligible]);
+
+  const colors = useMemo<Uint8Array | null>(() => {
+    if (boundaries === null || eligible.length === 0) return null;
+    return perVertexColors(boundaries, (cell) => {
+      const row = eligible[cell];
+      if (row === undefined) return ELIGIBLE;
+      return selected.has(row.h3_index) ? SELECTED : ELIGIBLE;
+    });
+  }, [boundaries, eligible, selected]);
+
+  const cohort = useMemo(() => cohortOf(eligible), [eligible]);
+
+  const selectedMarkers = useMemo(
+    () =>
+      (result?.selected ?? []).flatMap((index, i) => {
+        const row = byIndex.get(index);
+        return row === undefined
+          ? []
+          : [{ longitude: row.longitude, latitude: row.latitude, rank: i + 1 }];
+      }),
+    [result, byIndex],
   );
 
   const portfolio = useMemo<PortfolioRow[]>(() => {
@@ -100,13 +161,9 @@ export default function SitingStudio() {
       const row = byIndex.get(index);
       if (row === undefined) return [];
       return [{
-        h3_index: row.h3_index,
-        latitude: row.latitude,
-        longitude: row.longitude,
-        rank: i + 1,
-        demand_bev: row.demand_bev,
-        equity_population: row.equity_population,
-        population: row.population,
+        h3_index: row.h3_index, latitude: row.latitude, longitude: row.longitude,
+        rank: i + 1, demand_bev: row.demand_bev,
+        equity_population: row.equity_population, population: row.population,
         uncertainty_score: row.uncertainty_score,
         confidence_tier: row.confidence_tier,
         dominant_evidence_grain: row.dominant_evidence_grain,
@@ -117,152 +174,119 @@ export default function SitingStudio() {
     });
   }, [result, byIndex]);
 
-  const [boundaries, setBoundaries] = useState<Boundaries | null>(null);
-
-  useEffect(() => {
-    if (stateRows.length === 0) {
-      setBoundaries(null);
-      return;
-    }
-    let cancelled = false;
-    cellBoundaries(stateRows.map((r) => r.h3_index)).then((result) => {
-      if (!cancelled) setBoundaries(result);
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, [stateRows]);
-
-  // Selected cells are highlighted by recolouring the buffer, not by a second layer.
-  // Per-VERTEX, which is what deck.gl's binary attribute path reads (see lib/render.ts).
-  const colors = useMemo<Uint8Array | null>(() => {
-    if (stateRows.length === 0 || boundaries === null) return null;
-    const scale = quantileScale(stateRows.map((r) => r.demand_bev));
-    return perVertexColors(boundaries, (cell) => {
-      const row = stateRows[cell];
-      if (row === undefined) return [0, 0, 0, 0] as const;
-      const chosen = selected.has(row.h3_index);
-      const [r, g, b, a] = chosen
-        ? ([255, 214, 102, 245] as const)
-        : cellColor(scale(row.demand_bev), row.confidence_tier);
-      const dim = selected.size > 0 && !chosen;
-      return [r, g, b, dim ? 60 : a] as const;
-    });
-  }, [stateRows, boundaries, selected]);
-
   const centre = useMemo(() => {
-    if (stateRows.length === 0) return undefined;
-    const lat = stateRows.reduce((s, r) => s + r.latitude, 0) / stateRows.length;
-    const lon = stateRows.reduce((s, r) => s + r.longitude, 0) / stateRows.length;
-    return { latitude: lat, longitude: lon, zoom: 5.6 };
-  }, [stateRows]);
+    if (eligible.length === 0) return undefined;
+    const lat = eligible.reduce((s, r) => s + r.latitude, 0) / eligible.length;
+    const lon = eligible.reduce((s, r) => s + r.longitude, 0) / eligible.length;
+    return { latitude: lat, longitude: lon, zoom: 5.8 };
+  }, [eligible]);
 
   const exportCsv = useCallback(() => {
-    downloadBlob(`voltgap_portfolio_${state}.csv`, "text/csv", toCsv(portfolio));
+    downloadBlob(`voltgap_${state}.csv`, "text/csv", toCsv(portfolio));
   }, [portfolio, state]);
-
   const exportGeoJson = useCallback(() => {
-    downloadBlob(
-      `voltgap_portfolio_${state}.geojson`,
-      "application/geo+json",
-      JSON.stringify(toGeoJson(portfolio), null, 2),
-    );
+    downloadBlob(`voltgap_${state}.geojson`, "application/geo+json",
+      JSON.stringify(toGeoJson(portfolio), null, 2));
   }, [portfolio, state]);
 
   if (error !== null) return <div className="error">{error}</div>;
 
+  const stateName = STATE_NAMES[state] ?? state;
+  const withoutCharging = portfolio.filter((r) => r.existing_dcfc_ports === 0).length;
+  const higherReliability = portfolio.filter((r) => r.confidence_tier === "A").length;
+  const demandCovered = result?.demandCovered ?? 0;
+  const equityCovered = result?.equityCovered ?? 0;
+
   return (
     <div className="view">
       <aside className="sidebar">
-        <h1>Siting Studio</h1>
-        <p className="sub">
-          A ranked, budget-feasible portfolio of candidate cells, solved in your browser.
-        </p>
+        <div className="lede">
+          <h1>Plan new charging locations</h1>
+          <p>
+            Choose where and how much, and VoltGap shows candidate areas worth
+            considering.
+          </p>
+        </div>
 
         <div className="field">
-          <label htmlFor="state">State</label>
+          <label htmlFor="state">Where</label>
           <select id="state" value={state} onChange={(e) => setState(e.target.value)}>
-            {FRONTIER_STATES.map((fips) => (
-              <option key={fips} value={fips}>
-                {STATE_NAMES[fips] ?? fips}
-              </option>
+            {STATES.map((fips) => (
+              <option key={fips} value={fips}>{STATE_NAMES[fips] ?? fips}</option>
             ))}
           </select>
         </div>
 
         <div className="field">
-          <label htmlFor="budget">Budget: {budget} sites</label>
+          <label htmlFor="budget">How many new locations can you fund?</label>
           <input
             id="budget" type="range" min={1} max={100} step={1}
             value={budget} onChange={(e) => setBudget(Number(e.target.value))}
           />
+          <div className="rangeval">{budget} areas</div>
         </div>
 
         <div className="field">
-          <label htmlFor="weight">
-            Demand {demandWeight.toFixed(2)} · equity {(1 - demandWeight).toFixed(2)}
-          </label>
-          <input
-            id="weight" type="range" min={0} max={1} step={0.05}
-            value={demandWeight} onChange={(e) => setDemandWeight(Number(e.target.value))}
-          />
-        </div>
-
-        <div className="field">
-          <label>
-            <input
-              type="checkbox" checked={excludeSaturated} style={{ width: "auto" }}
-              onChange={(e) => setExcludeSaturated(e.target.checked)}
-            />{" "}
-            Exclude already-saturated cells
-          </label>
-        </div>
-
-        <div className="note">
-          <strong>{INTERACTIVE_SOLVER_NOTE}</strong> No approximation bound is claimed for
-          this solver. The published analytical frontier is computed offline with exact
-          integer programming.
-        </div>
-        <div className="note">{NOT_OPTIMALITY_NOTE}</div>
-
-        {candidateSet !== null && (
-          <>
-            <h3>Candidate universe</h3>
-            <div className="stat">
-              <span className="k">Candidates</span>
-              <span className="v">{formatCompact(candidateSet.candidates.length)}</span>
-            </div>
-            {Object.entries(candidateSet.excluded).map(([reason, count]) => (
-              <div className="stat" key={reason}>
-                <span className="k">excluded: {reason.replace(/_/g, " ")}</span>
-                <span className="v">{formatCompact(count)}</span>
-              </div>
+          <label>What matters most?</label>
+          <div className="segmented">
+            {PRIORITIES.map((p) => (
+              <button
+                key={p.id}
+                className={priority === p.id && !advanced ? "on" : ""}
+                onClick={() => { setPriority(p.id); setAdvanced(false); }}
+              >
+                {p.label}
+              </button>
             ))}
-            <p className="sub" style={{ fontSize: "0.75rem", marginTop: "0.4rem" }}>
-              There is no substation-proximity filter: no authoritative national dataset
-              exists, and siting works without one.
-            </p>
-          </>
-        )}
+          </div>
+          <p className="hint">
+            {advanced
+              ? "Custom weighting in use."
+              : PRIORITIES.find((p) => p.id === priority)?.hint}
+          </p>
+        </div>
+
+        <Disclosure question="Advanced weighting" tone="quiet">
+          <p>
+            The preset above sets the balance between the two objectives. Set it directly
+            here.
+          </p>
+          <input
+            type="range" min={0} max={1} step={0.05} value={demandWeight}
+            onChange={(e) => { setDemandWeight(Number(e.target.value)); setAdvanced(true); }}
+          />
+          <p>
+            {Math.round(effectiveWeight * 100)}% estimated demand,{" "}
+            {Math.round((1 - effectiveWeight) * 100)}% underserved population.
+          </p>
+        </Disclosure>
 
         {result !== null && (
           <>
-            <h3>This portfolio</h3>
-            <div className="stat">
-              <span className="k">Sites selected</span>
-              <span className="v">{result.selected.length}</span>
+            <h3>Your {stateName} portfolio</h3>
+            <div className="figures">
+              <div className="figure">
+                <div className="n">{result.selected.length}</div>
+                <div className="l">candidate areas</div>
+              </div>
+              <div className="figure">
+                <div className="n">{formatCompact(demandCovered)}</div>
+                <div className="l">estimated EVs in range</div>
+              </div>
+              <div className="figure">
+                <div className="n">{formatCompact(equityCovered)}</div>
+                <div className="l">underserved population reached</div>
+              </div>
+              <div className="figure">
+                <div className="n">{withoutCharging}</div>
+                <div className="l">with no fast charging today</div>
+              </div>
             </div>
-            <div className="stat">
-              <span className="k">Demand covered</span>
-              <span className="v">{formatCompact(result.demandCovered)}</span>
-            </div>
-            <div className="stat">
-              <span className="k">Lower-income population covered</span>
-              <span className="v">{formatCompact(result.equityCovered)}</span>
-            </div>
-            <div className="stat">
-              <span className="k">Solve time</span>
-              <span className="v">{result.elapsedMs.toFixed(0)} ms</span>
+            <div className="chips">
+              <span className="chip a">{higherReliability} higher reliability</span>
+              <span className="chip b">
+                {portfolio.length - higherReliability} modelled
+              </span>
             </div>
             <div className="row" style={{ marginTop: "0.8rem" }}>
               <button onClick={exportCsv}>Export CSV</button>
@@ -270,56 +294,164 @@ export default function SitingStudio() {
             </div>
           </>
         )}
+
+        <Disclosure question="About these recommendations">
+          <p>{RECOMMENDATION_NOTE}</p>
+          <p>
+            <a href="/methodology/">Learn how this works</a>
+          </p>
+        </Disclosure>
+
+        {candidateSet !== null && (
+          <Disclosure question="How were areas screened?" tone="quiet">
+            <p>
+              {formatCompact(candidateSet.candidates.length)} eligible areas were
+              evaluated in {stateName}. Screened out:
+            </p>
+            <table>
+              <tbody>
+                <tr>
+                  <td>outside the road-proximity range</td>
+                  <td className="num">
+                    {candidateSet.excluded.beyond_primary_secondary_road_network ?? 0}
+                  </td>
+                </tr>
+                <tr>
+                  <td>already well served</td>
+                  <td className="num">{candidateSet.excluded.already_saturated ?? 0}</td>
+                </tr>
+                <tr>
+                  <td>nobody lives there</td>
+                  <td className="num">{candidateSet.excluded.uninhabited ?? 0}</td>
+                </tr>
+              </tbody>
+            </table>
+            <p style={{ marginTop: "0.5rem" }}>
+              There is no electrical-grid filter: no authoritative national substation
+              dataset exists, so siting works without one.
+            </p>
+          </Disclosure>
+        )}
       </aside>
 
       <div className="canvas" style={{ display: "grid", gridTemplateRows: "1fr auto" }}>
         <div style={{ position: "relative" }}>
           {table === null ? (
-            <div className="loading">Loading cells…</div>
+            <div className="loading">Loading areas…</div>
           ) : (
-            <HexMap
-              boundaries={boundaries}
-              colors={colors}
-              initialViewState={centre}
-            />
+            <>
+              <HexMap
+                boundaries={boundaries}
+                colors={colors}
+                selected={selectedMarkers}
+                initialViewState={centre}
+              />
+              <div className="legend">
+                <div>{stateName}</div>
+                <div className="swatches">
+                  <span className="sw">
+                    <i style={{ background: "rgb(255,193,61)" }} />
+                    selected for this portfolio ({result?.selected.length ?? 0})
+                  </span>
+                  <span className="sw">
+                    <i style={{ background: "rgba(120,132,152,0.45)" }} />
+                    other eligible areas
+                  </span>
+                  <span className="sw">
+                    <i className="hollow" />
+                    not a candidate — screened out or unpopulated
+                  </span>
+                </div>
+              </div>
+            </>
           )}
         </div>
-        <div style={{ maxHeight: "40vh", overflowY: "auto", borderTop: "1px solid var(--line)", padding: "0.75rem 1rem" }}>
+        <div className="tablewrap">
           <table>
             <thead>
               <tr>
-                <th className="num">#</th>
-                <th>Cell</th>
-                <th className="num">Demand</th>
-                <th className="num">Lower-income pop.</th>
-                <th className="num">Existing DCFC</th>
-                <th className="num">Uncertainty</th>
-                <th>Confidence</th>
+                <th className="num">Rank</th>
+                <th>Area</th>
+                <th>Why it stands out</th>
+                <th className="num">Estimated EV demand</th>
+                <th className="num">Underserved population</th>
+                <th className="num">Existing fast charging</th>
+                <th>Estimate reliability</th>
               </tr>
             </thead>
             <tbody>
-              {portfolio.map((row) => (
-                <tr key={row.h3_index}>
-                  <td className="num">{row.rank}</td>
-                  <td style={{ fontFamily: "var(--mono)", fontSize: "0.75rem" }}>
-                    {row.h3_index}
-                  </td>
-                  <td className="num">{formatCompact(row.demand_bev)}</td>
-                  <td className="num">{formatCompact(row.equity_population)}</td>
-                  <td className="num">{row.existing_dcfc_ports.toFixed(0)}</td>
-                  <td className="num">{row.uncertainty_score.toFixed(3)}</td>
-                  <td>
-                    <span className={`tier ${row.confidence_tier.toLowerCase()}`}>
-                      <span className="dot" />
-                      {TIER_LABELS[row.confidence_tier]}
-                    </span>
-                  </td>
-                </tr>
-              ))}
+              {portfolio.map((row) => {
+                const source = byIndex.get(row.h3_index);
+                const open = openRow === row.h3_index;
+                return (
+                  <>
+                    <tr
+                      key={row.h3_index}
+                      onClick={() => setOpenRow(open ? null : row.h3_index)}
+                      className={open ? "open" : ""}
+                    >
+                      <td className="num">{row.rank}</td>
+                      <td>{source ? areaName(source, row.rank) : `Area ${row.rank}`}</td>
+                      <td className="why">
+                        {source ? headlineReason(source, cohort) : "—"}
+                      </td>
+                      <td className="num">{formatCompact(row.demand_bev)}</td>
+                      <td className="num">{formatCompact(row.equity_population)}</td>
+                      <td className="num">
+                        {row.existing_dcfc_ports === 0
+                          ? "none"
+                          : row.existing_dcfc_ports.toFixed(0)}
+                      </td>
+                      <td>
+                        <span
+                          className={`tier ${row.confidence_tier.toLowerCase()}`}
+                          title={TIER_DESCRIPTIONS[row.confidence_tier]}
+                        >
+                          <span className="dot" />
+                          {TIER_LABELS_PLAIN[row.confidence_tier]}
+                        </span>
+                      </td>
+                    </tr>
+                    {open && source && (
+                      <tr key={`${row.h3_index}-d`} className="detail">
+                        <td />
+                        <td colSpan={6}>
+                          <strong>Why this area ranked highly</strong>
+                          <ul>
+                            {reasonsFor(source, cohort).map((reason) => (
+                              <li key={reason}>{reason}</li>
+                            ))}
+                          </ul>
+                          <details>
+                            <summary>Technical details</summary>
+                            <dl>
+                              <dt>H3 cell</dt>
+                              <dd>{row.h3_index}</dd>
+                              <dt>Uncertainty score</dt>
+                              <dd>{row.uncertainty_score.toFixed(3)}</dd>
+                              <dt>Confidence tier</dt>
+                              <dd>
+                                {TIER_LABELS[row.confidence_tier]} (
+                                {row.dominant_evidence_grain})
+                              </dd>
+                              <dt>Centroid</dt>
+                              <dd>
+                                {row.latitude.toFixed(4)}, {row.longitude.toFixed(4)}
+                              </dd>
+                            </dl>
+                          </details>
+                        </td>
+                      </tr>
+                    )}
+                  </>
+                );
+              })}
             </tbody>
           </table>
           {portfolio.length === 0 && (
-            <p className="sub">Adjust the budget to select sites.</p>
+            <p className="hint" style={{ padding: "0.8rem 1rem" }}>
+              Adjust the budget to select areas.
+            </p>
           )}
         </div>
       </div>

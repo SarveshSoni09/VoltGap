@@ -125,20 +125,28 @@ await new Promise((resolve) => setTimeout(resolve, 700));
   try {
     const page = await browser.newPage();
     await page.goto(URL_UNDER_TEST, { waitUntil: "networkidle0", timeout: 120000 });
+    // REPRESENTED cells, not drawn polygons. The national view aggregates for display, so
+    // it legitimately draws ~4,000 parents covering all 53,208 cells; asking for drawn
+    // polygons here would fail a page that loaded its data perfectly well. The point of
+    // this guard is only to refuse a page that loaded NOTHING, which measures 0.96 s and
+    // "passes" comfortably.
     const cells = await page
-      .waitForFunction(() => window.__voltgapLayerCells ?? 0, { timeout: 60000 })
+      .waitForFunction(() => window.__voltgapNativeCells ?? 0, { timeout: 60000 })
       .then((handle) => handle.jsonValue())
       .catch(() => 0);
     if (Number(cells) < MIN_CELLS) {
       console.error(
-        `FAIL: the page under test rendered ${cells} cells, fewer than the ${MIN_CELLS} ` +
+        `FAIL: the page under test loaded ${cells} cells, fewer than the ${MIN_CELLS} ` +
           "the national surface holds. Time to interactive measured against a page that " +
           "did not load its data is meaningless, and it passes easily. Run " +
           "`make artifacts` first. See docs/reports/PLAN_CHANGE_6.md.",
       );
       process.exit(1);
     }
-    console.log(`  page under test holds ${Number(cells).toLocaleString()} cells`);
+    console.log(
+      `  page under test holds ${Number(cells).toLocaleString()} cells ` +
+        "(represented; the national view aggregates these for display)",
+    );
   } finally {
     await browser.close().catch(() => {});
   }

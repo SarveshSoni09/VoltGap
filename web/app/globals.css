@@ -147,3 +147,85 @@ td.num, th.num { text-align: right; font-family: var(--mono); }
 
 .tierkey { display: flex; flex-direction: column; gap: 0.15rem; margin-top: 0.4rem;
            padding-top: 0.35rem; border-top: 1px solid var(--line); }
+
+/* --- progressive disclosure -------------------------------------------------------- */
+.disclose { border-top: 1px solid var(--line); }
+.disclose:last-of-type { border-bottom: 1px solid var(--line); }
+.disclose-q {
+  width: 100%; text-align: left; background: none; border: 0; padding: 0.6rem 0;
+  color: var(--ink-dim); font-size: 0.82rem; cursor: pointer; display: flex;
+  align-items: baseline; gap: 0.4rem; border-radius: 0;
+}
+.disclose-q:hover { color: var(--ink); }
+.disclose-q .chev { color: var(--ink-faint); font-size: 0.7rem; width: 0.7rem; }
+.disclose-a { padding: 0 0 0.8rem 1.1rem; font-size: 0.78rem; color: var(--ink-dim); }
+.disclose-a p { margin: 0 0 0.5rem; }
+.disclose-a p:last-child { margin-bottom: 0; }
+.disclose-a table { font-size: 0.75rem; }
+.disclose.quiet .disclose-q { font-size: 0.75rem; color: var(--ink-faint); }
+
+/* --- lede ------------------------------------------------------------------------- */
+.lede { margin-bottom: 1.1rem; }
+.lede h1 { font-size: 1.25rem; line-height: 1.25; margin: 0 0 0.35rem; }
+.lede p { margin: 0; font-size: 0.85rem; color: var(--ink-dim); line-height: 1.5; }
+.reading { font-size: 0.82rem; color: var(--ink-dim); margin: 0.5rem 0 0; }
+
+/* --- figures ---------------------------------------------------------------------- */
+.figures { display: grid; grid-template-columns: 1fr 1fr; gap: 0.15rem 1rem; margin: 0.2rem 0 0.9rem; }
+.figure .n { font-size: 1.15rem; font-variant-numeric: tabular-nums; letter-spacing: -0.02em; }
+.figure .l { font-size: 0.72rem; color: var(--ink-dim); line-height: 1.3; }
+
+/* --- legend ----------------------------------------------------------------------- */
+.legend .swatches { display: flex; flex-direction: column; gap: 0.25rem; margin-top: 0.5rem;
+                    padding-top: 0.45rem; border-top: 1px solid var(--line); }
+.legend .sw { display: flex; align-items: center; gap: 0.4rem; font-size: 0.72rem;
+              color: var(--ink-dim); }
+.legend .sw i { width: 11px; height: 11px; border-radius: 2px; display: inline-block;
+                flex: none; }
+.legend .sw i.hollow { background: transparent; border: 1px solid var(--ink-faint); }
+
+/* --- reliability chips ------------------------------------------------------------ */
+.chips { display: flex; gap: 0.3rem; flex-wrap: wrap; margin: 0.3rem 0 0; }
+.chip { font-size: 0.7rem; padding: 0.12rem 0.4rem; border-radius: 3px;
+        border: 1px solid var(--line); color: var(--ink-dim); }
+.chip.a { border-color: color-mix(in srgb, var(--tier-a) 55%, var(--line)); }
+.chip.b { border-color: color-mix(in srgb, var(--tier-b) 55%, var(--line)); }
+.chip.c { border-color: color-mix(in srgb, var(--tier-c) 55%, var(--line)); }
+
+/* --- controls --------------------------------------------------------------------- */
+.rangeval { font-size: 0.78rem; color: var(--ink); font-variant-numeric: tabular-nums;
+            margin-top: 0.25rem; }
+.hint { font-size: 0.75rem; color: var(--ink-dim); margin: 0.35rem 0 0; line-height: 1.45; }
+.segmented { display: flex; gap: 0; border: 1px solid var(--line); border-radius: var(--radius);
+             overflow: hidden; }
+.segmented button { border: 0; border-radius: 0; background: transparent; padding: 0.4rem 0.3rem;
+                    font-size: 0.78rem; color: var(--ink-dim); flex: 1; }
+.segmented button + button { border-left: 1px solid var(--line); }
+.segmented button:hover { background: var(--panel-2); color: var(--ink); }
+.segmented button.on { background: var(--accent-dim); color: #fff; }
+
+/* --- candidate table -------------------------------------------------------------- */
+.tablewrap { max-height: 42vh; overflow-y: auto; border-top: 1px solid var(--line); }
+.tablewrap thead th { position: sticky; top: 0; background: var(--panel); z-index: 1; }
+.tablewrap tbody tr { cursor: pointer; }
+.tablewrap tbody tr:hover { background: var(--panel-2); }
+.tablewrap tbody tr.open { background: var(--panel-2); }
+.tablewrap td.why { color: var(--ink-dim); }
+.tablewrap tr.detail { cursor: default; }
+.tablewrap tr.detail:hover { background: transparent; }
+.tablewrap tr.detail td { padding: 0.6rem 0.5rem 0.9rem; }
+.tablewrap tr.detail strong { font-size: 0.8rem; }
+.tablewrap tr.detail ul { margin: 0.4rem 0 0.7rem; padding-left: 1.1rem; }
+.tablewrap tr.detail li { font-size: 0.8rem; color: var(--ink-dim); margin-bottom: 0.15rem; }
+.tablewrap details summary { font-size: 0.75rem; color: var(--ink-faint); cursor: pointer; }
+.tablewrap details dl { display: grid; grid-template-columns: auto 1fr; gap: 0.1rem 0.8rem;
+                        margin: 0.5rem 0 0; font-size: 0.75rem; }
+.tablewrap details dt { color: var(--ink-faint); }
+.tablewrap details dd { margin: 0; font-family: var(--mono); color: var(--ink-dim); }
+.prose .standfirst { font-size: 1.02rem; color: var(--ink); line-height: 1.55;
+                     margin-bottom: 0.9rem; }
+.brand { display: flex; align-items: baseline; gap: 0.7rem; }
+.brand .mark { font-weight: 700; letter-spacing: -0.02em; font-size: 1.05rem; }
+.brand .tagline { font-size: 0.78rem; color: var(--ink-dim); font-weight: 400;
+                  letter-spacing: 0; }
+@media (max-width: 1100px) { .brand .tagline { display: none; } }

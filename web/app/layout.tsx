@@ -17,7 +17,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <div className="shell">
           <header className="top">
             <div className="brand">
-              Volt<span>Gap</span>
+              <span className="mark">Volt<span>Gap</span></span>
+              <span className="tagline">Where should the next EV chargers go?</span>
             </div>
             <ViewNav />
             <FreshnessIndicator />

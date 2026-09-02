@@ -134,10 +134,13 @@ try {
     return { shot, box, state };
   };
 
-  console.log("  rendering with the analytical layer…");
-  const on = await shoot("");
-  console.log("  rendering with ?layer=off…");
-  const off = await shoot("?layer=off");
+  // `resolution=native` disables display aggregation so the full 53,208-cell surface is
+  // genuinely drawn: the >=50,000-polygon guard would otherwise be satisfied by ~2,700
+  // aggregated parents, which is not what it was written to check.
+  console.log("  rendering with the analytical layer (native resolution)…");
+  const on = await shoot("?resolution=native");
+  console.log("  rendering with the layer off…");
+  const off = await shoot("?resolution=native&layer=off");
 
   // --- structural guards -------------------------------------------------------------
   const s = on.state;

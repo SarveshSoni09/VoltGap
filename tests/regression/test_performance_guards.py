@@ -91,7 +91,11 @@ def test_the_tti_harness_refuses_a_page_that_did_not_load_the_national_surface()
     a page with no map and no data."""
     assert "const MIN_CELLS = 50000;" in TTI_SOURCE
     assert "did not load its data is meaningless" in TTI_SOURCE
-    assert "__voltgapLayerCells" in TTI_SOURCE
+    # REPRESENTED cells, not drawn polygons. The national view aggregates for display, so
+    # it draws ~4,000 parents covering all 53,208 cells; a guard reading drawn polygons
+    # would fail a page that loaded its data perfectly well. What it must refuse is a page
+    # that loaded NOTHING, which measures 0.96 s and passes comfortably.
+    assert "__voltgapNativeCells" in TTI_SOURCE
 
 
 # --- 4. FPS refuses too few cells, software rendering, or no WebGL --------------------
@@ -99,6 +103,16 @@ def test_the_tti_harness_refuses_a_page_that_did_not_load_the_national_surface()
 def test_the_fps_harness_requires_the_national_layer() -> None:
     assert "const MIN_CELLS = 50000;" in FPS_SOURCE
     assert "near-empty layer means nothing" in FPS_SOURCE
+    # DRAWN polygons here, and the harness disables display aggregation so the full
+    # surface is genuinely rendered. Measuring frame rate over ~4,000 aggregated parents
+    # would not demonstrate the budget, which is what this guard exists to prevent.
+    assert "__voltgapLayerCells" in FPS_SOURCE
+    assert "resolution=native" in FPS_SOURCE
+
+
+def test_the_render_check_measures_the_full_surface_not_the_aggregated_view() -> None:
+    assert "resolution=native" in RENDER_SOURCE
+    assert "aggregated parents" in RENDER_SOURCE
 
 
 def test_the_fps_harness_refuses_software_rendering() -> None:

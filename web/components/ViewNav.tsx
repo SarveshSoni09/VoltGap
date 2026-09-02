@@ -8,10 +8,10 @@ import { usePathname } from "next/navigation";
  * link (§11.1) - the caveats are part of the product, not small print.
  */
 const VIEWS = [
-  { href: "/", label: "National Overview" },
-  { href: "/access/", label: "Access & Equity" },
-  { href: "/studio/", label: "Siting Studio" },
-  { href: "/methodology/", label: "Methodology & Validation" },
+  { href: "/", label: "EV demand" },
+  { href: "/access/", label: "Charging gaps" },
+  { href: "/studio/", label: "Plan locations" },
+  { href: "/methodology/", label: "How it works" },
 ] as const;
 
 export function ViewNav() {

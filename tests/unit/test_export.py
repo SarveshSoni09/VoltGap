@@ -315,3 +315,68 @@ def test_a_requested_state_with_no_estimates_is_skipped(tmp_path: Path) -> None:
     surface = build_national([estimate], {}, states=("56", "50"))
     assert surface.states == ("50",)
     assert len(surface) > 0
+
+
+# --- human-readable place names, so nobody has to read an H3 index --------------------
+
+def test_a_cell_row_is_complete_even_before_its_place_name_is_known() -> None:
+    """`cell_row` cannot see the population weights, so it emits empty placeholders and
+    `build_national` fills them. A partial row would fail the parquet writer's column
+    check a long way from the cause."""
+    row = cell_row(hexcell(*SEATTLE), "53", 0.5)
+    assert row["county_name"] == ""
+    assert row["state_code"] == ""
+    assert row["county_population_share"] == 0.0
+
+
+def test_county_names_load_from_the_census_reference() -> None:
+    from pipeline.export.national import load_county_names
+
+    counties = load_county_names()
+    assert len(counties) > 3_000
+    assert counties["53033"] == ("King County", "WA")
+    assert counties["06037"] == ("Los Angeles County", "CA")
+
+
+def test_the_dominant_county_is_the_one_with_the_most_population() -> None:
+    """A resolution-6 cell can straddle a county line, so the label names the county that
+    dominates and records by how much rather than implying the cell sits in one."""
+    from pipeline.export.national import dominant_counties
+    from pipeline.spatial.h3_grid import TractCellWeights
+
+    counties = {"53033": ("King County", "WA"), "53053": ("Pierce County", "WA")}
+    weights = {
+        "a": TractCellWeights("53033000100", {"cellX": 1.0}, 900.0),
+        "b": TractCellWeights("53053000100", {"cellX": 1.0}, 100.0),
+    }
+    result = dominant_counties(weights, counties)
+    name, state, share = result["cellX"]
+    assert (name, state) == ("King County", "WA")
+    assert share == pytest.approx(0.9)
+
+
+def test_an_unknown_county_yields_an_empty_label_rather_than_a_guess() -> None:
+    from pipeline.export.national import dominant_counties
+    from pipeline.spatial.h3_grid import TractCellWeights
+
+    weights = {"a": TractCellWeights("99999000100", {"cellY": 1.0}, 10.0)}
+    name, state, _share = dominant_counties(weights, {})["cellY"]
+    assert name == ""
+    assert state == ""
+
+
+def test_a_malformed_county_line_is_skipped_not_guessed(tmp_path: Path) -> None:
+    """The reference file ends with a blank line, and a short line would otherwise raise
+    mid-parse and take the whole export with it."""
+    from pipeline.export.national import load_county_names
+
+    reference = tmp_path / "counties.txt"
+    reference.write_text(
+        "STATE|STATEFP|COUNTYFP|COUNTYNS|COUNTYNAME|CLASSFP|FUNCSTAT\n"
+        "WA|53|033|00161526|King County|H1|A\n"
+        "truncated|row\n"
+        "\n",
+        encoding="utf-8",
+    )
+    counties = load_county_names(reference)
+    assert counties == {"53033": ("King County", "WA")}

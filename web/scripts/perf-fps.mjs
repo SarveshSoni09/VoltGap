@@ -65,7 +65,10 @@ const browser = await puppeteer.launch({
 try {
   const page = await browser.newPage();
   await page.setViewport({ width: 1600, height: 1000, deviceScaleFactor: 1 });
-  await page.goto(`http://localhost:${PORT}/`, {
+  // `resolution=native` disables display aggregation, so this measures the heaviest real
+  // rendering path — all 53,208 cells — rather than the ~2,700 aggregated parents the
+  // national view draws at default zoom. The >=50,000-cell guard keeps its meaning.
+  await page.goto(`http://localhost:${PORT}/?resolution=native`, {
     waitUntil: "networkidle0", timeout: 120000,
   });
 

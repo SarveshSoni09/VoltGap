@@ -992,3 +992,163 @@ Impact-log entry **I-29**, severity **S1**.
 which must not be attempted until now — the map was not functional when the protocol was
 written. It remains outstanding and requires an unfamiliar participant. **A-6.8** remains
 open: the workflow is locally validated but has never been observed running on GitHub.
+
+---
+
+## 17. UX and visual-communication pass — 2026-09-01
+
+Appended. A presentation pass, bounded to the frontend. **No model, threshold, objective,
+candidate rule, confidence calculation or validation result changed.** Confirmed
+numerically in §17.6.
+
+### 17.1 What the blank areas of the national map actually meant
+
+Measured over all published cells **before** changing any rendering:
+
+| | |
+|---|---:|
+| Published cells | 53,208 |
+| With a modelled demand value | **53,208 (100%)** |
+| Demand missing / NULL | **0** |
+| Demand exactly zero | 390 |
+| Cells excluded from rendering | **0** |
+| Cells drawn at alpha ≤ 0.1 | **0** (faintest in use was 0.41) |
+| Tier A / B / C | 4,678 / 36,396 / 12,134 |
+| Land area covered by published cells | 1,937,726 km² of 9,147,590 km² |
+| **US landmass with no published cell at all** | **78.8%** |
+
+**The white space was none of the ambiguous readings.** Not missing data, not zero demand,
+not low confidence, not excluded, not near-transparent. A cell exists only where census
+population sits inside it, so unpopulated terrain — desert, mountain, forest, federal land —
+produces no cell. The interface now says exactly that, in the legend and in a disclosure.
+
+### 17.2 Confidence no longer disappears demand
+
+Reliability was encoded as opacity: tier C drew at 41% alpha. On a light basemap a
+low-reliability estimate faded toward the background, which is also what the 78.8% with no
+cell looks like — so "we are unsure" and "nobody lives here" were visually the same thing.
+
+Colour now carries the metric and nothing else, at one constant alpha. Reliability is
+reported separately: a plain three-way breakdown in the sidebar, a per-row rating in the
+candidate table, and the precise wording on hover. **The underlying values are untouched.**
+
+### 17.3 The national map is legible at national scale
+
+53,208 resolution-6 cells at national zoom read as scattered dots. A **presentation-only**
+aggregation rolls them to a coarser H3 resolution for drawing: resolution 4 below zoom 5,
+5 below zoom 7, native 6 above.
+
+**Conservation is proven, not asserted.** `cellToParent` is exact containment, so summing
+over children conserves exactly. `tests/aggregate.test.ts` (19 tests) checks on the real
+published surface, at resolutions 3, 4 and 5, that demand, population, underserved
+population and port counts all match the native totals to six decimal places, that every
+native cell is accounted for exactly once, and that every cell lands under its own H3
+parent. Quantities that are **not** additive are not summed: distance is a
+population-weighted mean, bounded by the native range, and labelled a display summary.
+
+Resolution 4 rather than 3 was chosen deliberately. A parent is drawn if any child has
+population, so an over-coarse grouping paints a large hexagon for one small town and makes
+the country look uniformly covered — hiding the very gaps §17.1 measured.
+
+The performance harnesses use `?resolution=native`, which disables aggregation, so their
+≥50,000-cell guards keep their original meaning rather than being satisfied by ~4,000
+aggregated parents.
+
+### 17.4 Terminology
+
+| Was | Now | Precise wording kept in |
+|---|---|---|
+| National Overview | **Where is EV demand highest?** (nav: EV demand) | — |
+| Access & Equity | **Where is charging access weakest?** (nav: Charging gaps) | — |
+| Siting Studio | **Plan new charging locations** (nav: Plan locations) | — |
+| Methodology & Validation | **How it works** | heading only; content unchanged |
+| Estimated BEV demand | **Estimated EV demand** | data dictionary |
+| Sub-state anchored | **Higher reliability** | tooltip, details panel, exports, Methodology |
+| Modeled | **Modelled** | as above |
+| Low confidence | **Lower reliability** | as above |
+| Confidence tier | **Estimate reliability** | as above |
+| DCFC access gap (km to nearest site) | **Distance to fast charging** | Methodology |
+| Existing DC fast ports | **Existing fast charging** | exports |
+| Equity coverage | **Underserved population reached** | Methodology (the named ACS indicator) |
+| `CELL` / `8628d5407ffffff` | **Area** → *King County, WA* | Technical details panel, CSV, GeoJSON |
+| Uncertainty 0.223 | removed from the default table | Technical details panel |
+| Demand 0.60 · equity 0.40 | **Demand / Balanced / Underserved communities** | Advanced weighting |
+| Budget: 20 sites | **How many new locations can you fund? → 20 areas** | — |
+| excluded: beyond primary secondary road network | **outside the road-proximity range** | exact counts kept, one click away |
+
+**"Higher reliability" does not mean observed.** The plain labels are a presentation layer;
+`sub-state anchored` and its full definition remain reachable and are what the exports and
+Methodology use. A test asserts no page ever *claims* an estimate is directly observed.
+
+Area names come from a new **display-only** artifact column: the county contributing the
+most population to each cell, derived from geography the pipeline already held. All 53,208
+cells have one, mean dominant-county share 0.999. Where no county resolves, the label falls
+back to `Area NN` — **no address or place is invented**, because an H3 centroid is not a
+property.
+
+### 17.5 The Siting Studio reads as a planning tool
+
+The journey is now input → result → map → table → detail. A portfolio summary appears
+before any raw output: candidate areas, estimated EVs in range, underserved population
+reached, and how many have no fast charging today.
+
+**Selection is unmistakable.** The 20 selected areas draw as haloed markers over faint grey
+eligible areas, with a three-state legend — selected, other eligible, not a candidate. It is
+a shape difference, not a shade difference, so it survives at any zoom.
+
+**Each area explains itself.** Reasons are assembled only from that area's own published
+values and are ranked by how *unusual* the area is on each dimension, not by a fixed
+importance — otherwise every row leads with the same sentence. A test asserts the reasons
+vary between rows.
+
+### 17.6 Nothing analytical changed
+
+| | Before the pass | After |
+|---|---|---|
+| National demand total | 5,568,123.0027 | **5,568,123.0027** |
+| Tier A / B / C cells | 4,678 / 36,396 / 12,134 | **4,678 / 36,396 / 12,134** |
+| Mean uncertainty, tier A / B / C | — | 0.164801 / 0.140926 / 0.252962 |
+| Washington candidates | 674 | **674** |
+
+Copy lint: **clean, 229 files, 15 rules**, with every §11.5 rule intact. It caught one of my
+own strings during this pass — a plain-language line that used a banned superlative inside a
+denial — and I reworded rather than allow-marking it.
+
+### 17.7 Cold-user regression
+
+`web/scripts/ux-check.mjs` drives a real browser, opens every collapsed section and expands
+a candidate row, and reads `innerText` — because these views are client-rendered and a check
+against the emitted HTML would pass while the visible page said something else. It asserts
+the product states its question, each view leads with what it answers, the first read does
+not open with methodology, the map explains its colours and its blank areas, no snake_case
+column name or raw H3 index is visible, reliability is plain but never overstated, the
+reasons vary, and every claim safeguard survived.
+
+Three of its checks were false positives on first run, flagging phrases that appear inside
+the interface's own *denials* — the same trap the copy lint has. It now tests whether the
+text **asserts** a phrase rather than merely contains it.
+
+### 17.8 Gate
+
+`make gate PHASE=6` — **PASS**, 21 m 14 s, from a clean generated state.
+
+```
+PASS: app shell 222.4 KB of 600.0 KB (37.1% of budget)
+  rendered difference: 89,845 of 897,820 pixels (10.01%), palette 69.9%
+PASS: the analytical layer is visibly rendered
+PASS: the interface reads correctly to someone who knows nothing about it
+  page under test holds 53,208 cells (represented)
+  Machine validity: median benchmarkIndex 4152 (floor 3500)
+PASS: Time to Interactive 2.92 s of 3.0 s (97.5% of budget)
+  cells in the rendered layer: 53,208
+PASS: sustained 59.0 fps against a 55 fps budget
+```
+
+Performance is unchanged by the visual work, and **no threshold was adjusted** to
+accommodate it.
+
+### 17.9 Status
+
+**The unmoderated human usability check remains the one unmet criterion**, and it must now
+be run against this frozen UX rather than the earlier interface. It still requires a
+participant who has not seen the project.

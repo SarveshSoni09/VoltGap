@@ -19,10 +19,19 @@ const RAMP: readonly [number, number, number][] = [
 ];
 
 /**
- * Opacity by tier. A low-confidence cell is rendered faintly, so the map cannot show a
- * modelled guess with the same visual authority as an anchored estimate.
+ * Opacity by tier. **No longer used to draw the map**, and kept because the exporters and
+ * the vocabulary tests still describe the tiers.
+ *
+ * Encoding reliability as transparency was a mistake: it made a low-reliability estimate
+ * fade toward the background, which is also what 78.8% of the country looks like — the
+ * land with no cell at all. A reader could not tell "we are unsure" from "nobody lives
+ * here". Reliability is now reported separately, in the sidebar and on hover, and the
+ * underlying confidence values are unchanged.
  */
 export const TIER_OPACITY: Record<Tier, number> = { A: 235, B: 175, C: 105 };
+
+/** One opacity for every drawn cell, so colour means the metric and only the metric. */
+export const CELL_ALPHA = 215;
 
 export function rampColor(t: number): [number, number, number] {
   const clamped = Number.isFinite(t) ? Math.min(1, Math.max(0, t)) : 0;
@@ -39,10 +48,15 @@ export function rampColor(t: number): [number, number, number] {
   ];
 }
 
-/** Colour for one cell. The tier is required, which is how §11.1 is enforced structurally. */
-export function cellColor(t: number, tier: Tier): [number, number, number, number] {
+/**
+ * Colour for one cell: the metric, at a constant opacity.
+ *
+ * Reliability is deliberately NOT encoded here. See `TIER_OPACITY` for why, and the
+ * sidebar's "How reliable are these estimates?" for where it went.
+ */
+export function cellColor(t: number): [number, number, number, number] {
   const [r, g, b] = rampColor(t);
-  return [r, g, b, TIER_OPACITY[tier] ?? TIER_OPACITY.C];
+  return [r, g, b, CELL_ALPHA];
 }
 
 /**

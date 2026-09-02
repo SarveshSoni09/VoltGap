@@ -40,6 +40,13 @@ import type { Boundaries } from "../lib/data/geometry";
  */
 const BASEMAP = "https://tiles.openfreemap.org/styles/positron";
 
+/** A selected portfolio area, drawn as a dominant marker on top of the faint eligible set. */
+export interface SelectedDatum {
+  readonly longitude: number;
+  readonly latitude: number;
+  readonly rank: number;
+}
+
 export interface SiteDatum {
   readonly longitude: number;
   readonly latitude: number;
@@ -57,7 +64,15 @@ export interface HexMapProps {
    */
   readonly analyticalLayer?: boolean;
   readonly sites?: readonly SiteDatum[];
+  /**
+   * The chosen portfolio. Drawn as its own marker layer rather than a shade of the
+   * eligible fill: at state zoom a recoloured hexagon is a few pixels, and "which 20 did
+   * it pick" must be answerable in about a second.
+   */
+  readonly selected?: readonly SelectedDatum[];
   readonly initialViewState?: { longitude: number; latitude: number; zoom: number };
+  /** Reports the map's zoom so the view can pick a display resolution (lib/aggregate.ts). */
+  readonly onZoom?: (zoom: number) => void;
 }
 
 function BasemapWarning() {
@@ -82,13 +97,18 @@ export default function HexMap({
   boundaries,
   colors,
   sites,
+  selected,
   analyticalLayer = true,
   initialViewState = DEFAULT_VIEW,
+  onZoom,
 }: HexMapProps) {
   const container = useRef<HTMLDivElement | null>(null);
   const map = useRef<maplibregl.Map | null>(null);
   const overlay = useRef<MapboxOverlay | null>(null);
   const sizeObserver = useRef<ResizeObserver | null>(null);
+  // Held in a ref so the mount-once effect never needs it as a dependency.
+  const onZoomRef = useRef(onZoom);
+  onZoomRef.current = onZoom;
   const [basemapFailed, setBasemapFailed] = useState(false);
 
   useEffect(() => {
@@ -133,6 +153,11 @@ export default function HexMap({
       attributionControl: { compact: true },
     });
     instance.addControl(new maplibregl.NavigationControl({ showCompass: false }));
+    if (onZoomRef.current) {
+      const report = () => onZoomRef.current?.(instance.getZoom());
+      instance.on("zoomend", report);
+      instance.on("load", report);
+    }
     instance.on("error", (event) => {
       // eslint-disable-next-line no-console
       console.warn("basemap:", event.error?.message ?? event);
@@ -188,6 +213,28 @@ export default function HexMap({
         }),
       );
     }
+    if (selected && selected.length > 0) {
+      layers.push(
+        new ScatterplotLayer<SelectedDatum>({
+          id: "selected-halo",
+          data: selected as SelectedDatum[],
+          getPosition: (d) => [d.longitude, d.latitude],
+          getFillColor: [255, 193, 61, 70],
+          getRadius: 9000,
+          radiusMinPixels: 16, radiusMaxPixels: 44, stroked: false,
+        }),
+        new ScatterplotLayer<SelectedDatum>({
+          id: "selected",
+          data: selected as SelectedDatum[],
+          getPosition: (d) => [d.longitude, d.latitude],
+          getFillColor: [255, 193, 61, 255],
+          getLineColor: [26, 24, 18, 230],
+          getRadius: 4200,
+          radiusMinPixels: 7, radiusMaxPixels: 20,
+          stroked: true, lineWidthMinPixels: 1.5,
+        }),
+      );
+    }
     if (sites && sites.length > 0) {
       layers.push(
         new ScatterplotLayer<SiteDatum>({
@@ -210,7 +257,7 @@ export default function HexMap({
     // DRAWN - the rendering regression test covers that separately.
     (window as unknown as { __voltgapLayerCells?: number }).__voltgapLayerCells =
       analyticalLayer ? (boundaries?.length ?? 0) : 0;
-  }, [boundaries, colors, sites, analyticalLayer]);
+  }, [boundaries, colors, sites, selected, analyticalLayer]);
 
   return (
     <>
