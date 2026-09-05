@@ -380,3 +380,57 @@ def test_a_malformed_county_line_is_skipped_not_guessed(tmp_path: Path) -> None:
     )
     counties = load_county_names(reference)
     assert counties == {"53033": ("King County", "WA")}
+
+
+def test_a_border_cell_is_labelled_with_the_county_in_its_own_state() -> None:
+    """The artifact's grain is (h3_index, state_fips), not h3_index.
+
+    A resolution-6 cell is about 38 km2 and can straddle a state line, so it is published
+    once per state, each row carrying that state's share of the population. 296 of the
+    52,912 national cells are split this way.
+
+    Keying the place-name lookup by cell alone let whichever state was processed last
+    overwrite the label for both rows: 301 published rows named a county in a state other
+    than their own `state_fips`, and the Idaho part of the cell on the Spokane border was
+    labelled "Spokane County, WA". Impact log I-30.
+    """
+    from pipeline.export.national import build_national
+    from pipeline.model.build_demand import TractEstimate
+
+    def estimate(geoid: str, state: str, population: float) -> TractEstimate:
+        return TractEstimate(
+            geoid=geoid, state_fips=state, households=population / 2.5,
+            population=population, equity_population=population / 8,
+            raw_estimate=population / 10, estimate=population / 10,
+            evidence_grain="state_total_only", estimate_method="modeled",
+            uncertainty_score=0.3,
+            uncertainty_components=dict.fromkeys(COMPONENT_NAMES, 0.3),
+            confidence_tier="B", constraint_name=state, constraint_vintage="2023",
+            value_provenance="modelled")
+
+    # Idaho and Washington, which share the Spokane-area border where the real defect was
+    # found. Two states, so the overwrite could occur; real data, so the geography is not
+    # invented for the test.
+    # Two real tracts that both contribute population to H3 cell 8612db31fffffff, which
+    # straddles the Idaho/Washington line: Kootenai County ID and Spokane County WA.
+    surface = build_national(
+        [estimate("16055000401", "16", 3000.0), estimate("53063013201", "53", 3000.0)],
+        {}, states=("16", "53"))
+
+    labelled = [row for row in surface.rows if row["county_name"] != ""]
+    assert labelled, "the fixture states must produce at least one labelled cell"
+    expected = {"16": "ID", "53": "WA"}
+    for row in labelled:
+        assert row["state_code"] == expected[str(row["state_fips"])], row
+
+    # And the split cells themselves: same H3 index, two states, two different counties.
+    by_cell: dict[str, set[tuple[str, str]]] = {}
+    for row in surface.rows:
+        by_cell.setdefault(str(row["h3_index"]), set()).add(
+            (str(row["state_fips"]), str(row["county_name"])))
+    split = {cell: seen for cell, seen in by_cell.items() if len(seen) > 1}
+    assert "8612db31fffffff" in split, "the border cell must be published once per state"
+    assert split["8612db31fffffff"] == {
+        ("16", "Kootenai County"), ("53", "Spokane County")}
+    for seen in split.values():
+        assert len({name for _state, name in seen}) == len(seen), seen

@@ -229,3 +229,84 @@ td.num, th.num { text-align: right; font-family: var(--mono); }
 .brand .tagline { font-size: 0.78rem; color: var(--ink-dim); font-weight: 400;
                   letter-spacing: 0; }
 @media (max-width: 1100px) { .brand .tagline { display: none; } }
+
+/* --- one card for a selected place, on every map ----------------------------------- */
+.fcard { width: 268px; background: rgba(23,26,33,0.97);
+         border: 1px solid var(--line); border-radius: var(--radius);
+         box-shadow: 0 6px 24px rgba(0,0,0,0.45); padding: 0.7rem 0.8rem; }
+/* Placement is the anchor's job: floating follows the cursor, pinned parks in a corner
+   where the card can hold buttons the reader has time to reach. */
+.card-anchor { position: absolute; z-index: 8; }
+.card-anchor.floating { pointer-events: none; }
+/* Bottom-right: the map's own zoom controls live top-right and the legend bottom-left,
+   so a pinned card parks where it hides neither. */
+.card-anchor.pinned { right: 1rem; bottom: 1rem; pointer-events: auto; }
+.card-close { position: absolute; top: 0.4rem; right: 0.45rem; z-index: 1;
+              background: rgba(23,26,33,0.9); border: 1px solid var(--line);
+              border-radius: 3px; color: var(--ink-dim); font-size: 0.68rem;
+              cursor: pointer; padding: 0.08rem 0.3rem; line-height: 1.4; }
+.card-close:hover { color: var(--ink); }
+.fcard-place { display: flex; gap: 0.5rem; align-items: flex-start; margin-bottom: 0.55rem; }
+.fcard-rank { flex: none; width: 20px; height: 20px; border-radius: 50%;
+              background: var(--sel); color: #1a1812; font-size: 0.72rem; font-weight: 700;
+              display: grid; place-items: center; margin-top: 1px; }
+.fcard-near { font-size: 0.72rem; color: var(--ink-faint); }
+.fcard-name { font-size: 0.88rem; color: var(--ink); line-height: 1.25; }
+.fcard-primary { border-top: 1px solid var(--line); padding-top: 0.5rem; }
+.fcard-plabel { font-size: 0.7rem; color: var(--ink-dim); text-transform: uppercase;
+                letter-spacing: 0.05em; }
+.fcard-pvalue { font-size: 1.3rem; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+.fcard-facts { display: grid; grid-template-columns: 1fr auto; gap: 0.1rem 0.6rem;
+               margin: 0.55rem 0 0; font-size: 0.76rem; }
+.fcard-facts > div { display: contents; }
+.fcard-facts dt { color: var(--ink-dim); }
+.fcard-facts dd { margin: 0; text-align: right; font-variant-numeric: tabular-nums;
+                  color: var(--ink); }
+.fcard-reasons { margin-top: 0.6rem; border-top: 1px solid var(--line); padding-top: 0.5rem; }
+.fcard-rlabel { font-size: 0.7rem; color: var(--ink-dim); text-transform: uppercase;
+                letter-spacing: 0.05em; margin-bottom: 0.2rem; }
+.fcard-reasons ul { margin: 0; padding-left: 1rem; }
+.fcard-reasons li { font-size: 0.76rem; color: var(--ink-dim); margin-bottom: 0.1rem; }
+.fcard-rel { margin-top: 0.6rem; font-size: 0.74rem; }
+.fcard-tech { margin-top: 0.55rem; }
+.fcard-tech summary { font-size: 0.72rem; color: var(--ink-faint); cursor: pointer; }
+.fcard-tech dl { display: grid; grid-template-columns: auto 1fr; gap: 0.1rem 0.6rem;
+                 margin: 0.4rem 0 0; font-size: 0.72rem; }
+.fcard-tech > dl > div { display: contents; }
+.fcard-tech dt { color: var(--ink-faint); }
+.fcard-tech dd { margin: 0; font-family: var(--mono); color: var(--ink-dim);
+                 overflow-wrap: anywhere; }
+.fcard-actions { margin-top: 0.65rem; display: flex; gap: 0.4rem; }
+.fcard-actions a, .fcard-actions button {
+  font-size: 0.74rem; padding: 0.3rem 0.5rem; text-decoration: none; text-align: center;
+  flex: 1; background: var(--panel-2); border: 1px solid var(--line);
+  border-radius: var(--radius); color: var(--ink); cursor: pointer; }
+.fcard-actions a:hover, .fcard-actions button:hover { border-color: var(--accent-dim); }
+:root { --sel: #ffc13d; }
+
+/* The map and the table are one list. Pointing at either end highlights both. */
+.tablewrap tr.linked > td { background: rgba(255,193,61,0.14); }
+.tablewrap tbody tr { cursor: pointer; }
+
+/* Arriving from another view: say why this page is showing what it is showing. */
+.arrived { border-left: 2px solid var(--accent-dim); padding: 0.4rem 0 0.4rem 0.6rem;
+           margin-bottom: 0.9rem; }
+.arrived strong { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.06em;
+                  color: var(--ink-dim); }
+.arrived p { margin: 0.2rem 0 0; font-size: 0.78rem; color: var(--ink-dim); }
+
+/* What the map is showing, above the map, before anyone has to hover anything.
+   A panel rather than a gradient: a gradient fades to nothing over the basemap's own
+   labels, which left the second line — the part naming where to look — unreadable. */
+.mapsummary { position: absolute; top: 0.75rem; left: 0.75rem; z-index: 6;
+              max-width: min(46ch, calc(100% - 5.5rem));
+              background: rgba(23,26,33,0.94); border: 1px solid var(--line);
+              border-radius: var(--radius); box-shadow: 0 4px 18px rgba(0,0,0,0.4);
+              padding: 0.5rem 0.7rem; font-size: 0.8rem; line-height: 1.35;
+              pointer-events: none; }
+.mapsummary .places { color: var(--ink-dim); font-size: 0.75rem; margin-top: 0.2rem; }
+.fcard-rel.quiet { color: var(--ink-dim); font-size: 0.72rem; line-height: 1.35;
+                   border-top: 1px solid var(--line); padding-top: 0.5rem; }
+
+/* Room for the close control, which would otherwise sit on top of the place name. */
+.card-anchor.pinned .fcard { padding-top: 1.75rem; }

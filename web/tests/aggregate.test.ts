@@ -67,11 +67,57 @@ describe("conservation of additive quantities", () => {
     });
   }
 
-  it("is a no-op at native resolution, so nothing is paid for nothing", () => {
+  it("merges the state parts of a border cell into one drawn hexagon", () => {
+    // The published surface's grain is (h3_index, state_fips): a resolution-6 cell on a
+    // state line is published once per state, each row carrying that state's share. The
+    // fixture holds 23 such split cells among its 6,000 rows. One hexagon must give one
+    // answer, so native aggregation returns DISTINCT cells, and every additive quantity
+    // still survives the merge exactly.
+    const distinct = new Set(native.map((c) => c.h3_index));
+    expect(distinct.size).toBeLessThan(native.length);
+
     const rolled = aggregate(native, NATIVE_RESOLUTION);
-    expect(rolled.length).toBe(native.length);
+    expect(rolled.length).toBe(distinct.size);
+    expect(new Set(rolled.map((c) => c.h3_index)).size).toBe(rolled.length);
     expect(sum(rolled.map((c) => c.demand_bev))).toBeCloseTo(
       sum(native.map((c) => c.demand_bev)), 6);
+    expect(sum(rolled.map((c) => c.population))).toBeCloseTo(
+      sum(native.map((c) => c.population)), 6);
+  });
+
+  it("never invents a confidence tier for a grouped area", () => {
+    // §7.4.2's tier describes one published estimate. Grouping several for display leaves
+    // no published tier for the group, and the interface must report the sub-state
+    // anchored share instead rather than picking a winner.
+    const single = aggregate(native, NATIVE_RESOLUTION);
+    expect(single.every((c) => c.children !== 1 || c.confidence_tier !== null)).toBe(true);
+
+    const grouped = aggregate(native, 4);
+    for (const cell of grouped) {
+      if (cell.children > 1) {
+        // Only where every part agreed does a tier survive the roll-up.
+        const parts = native.filter(
+          (n) => cellToParent(n.h3_index, 4) === cell.h3_index);
+        const distinct = new Set(parts.map((n) => n.confidence_tier));
+        expect(cell.confidence_tier).toBe(distinct.size === 1 ? [...distinct][0] : null);
+      }
+    }
+    expect(grouped.some((c) => c.confidence_tier === null)).toBe(true);
+  });
+
+  it("labels every cell with a county, and reports how many it spans", () => {
+    // Geography a reader can check. No address is invented from a centroid: the label is
+    // the county that contributes the most population, which the pipeline publishes.
+    const rolled = aggregate(native, NATIVE_RESOLUTION);
+    expect(rolled.every((c) => c.county_name !== "")).toBe(true);
+    expect(rolled.every((c) => c.state_code !== "")).toBe(true);
+    expect(rolled.every((c) => c.counties >= 1)).toBe(true);
+
+    const grouped = aggregate(native, 4);
+    expect(grouped.every((c) => c.county_name !== "")).toBe(true);
+    // A grouped area covers more ground, so at least one spans several counties and says
+    // so rather than presenting one county's name as the whole area's identity.
+    expect(grouped.some((c) => c.counties > 1)).toBe(true);
   });
 });
 

@@ -1014,6 +1014,78 @@ rasteriser, and asserting the layer is not empty).
 **Not resolved by this entry.** The unmoderated usability check remains outstanding and is
 not to be simulated, automated or self-administered.
 
+### I-30 — 301 published rows named a county in the wrong state
+
+| Field | Value |
+|---|---|
+| Discovering phase | 6 (UX pass — making the maps explorable) |
+| Affected phase | 6 (`pipeline/export/national.py`, the published `hex6_national.parquet`) |
+| Severity | **S2 degrading** — a published field was wrong for 0.57% of rows. No model, optimiser or validation consumes it |
+| Status | **Resolved**, artifact rebuilt and verified |
+
+**What was assumed.** That `mart_hex6_national`'s grain is the H3 cell, so a place name
+could be looked up by `h3_index` alone.
+
+**What is actually true.** The grain is **`(h3_index, state_fips)`**. `build_national`
+assembles the surface state by state and asserts demand conservation per state, so a
+resolution-6 cell — about 38 km² — that straddles a state line is published **once per
+state**, each row carrying that state's share of the population and demand. Measured in
+the published artifact: **53,208 rows over 52,912 distinct cells**; 292 cells appear
+twice, 2 appear three times.
+
+**How it surfaced.** Adding human-readable geography to the maps meant joining county
+labels into a test fixture. The join returned 6,046 rows for 6,000 requested cells, which
+is only possible if the key is not unique.
+
+**The defect.** `build_national` merged each state's labels into one dictionary keyed by
+cell:
+
+```python
+placenames.update(dominant_counties(weights, counties))
+...
+name, code, share = placenames.get(str(row["h3_index"]), ("", "", 0.0))
+```
+
+`dominant_counties` is already correctly scoped — it is called with one state's population
+points — but the merge discarded that scope, so whichever state was processed last won
+both rows. Cell `8612db31fffffff` on the Idaho/Washington line was published with its
+Idaho row (`state_fips = 16`, population 2,586.5) labelled **"Spokane County, WA"**.
+
+**Measured extent.** Joining every published row's `state_code` against its own
+`state_fips`: **301 of 53,208 rows (0.57%)** carried a county in a different state.
+
+**Fix.** Key the lookup by `(state, cell)`, which is the artifact's actual grain:
+
+```python
+for cell_index, place in dominant_counties(weights, counties).items():
+    placenames[(state, cell_index)] = place
+...
+name, code, share = placenames.get((state, str(row["h3_index"])), ("", "", 0.0))
+```
+
+**Verified after rebuild.** 53,208 rows, **0 mislabelled, 0 unlabelled**. The border cell
+now reads `16 → Kootenai County, ID` and `53 → Spokane County, WA`.
+
+**Regression.** `tests/unit/test_export.py::test_a_border_cell_is_labelled_with_the_county_in_its_own_state`
+builds the national surface for Idaho and Washington from two real tracts that both feed
+cell `8612db31fffffff`, and asserts every labelled row's `state_code` matches its own
+`state_fips` and that the split cell carries two different county names.
+
+**Second consequence, in the browser.** The same assumption was in the frontend: at native
+resolution `aggregate()` returned its input unchanged, so a split cell was drawn as two
+stacked hexagons and hover returned whichever happened to be on top. Native resolution now
+goes through the same grouping as the display roll-up, so one hexagon gives one answer,
+and the additive quantities are conserved through the merge exactly as they are through
+the roll-up. `web/tests/aggregate.test.ts::merges the state parts of a border cell into
+one drawn hexagon` asserts distinctness and conservation together. The national view's
+"populated areas estimated" figure now reports **52,912 distinct areas** rather than
+53,208 rows, and the ≥50,000-cell TTI guard counts distinct cells for the same reason.
+
+**Why S2 and not S1.** `county_name` and `state_code` are presentation labels added during
+this Phase 6 pass. No demand model, uncertainty component, siting objective, candidate
+filter or validation harness reads them, so no published result changed. Re-running the
+export changed only the label columns.
+
 ### I-29 — the analytical H3 layer rendered nothing, and every check passed
 
 | Field | Value |

@@ -3,7 +3,9 @@
 import dynamic from "next/dynamic";
 import { useEffect, useMemo, useState } from "react";
 
+import { CardAnchor } from "../components/CardAnchor";
 import { Disclosure } from "../components/Disclosure";
+import { FeatureCard, type FeatureFact } from "../components/FeatureCard";
 import { cellBoundaries, type Boundaries } from "../lib/data/geometry";
 import { loadHexTable, summarise } from "../lib/data/hexes";
 import type { ColumnTable } from "../lib/data/table";
@@ -13,8 +15,12 @@ import {
   NATIVE_RESOLUTION,
   type NativeCell,
 } from "../lib/aggregate";
+import { STATE_NAMES } from "../lib/data/states";
+import { groupedPlaceName } from "../lib/reasons";
 import { perVertexColors } from "../lib/render";
-import { cellColor, formatCompact, quantileScale, rampColor } from "../lib/scales";
+import {
+  cellColor, formatCompact, formatCount, quantileScale, rampColor,
+} from "../lib/scales";
 import {
   EVIDENCE_GRAIN_LABELS,
   METRIC_LABELS,
@@ -59,6 +65,10 @@ export default function NationalOverview() {
    * the heaviest real rendering path so the guard keeps its original meaning.
    */
   const [forceNative, setForceNative] = useState(false);
+  /** Which drawn cell the reader is asking about, and whether they pinned the answer. */
+  const [hovered, setHovered] = useState<number | null>(null);
+  const [pinned, setPinned] = useState<number | null>(null);
+  const [cursor, setCursor] = useState({ x: 0, y: 0 });
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -75,7 +85,7 @@ export default function NationalOverview() {
         // 53,208 native cells. A guard asking "did this page load its data" must read
         // this one; a guard asking "is a full layer being rendered" reads the other.
         (window as unknown as { __voltgapNativeCells?: number }).__voltgapNativeCells =
-          loaded.length;
+          new Set(loaded.strs("h3_index")).size;
       })
       .catch((e: Error) => setError(e.message));
   }, []);
@@ -91,10 +101,18 @@ export default function NationalOverview() {
     const distance = table.nums("km_to_nearest_dcfc_site");
     const anchored = table.nums("sub_state_anchored_share");
     const uncertainty = table.nums("uncertainty_score");
+    const tier = table.strs("confidence_tier");
+    const county = table.strs("county_name");
+    const state = table.strs("state_code");
+    const fips = table.strs("state_fips");
     const out = new Array<NativeCell>(table.length);
     for (let i = 0; i < table.length; i += 1) {
       out[i] = {
         h3_index: index[i] ?? "",
+        county_name: county[i] ?? "",
+        state_code: state[i] ?? "",
+        state_fips: fips[i] ?? "",
+        confidence_tier: (tier[i] ?? "C") as Tier,
         demand_bev: demand[i] ?? 0,
         population: population[i] ?? 0,
         equity_population: equity[i] ?? 0,
@@ -129,6 +147,14 @@ export default function NationalOverview() {
     };
   }, [shown]);
 
+  useEffect(() => {
+    // Indexes address positions in `shown`; when that array is rebuilt at a new display
+    // resolution the old index points at a different place, so the card is dismissed
+    // rather than silently relabelled.
+    setHovered(null);
+    setPinned(null);
+  }, [resolution]);
+
   const values = useMemo(() => {
     if (metric === "priority") {
       const equityWeight = 1 - demandWeight;
@@ -152,6 +178,107 @@ export default function NationalOverview() {
   }, [boundaries, values]);
 
   const summary = useMemo(() => (table === null ? null : summarise(table)), [table]);
+
+  /**
+   * Distinct areas, not published rows. A cell straddling a state line is published once
+   * per state, so the row count is 296 higher than the number of places on the map.
+   */
+  const areaCount = useMemo(
+    () => new Set(nativeCells.map((c) => c.h3_index)).size, [nativeCells]);
+
+  /** Where the highest values are, stated above the map so it is not a hover-only fact. */
+  const leaders = useMemo(() => {
+    if (shown.length === 0) return [];
+    const totals = new Map<string, number>();
+    for (let i = 0; i < shown.length; i += 1) {
+      const cell = shown[i];
+      if (cell === undefined || !cell.county_name) continue;
+      const key = `${cell.county_name}, ${cell.state_code}`;
+      totals.set(key, Math.max(totals.get(key) ?? 0, values[i] ?? 0));
+    }
+    return [...totals.entries()].sort((a, b) => b[1] - a[1]).slice(0, 3).map((e) => e[0]);
+  }, [shown, values]);
+
+  // The card for whichever cell is being asked about. Pinned wins over hovered, so moving
+  // the mouse toward the pinned card's own buttons does not replace it.
+  const active = pinned ?? hovered;
+  const card = useMemo(() => {
+    if (active === null) return null;
+    const cell = shown[active];
+    if (cell === undefined) return null;
+    const grouped = resolution < NATIVE_RESOLUTION;
+    const place =
+      groupedPlaceName(cell.county_name, cell.state_code, cell.counties) ??
+      "Unnamed area";
+    const evs: FeatureFact = { label: "Estimated EVs", value: formatCompact(cell.demand_bev) };
+    const people: FeatureFact = { label: "People", value: formatCompact(cell.population) };
+    const ports: FeatureFact = {
+      label: "Fast-charging ports", value: formatCount(cell.dcfc_ports),
+    };
+    const distance: FeatureFact = {
+      label: "Nearest fast charging", value: `${cell.km_to_nearest_dcfc_site.toFixed(0)} km`,
+    };
+    const underserved: FeatureFact = {
+      label: "Underserved population", value: formatCompact(cell.equity_population),
+    };
+
+    // The selected metric is the dominant value, and never repeats as a supporting fact.
+    const view: Record<MetricKey, { primary: FeatureFact; facts: FeatureFact[] }> = {
+      demand_bev: { primary: evs, facts: [people, ports, distance] },
+      dcfc_ports: {
+        primary: {
+          label: "Fast-charging ports",
+          value: formatCount(cell.dcfc_ports, "none today"),
+        },
+        facts: [evs, people, distance],
+      },
+      km_to_nearest_dcfc_site: {
+        primary: { label: "To nearest fast charging", value: distance.value },
+        facts: [evs, people, ports],
+      },
+      priority: {
+        primary: {
+          label: `Priority at ${Math.round(demandWeight * 100)}% demand`,
+          value: formatCompact(values[active] ?? 0),
+        },
+        facts: [evs, underserved, distance],
+      },
+    };
+    const chosen = view[metric];
+
+    return {
+      place,
+      state_fips: cell.state_fips,
+      primaryLabel: chosen.primary.label,
+      primaryValue: chosen.primary.value,
+      facts: chosen.facts,
+      // The PUBLISHED tier, never one re-derived here. Where cells are grouped for
+      // display the pipeline published several tiers and none of them describes the
+      // group, so the group reports its sub-state-anchored share instead — a quantity
+      // that is published and that means the same thing at any grouping. §11.5 forbids
+      // calling any of this "observed": most anchored demand is allocated from ZIP or
+      // county evidence, not reported for the tract itself.
+      reliability:
+        cell.confidence_tier === null
+          ? {
+              label:
+                `${Math.round(cell.sub_state_anchored_share * 100)}% of demand here is ` +
+                "sub-state anchored",
+            }
+          : {
+              label: TIER_LABELS_PLAIN[cell.confidence_tier],
+              tier: cell.confidence_tier,
+            },
+      technical: [
+        { label: "H3 index", value: cell.h3_index },
+        { label: "H3 resolution", value: String(resolution) },
+        { label: "Uncertainty score", value: cell.uncertainty_score.toFixed(3) },
+        ...(grouped
+          ? [{ label: "Areas grouped here", value: String(cell.children) }]
+          : []),
+      ],
+    };
+  }, [active, shown, metric, values, resolution, demandWeight]);
 
   if (error !== null) {
     return (
@@ -213,7 +340,7 @@ export default function NationalOverview() {
               <div className="l">estimated EVs nationally</div>
             </div>
             <div className="figure">
-              <div className="n">{formatCompact(table.length)}</div>
+              <div className="n">{formatCompact(areaCount)}</div>
               <div className="l">populated areas estimated</div>
             </div>
           </div>
@@ -303,12 +430,58 @@ export default function NationalOverview() {
           <div className="loading">Loading national estimates…</div>
         ) : (
           <>
+            <div className="mapsummary">
+              <div>
+                {METRIC_LABELS[metric]} ·{" "}
+                <strong>{formatCompact(areaCount)}</strong> populated areas
+                {resolution < NATIVE_RESOLUTION && ", grouped for display"}
+              </div>
+              <div className="places">
+                {leaders.length === 0
+                  ? "Hover any area to see what it is."
+                  : `Highest here: ${leaders.join(" · ")}. Hover any area for detail.`}
+              </div>
+            </div>
             <HexMap
               boundaries={boundaries}
               colors={colors}
               analyticalLayer={analyticalLayer}
               onZoom={setZoom}
+              onHoverCell={(index, x, y) => {
+                setHovered(index);
+                setCursor({ x, y });
+              }}
+              onPickCell={setPinned}
             />
+            {card !== null && (
+              <CardAnchor
+                pinned={pinned !== null}
+                x={cursor.x}
+                y={cursor.y}
+                onClose={() => setPinned(null)}
+              >
+                <FeatureCard
+                  place={card.place}
+                  primaryLabel={card.primaryLabel}
+                  primaryValue={card.primaryValue}
+                  facts={card.facts}
+                  reliability={card.reliability}
+                  technical={pinned !== null ? card.technical : undefined}
+                  actions={
+                    // Offered only where the Studio actually covers the state, rather
+                    // than sending the reader somewhere that cannot answer them.
+                    pinned !== null && STATE_NAMES[card.state_fips] !== undefined ? (
+                      <a
+                        className="fcard-action"
+                        href={`/studio/?state=${card.state_fips}&from=national`}
+                      >
+                        Plan locations in {STATE_NAMES[card.state_fips]}
+                      </a>
+                    ) : undefined
+                  }
+                />
+              </CardAnchor>
+            )}
             <div className="legend">
               <div>{METRIC_LABELS[metric]}</div>
               <div className="scale">

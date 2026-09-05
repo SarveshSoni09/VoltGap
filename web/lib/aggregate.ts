@@ -19,6 +19,8 @@
 
 import { cellToParent } from "h3-js";
 
+import type { Tier } from "./vocabulary";
+
 /** Native analytical resolution. Never aggregated away from for anything but drawing. */
 export const NATIVE_RESOLUTION = 6;
 
@@ -40,6 +42,23 @@ export function displayResolution(zoom: number): number {
 
 export interface AggregatedCell {
   readonly h3_index: string;
+  /** The county contributing the most demand here, so an aggregated cell is still
+   *  identifiable. A grouped area can span several; this names the dominant one. */
+  readonly county_name: string;
+  readonly state_code: string;
+  /** FIPS of the dominant county's state, for links that need one. */
+  readonly state_fips: string;
+  /** How many counties the grouped area touches, so the label is not oversold. */
+  readonly counties: number;
+  /**
+   * The published tier, carried straight through for a single cell.
+   *
+   * `null` once cells are grouped for display: §7.4.2's tier is defined for one estimate,
+   * and picking a winner among several would be a new classification rule invented in the
+   * interface. Grouped areas report their sub-state-anchored share instead, which is a
+   * quantity the pipeline actually publishes.
+   */
+  readonly confidence_tier: Tier | null;
   /** Additive. Conserved exactly against the native surface. */
   readonly demand_bev: number;
   readonly population: number;
@@ -56,6 +75,11 @@ export interface AggregatedCell {
 
 export interface NativeCell {
   readonly h3_index: string;
+  readonly county_name: string;
+  readonly state_code: string;
+  readonly state_fips: string;
+  /** §7.4.2's tier, as the pipeline published it. Never re-derived in the browser. */
+  readonly confidence_tier: Tier;
   readonly demand_bev: number;
   readonly population: number;
   readonly equity_population: number;
@@ -66,29 +90,36 @@ export interface NativeCell {
 }
 
 /**
- * Roll native cells up to `resolution`. Returns the input unchanged when it is already
- * native, so the caller never pays for a no-op.
+ * Roll native cells up to `resolution`.
+ *
+ * Native resolution goes through the same grouping rather than short-circuiting, because
+ * the published surface's grain is **(h3_index, state_fips)**, not h3_index: a cell
+ * straddling a state line is published once per state, each row carrying that state's
+ * share. 296 of 52,912 national cells are split this way. One hexagon on screen must give
+ * one answer, so the state parts are summed exactly as the display roll-up sums children,
+ * and the same conservation tests cover both paths.
  */
 export function aggregate(
   cells: readonly NativeCell[],
   resolution: number,
 ): AggregatedCell[] {
-  if (resolution >= NATIVE_RESOLUTION) {
-    return cells.map((c) => ({ ...c, children: 1 }));
-  }
   const groups = new Map<string, {
     demand: number; population: number; equity: number; ports: number;
     distanceWeighted: number; anchoredWeighted: number; uncertaintyWeighted: number;
-    children: number;
+    children: number; counties: Map<string, number>; tiers: Set<Tier>;
   }>();
 
   for (const cell of cells) {
-    const parent = cellToParent(cell.h3_index, resolution);
+    const parent =
+      resolution >= NATIVE_RESOLUTION
+        ? cell.h3_index
+        : cellToParent(cell.h3_index, resolution);
     let g = groups.get(parent);
     if (g === undefined) {
       g = {
         demand: 0, population: 0, equity: 0, ports: 0,
         distanceWeighted: 0, anchoredWeighted: 0, uncertaintyWeighted: 0, children: 0,
+        counties: new Map(), tiers: new Set(),
       };
       groups.set(parent, g);
     }
@@ -105,12 +136,28 @@ export function aggregate(
     g.anchoredWeighted += cell.sub_state_anchored_share * cell.demand_bev;
     g.uncertaintyWeighted += cell.uncertainty_score * cell.demand_bev;
     g.children += 1;
+    g.tiers.add(cell.confidence_tier);
+    if (cell.county_name) {
+      const key = `${cell.county_name}|${cell.state_code}|${cell.state_fips}`;
+      // Weighted by demand, so the label names where the value actually is.
+      g.counties.set(key, (g.counties.get(key) ?? 0) + cell.demand_bev);
+    }
   }
 
   const out: AggregatedCell[] = [];
   for (const [h3_index, g] of groups) {
+    const ranked = [...g.counties.entries()].sort((a, b) => b[1] - a[1]);
+    const [dominant] = ranked;
+    const [county = "", state = "", fips = ""] = dominant ? dominant[0].split("|") : [];
     out.push({
       h3_index,
+      county_name: county,
+      state_code: state,
+      state_fips: fips,
+      counties: ranked.length,
+      // One published estimate underneath means one published tier to report. Where the
+      // parts disagree there is no published tier for the group, and none is invented.
+      confidence_tier: g.tiers.size === 1 ? [...g.tiers][0] ?? null : null,
       demand_bev: g.demand,
       population: g.population,
       equity_population: g.equity,

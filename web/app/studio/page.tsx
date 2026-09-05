@@ -3,7 +3,9 @@
 import dynamic from "next/dynamic";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
+import { CardAnchor } from "../../components/CardAnchor";
 import { Disclosure } from "../../components/Disclosure";
+import { FeatureCard } from "../../components/FeatureCard";
 import { cellBoundaries, type Boundaries } from "../../lib/data/geometry";
 import { hexRow, loadHexTable, type HexRow } from "../../lib/data/hexes";
 import { STATE_NAMES } from "../../lib/data/states";
@@ -13,7 +15,7 @@ import { buildCandidates } from "../../lib/optimizer/candidates";
 import type { Outgoing, SolvedMessage } from "../../lib/optimizer/worker";
 import { areaName, cohortOf, headlineReason, reasonsFor } from "../../lib/reasons";
 import { perVertexColors } from "../../lib/render";
-import { formatCompact } from "../../lib/scales";
+import { formatCompact, formatCount } from "../../lib/scales";
 import {
   RECOMMENDATION_NOTE,
   TIER_DESCRIPTIONS,
@@ -51,13 +53,61 @@ export default function SitingStudio() {
   const [priority, setPriority] = useState<string>("balanced");
   const [demandWeight, setDemandWeight] = useState(0.6);
   const [advanced, setAdvanced] = useState(false);
+  /** Where the reader came from, so the page acknowledges it rather than resetting them. */
+  const [arrivedFrom, setArrivedFrom] = useState<{ page: string; note: string } | null>(null);
   const [result, setResult] = useState<SolvedMessage | null>(null);
   const [openRow, setOpenRow] = useState<string | null>(null);
   const [boundaries, setBoundaries] = useState<Boundaries | null>(null);
+  /**
+   * Map and table are two views of one list, so they share one hover.
+   *
+   * `hover` is whichever area the reader is pointing at, wherever they are pointing: the
+   * map highlights its marker, the table highlights its row, and the card describes it.
+   * Without this the two halves of the page were separate documents that happened to sit
+   * beside each other.
+   */
+  const [hover, setHover] = useState<string | null>(null);
+  const [cursor, setCursor] = useState({ x: 0, y: 0 });
+  /**
+   * Where the hover came from. A card summoned by the table must not appear at the last
+   * place the mouse happened to be on the map — it parks in the corner instead, which is
+   * also where a pinned card sits, so the reader's eye has one place to look.
+   */
+  const [hoverFrom, setHoverFrom] = useState<"map" | "table">("map");
+  const [pinned, setPinned] = useState<string | null>(null);
+  const [focus, setFocus] =
+    useState<{ longitude: number; latitude: number; zoom: number } | null>(null);
   const worker = useRef<Worker | null>(null);
+  const rowRefs = useRef(new Map<string, HTMLTableRowElement>());
 
   useEffect(() => {
     loadHexTable().then(setTable).catch((e: Error) => setError(e.message));
+  }, []);
+
+  useEffect(() => {
+    // Cross-page context. A reader who clicked "plan locations in Washington" from another
+    // view should land on Washington, and should be told that is why they are looking at
+    // it. The link carries only WHERE to look — it never changes what the optimiser
+    // computes, and the threshold travels as a sentence, not as a solver input.
+    const params = new URLSearchParams(window.location.search);
+    const wanted = params.get("state");
+    if (wanted !== null && STATE_NAMES[wanted] !== undefined) setState(wanted);
+    const from = params.get("from");
+    if (from === "gaps") {
+      const km = params.get("threshold");
+      setArrivedFrom({
+        page: "Charging gaps",
+        note: km === null
+          ? "You came from the charging-gaps map."
+          : `You came from the charging-gaps map, where "far" was set to ${km} km. ` +
+            "That setting describes the gap; it is not used to choose these areas.",
+      });
+    } else if (from === "national") {
+      setArrivedFrom({
+        page: "National overview",
+        note: "You came from the national demand map.",
+      });
+    }
   }, []);
 
   useEffect(() => {
@@ -144,6 +194,13 @@ export default function SitingStudio() {
 
   const cohort = useMemo(() => cohortOf(eligible), [eligible]);
 
+  useEffect(() => {
+    // A rank means nothing across a re-solve, so nothing carries over from the last one.
+    setHover(null);
+    setPinned(null);
+    setOpenRow(null);
+  }, [state, budget, effectiveWeight]);
+
   const selectedMarkers = useMemo(
     () =>
       (result?.selected ?? []).flatMap((index, i) => {
@@ -173,6 +230,42 @@ export default function SitingStudio() {
       }];
     });
   }, [result, byIndex]);
+
+  /** Rank by h3 index, so map and table agree on what "#4" means. */
+  const rankOf = useMemo(
+    () => new Map((result?.selected ?? []).map((index, i) => [index, i + 1])),
+    [result],
+  );
+
+  /** Focuses the map and the table on one area, from either side of the page. */
+  const reveal = useCallback((h3: string) => {
+    const row = byIndex.get(h3);
+    if (row === undefined) return;
+    setPinned(h3);
+    setOpenRow(h3);
+    setFocus({ longitude: row.longitude, latitude: row.latitude, zoom: 8.5 });
+    // Two frames later, and instantly rather than smoothly.
+    //
+    // Opening the row inserts a detail row that moves the target, so a scroll issued in
+    // the same tick aims at the pre-expansion position; and React replacing the rows on
+    // that re-render cancels a smooth scroll part-way, which is what left the table
+    // sitting at 7.5 px instead of at rank 13. Waiting for the committed layout and
+    // jumping outright is both correct and uninterruptible.
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        const node = rowRefs.current.get(h3);
+        const wrap = node?.closest(".tablewrap");
+        if (node === undefined || !(wrap instanceof HTMLElement)) return;
+        const offset = node.getBoundingClientRect().top - wrap.getBoundingClientRect().top;
+        wrap.scrollTop += offset - wrap.clientHeight / 2 + node.clientHeight / 2;
+      });
+    });
+  }, [byIndex]);
+
+  const cardRow = useMemo(() => {
+    const h3 = pinned ?? hover;
+    return h3 === null ? null : (byIndex.get(h3) ?? null);
+  }, [pinned, hover, byIndex]);
 
   const centre = useMemo(() => {
     if (eligible.length === 0) return undefined;
@@ -207,6 +300,13 @@ export default function SitingStudio() {
             considering.
           </p>
         </div>
+
+        {arrivedFrom !== null && (
+          <div className="arrived">
+            <strong>{arrivedFrom.page}</strong>
+            <p>{arrivedFrom.note}</p>
+          </div>
+        )}
 
         <div className="field">
           <label htmlFor="state">Where</label>
@@ -340,12 +440,93 @@ export default function SitingStudio() {
             <div className="loading">Loading areas…</div>
           ) : (
             <>
+              <div className="mapsummary">
+                <div>
+                  {stateName} · <strong>{result?.selected.length ?? 0}</strong> of{" "}
+                  {formatCompact(eligible.length)} eligible areas selected
+                </div>
+                <div className="places">
+                  Hover or click a numbered area to find it in the table below.
+                </div>
+              </div>
               <HexMap
                 boundaries={boundaries}
                 colors={colors}
                 selected={selectedMarkers}
                 initialViewState={centre}
+                highlightRank={hover === null ? null : (rankOf.get(hover) ?? null)}
+                focus={focus}
+                onHoverCell={(index, x, y) => {
+                  setHover(index === null ? null : (eligible[index]?.h3_index ?? null));
+                  setCursor({ x, y });
+                  setHoverFrom("map");
+                }}
+                onPickCell={(index) => {
+                  const h3 = index === null ? null : eligible[index]?.h3_index;
+                  if (h3 !== undefined && h3 !== null) reveal(h3);
+                }}
+                onHoverSelected={(rank, x, y) => {
+                  if (rank === null) return;
+                  const picked = result?.selected[rank - 1];
+                  if (picked !== undefined) {
+                    setHover(picked);
+                    setCursor({ x, y });
+                    setHoverFrom("map");
+                  }
+                }}
+                onPickSelected={(rank) => {
+                  if (rank === null) return;
+                  const picked = result?.selected[rank - 1];
+                  if (picked !== undefined) reveal(picked);
+                }}
               />
+              {cardRow !== null && (
+                <CardAnchor
+                  pinned={pinned !== null || hoverFrom === "table"}
+                  x={cursor.x}
+                  y={cursor.y}
+                  onClose={
+                    pinned === null
+                      ? undefined
+                      : () => { setPinned(null); setOpenRow(null); }
+                  }
+                >
+                  <FeatureCard
+                    rank={rankOf.get(cardRow.h3_index)}
+                    place={areaName(cardRow, rankOf.get(cardRow.h3_index) ?? 0)}
+                    primaryLabel={
+                      rankOf.has(cardRow.h3_index)
+                        ? "In your portfolio"
+                        : "Eligible, not selected"
+                    }
+                    primaryValue={formatCompact(cardRow.demand_bev) + " estimated EVs"}
+                    facts={[
+                      { label: "Underserved population",
+                        value: formatCompact(cardRow.equity_population) },
+                      { label: "Existing fast charging",
+                        value: formatCount(cardRow.dcfc_ports) },
+                      { label: "Nearest fast charging",
+                        value: cardRow.km_to_nearest_dcfc_site.toFixed(0) + " km" },
+                    ]}
+                    reasons={reasonsFor(cardRow, cohort).slice(0, 2)}
+                    reliability={{
+                      label: TIER_LABELS_PLAIN[cardRow.confidence_tier],
+                      tier: cardRow.confidence_tier,
+                    }}
+                    technical={
+                      pinned === null
+                        ? undefined
+                        : [
+                            { label: "H3 cell", value: cardRow.h3_index },
+                            { label: "Uncertainty score",
+                              value: cardRow.uncertainty_score.toFixed(3) },
+                            { label: "Centroid",
+                              value: `${cardRow.latitude.toFixed(4)}, ${cardRow.longitude.toFixed(4)}` },
+                          ]
+                    }
+                  />
+                </CardAnchor>
+              )}
               <div className="legend">
                 <div>{stateName}</div>
                 <div className="swatches">
@@ -387,8 +568,24 @@ export default function SitingStudio() {
                   <>
                     <tr
                       key={row.h3_index}
-                      onClick={() => setOpenRow(open ? null : row.h3_index)}
-                      className={open ? "open" : ""}
+                      ref={(node) => {
+                        if (node === null) rowRefs.current.delete(row.h3_index);
+                        else rowRefs.current.set(row.h3_index, node);
+                      }}
+                      onMouseEnter={() => { setHover(row.h3_index); setHoverFrom("table"); }}
+                      onMouseLeave={() => setHover(null)}
+                      onClick={() => {
+                        if (open) {
+                          setOpenRow(null);
+                          setPinned(null);
+                        } else {
+                          reveal(row.h3_index);
+                        }
+                      }}
+                      className={[
+                        open ? "open" : "",
+                        hover === row.h3_index ? "linked" : "",
+                      ].filter(Boolean).join(" ")}
                     >
                       <td className="num">{row.rank}</td>
                       <td>{source ? areaName(source, row.rank) : `Area ${row.rank}`}</td>

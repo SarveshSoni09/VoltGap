@@ -1152,3 +1152,382 @@ accommodate it.
 **The unmoderated human usability check remains the one unmet criterion**, and it must now
 be run against this frozen UX rather than the earlier interface. It still requires a
 participant who has not seen the project.
+
+---
+
+## 18. Map explorability pass — 2026-09-05
+
+Appended. A second presentation pass, bounded to the frontend and to one published label
+column. **No model, threshold, objective function, candidate rule, uncertainty component
+or validation result changed.** One genuine data defect was found while doing it and is
+recorded as impact-log entry **I-30**; it touched only the county-name label.
+
+### 18.1 What was wrong
+
+After §17 the three views were legible but not **explorable**. A reader could see that
+somewhere mattered and could not ask *which* somewhere:
+
+| View | State before this pass |
+|---|---|
+| **EV demand** (national) | A choropleth with no hover and no click. A hexagon could not be identified geographically or quantitatively. |
+| **Charging gaps** | **No map at all.** The `.canvas` element held a table. The threshold control drove four summary figures and a sensitivity table; there was nothing spatial for it to move. |
+| **Plan locations** (Studio) | A map and a table describing the same twenty areas, with no connection between them. Portfolio markers were undifferentiated dots — "which one is candidate #4" was unanswerable. |
+
+The Charging Gaps finding is worth stating precisely, because the brief asked for the cause
+to be established before any redesign. Four causes were considered: (1) the map reads a
+different dataset from the summary; (2) it reads the same data but ignores the threshold;
+(3) it applies the threshold to a different column; (4) there is no map. **The cause was
+(4), literally.** `grep` over `web/app/access/page.tsx` found no `HexMap` import, no
+maplibre and no deck.gl reference; `threshold` was consumed by exactly two call sites,
+`gapAtThreshold(points, threshold)` for the headline figures and the same function inside
+the sensitivity curve. Causes (1)–(3) were excluded by construction: there was nothing to
+disagree.
+
+### 18.2 One information pattern, not three
+
+Every map now answers a hover and a click through the **same component**,
+`web/components/FeatureCard.tsx`, positioned by `web/components/CardAnchor.tsx`. The order
+is fixed so a reader learns it once:
+
+```
+place  →  the metric this page is about  →  2–4 supporting facts
+       →  why this area (Studio only)     →  reliability
+       →  ▸ Technical details              →  what to do next
+```
+
+Its interface is deliberately narrow:
+
+```ts
+export interface FeatureCardProps {
+  readonly place: string;
+  readonly near?: string;
+  readonly primaryLabel: string;
+  readonly primaryValue: string;
+  readonly facts: readonly FeatureFact[];
+  readonly reliability?: { readonly label: string; readonly tier?: "A" | "B" | "C" };
+  readonly reasons?: readonly string[];
+  readonly technical?: readonly FeatureFact[];
+  readonly actions?: React.ReactNode;
+  readonly rank?: number;
+}
+```
+
+Hovering floats the card beside the cursor and shows the compact form. Clicking pins it to
+the bottom-right — where the map's own zoom controls (top-right) and the legend
+(bottom-left) are not — and reveals **Technical details** and any action. H3 indexes,
+uncertainty scores, H3 resolution and the measure definition live only in that disclosure.
+
+The primary value is the metric the reader selected. On the national view:
+
+| Selected metric | Dominant card value | Supporting facts |
+|---|---|---|
+| Estimated EV demand | Estimated EVs | People, fast-charging ports, nearest fast charging |
+| Existing fast charging | Fast-charging ports | Estimated EVs, people, nearest fast charging |
+| Distance to fast charging | To nearest fast charging | Estimated EVs, people, ports |
+| Priority score | Priority at *n*% demand | Estimated EVs, underserved population, nearest fast charging |
+
+The selected metric never repeats as a supporting fact, which is what made the earlier
+draft of this card read as a data dump.
+
+### 18.3 Geography that can be defended
+
+Every card and every table row names a place with `placeName(county, state)` —
+`"Kootenai County, ID"` — from the `county_name` and `state_code` columns the pipeline
+publishes as the **population-weighted dominant county** of the cell. Coverage after the
+I-30 fix: **53,208 of 53,208 rows labelled, 0 blank, 0 naming a county in another state.**
+
+Three things were deliberately not done:
+
+- **No street address, no city, no "near X".** An H3 resolution-6 cell is about 38 km² and
+  its centroid is not a location anyone lives at. A reverse-geocoded address would be an
+  invention, and the `near` field of the card is left unset everywhere for that reason.
+- **No place name where the pipeline has none.** `placeName` returns `null` and the card
+  says "Unnamed area" rather than falling back to coordinates or an H3 index.
+- **No overselling of a grouped area.** At national zoom the display groups cells, and a
+  group can span several counties. `groupedPlaceName` says so explicitly:
+  `"Mitchell County, IA and 3 nearby counties"`. The name goes to the county contributing
+  the most demand, so the label points at where the number actually is.
+
+### 18.4 The Charging Gaps map derives from the same pass as the figures
+
+`gapCells(table, thresholdKm, column)` in `web/lib/data/access.ts` rolls the block-group
+points up to H3 cells using **the same points, the same threshold and the same comparison**
+as `gapAtThreshold`, which produces the headline figures. They cannot disagree, and
+`web/tests/access.test.ts` asserts it at 1, 5, 16.1, 30 and 50 km — population, affected
+lower-income population and point count all reconcile exactly.
+
+Two honesty details surfaced while testing it:
+
+- **230 of the 20,781 cells beyond 16.1 km hold no population.** They are genuinely beyond
+  the distance, so they stay in "neighbourhoods affected"; they are not shaded on a map
+  whose colour means *people affected*. Both facts are asserted.
+- Their distance was being reported as **0 km**, because a population-weighted mean over
+  zero weight is undefined. That would have said the opposite of what is true about an
+  empty place with no charging near it. It now falls back to the plain mean, and a test
+  requires every mapped cell's reported distance to exceed the threshold.
+
+### 18.5 "Areas worth investigating" is a filter, not a new model
+
+The four lenses on the Charging Gaps view sort and trim the areas the threshold already
+selected, using quantities that are already published and already exported:
+
+| Lens | Ranking quantity | Limit |
+|---|---|---|
+| All gap areas | population beyond the threshold | none |
+| Most people affected | population beyond the threshold | top 100 |
+| Lower-income households | affected population in households under $35k | top 100 |
+| Furthest from charging | population-weighted distance | top 100 |
+
+There is **no composite score, no hidden weighting and no new index.** The sidebar says so
+in those words, and a reader can reproduce every list from the exported columns. The lens
+selects *which* areas; display grouping then decides how they are drawn — in that order,
+because trimming after grouping would silently answer a different question (the top hundred
+*groups*, not the top hundred *areas*).
+
+### 18.6 The Studio's map and table are one list
+
+Four bindings, all through one `hover` state holding an H3 index:
+
+| Action | Effect |
+|---|---|
+| Hover a map cell or marker | Row highlights (`tr.linked`), card describes the area |
+| Hover a table row | Marker enlarges and inverts to white, card appears in the corner |
+| Click either | Map flies to the area, marker highlights, row scrolls into view and expands, card pins |
+| Close the card | Selection clears on both sides |
+
+Rank markers carry their rank as a `TextLayer` label, so the numbered dot on the map and
+the Rank column in the table are the same identity. Any re-solve — a change of state,
+budget or priority — clears the selection, because a rank means nothing across a re-solve.
+
+Two defects were found and fixed while verifying this by hand rather than by reading the
+code:
+
+- A card summoned by hovering a **table row** appeared at the last position the mouse had
+  been on the **map**, which is meaningless. It now parks in the same corner a pinned card
+  uses, so the reader's eye has one place to look.
+- Clicking a marker opened the right row but the table stayed at the top: measured
+  `scrollTop` was **7.5 px** when it should have been ~81 px. Two causes — the scroll was
+  issued in the same tick as the row expansion, so it aimed at the pre-expansion position;
+  and React replacing the rows on that re-render cancelled the smooth-scroll animation. It
+  now scrolls the table's own container after the committed layout, instantly.
+
+### 18.7 Cross-page state is carried, and says why
+
+`Plan locations in Montana` on a Charging Gaps card links to
+`/studio/?state=30&from=gaps&threshold=45.5`. The Studio selects that state and shows:
+
+> **CHARGING GAPS** — You came from the charging-gaps map, where "far" was set to 45.5 km.
+> That setting describes the gap; it is not used to choose these areas.
+
+**The link carries only where to look.** The threshold travels as a sentence, never as a
+solver input: nothing about the optimiser's objective, weights, budget or candidate
+filtering changed, and the greedy solver never sees the value. The action appears only for
+the six states the published frontier covers, rather than sending a reader somewhere that
+cannot answer them.
+
+### 18.8 A confidence tier is never invented in the interface
+
+The first draft of the national card derived a tier in the browser from
+`sub_state_anchored_share` and `uncertainty_score`. That is a **second classification rule
+living beside §7.4.2's**, and it was removed before it shipped.
+
+The card now reports the pipeline's published `confidence_tier` for a single cell. Where
+cells are grouped for display and their published tiers disagree, there is no published
+tier for the group and **none is manufactured** — the card reports the sub-state-anchored
+share instead, a quantity that is published and that means the same thing at any grouping.
+`aggregate()` returns `confidence_tier: null` in exactly that case, and
+`web/tests/aggregate.test.ts` asserts the rule in both directions.
+
+Per §11.5 nothing here is called "observed": the wording is *"0% of demand here is
+sub-state anchored"*.
+
+### 18.9 The defect this pass found in the published data — I-30
+
+Joining county labels into a test fixture returned **6,046 rows for 6,000 requested
+cells**, which is only possible if the key is not unique.
+
+`mart_hex6_national`'s grain is **`(h3_index, state_fips)`**, not `h3_index`.
+`build_national` assembles the surface state by state and asserts demand conservation per
+state, so a cell straddling a state line is published **once per state**, each row holding
+that state's share. Measured: **53,208 rows over 52,912 distinct cells** — 292 cells twice,
+2 cells three times.
+
+The place-name lookup was keyed by cell alone and merged across states, so the last state
+processed overwrote both rows. **301 of 53,208 rows (0.57%)** named a county in a different
+state; the Idaho part of the cell on the Spokane border was published as *"Spokane County,
+WA"*. Fixed by keying the lookup by `(state, cell)`. After rebuild: **0 mislabelled, 0
+unlabelled**, and cell `8612db31fffffff` reads `16 → Kootenai County, ID` and
+`53 → Spokane County, WA`.
+
+Classified **S2**, not S1: `county_name` and `state_code` are presentation labels added in
+this phase and no model, optimiser or validation reads them, so no published result
+changed.
+
+The same assumption was in the browser. At native resolution `aggregate()` returned its
+input unchanged, so a split cell was drawn as two stacked hexagons and hover answered with
+whichever was on top. Native resolution now goes through the same grouping as the display
+roll-up, so one hexagon gives one answer and every additive quantity survives the merge
+exactly. Two consequences a reader will see: the view reports **52,912 distinct areas**
+rather than 53,208 rows, and the ≥50,000-cell TTI guard counts distinct cells.
+
+### 18.10 Evidence
+
+New and changed automated checks:
+
+| Check | Asserts |
+|---|---|
+| `web/tests/access.test.ts` (18 tests) | Map and summary agree at five thresholds; the threshold moves the geography; DCFC and L2 are different maps; every mapped cell's distance exceeds the threshold; uninhabited cells counted but not shaded; grouping conserves people and affected population |
+| `web/tests/aggregate.test.ts` (+3) | State parts of a border cell merge into one hexagon with conservation; every cell carries a county; a grouped area reports how many counties it spans; no tier is invented for a group |
+| `tests/unit/test_export.py` (+1) | Every published row's `state_code` matches its own `state_fips`, on the real Idaho/Washington border cell |
+| `web/scripts/ux-check.mjs` (§7–§9, +23 assertions) | Drives the real hover and click paths on all three maps: a card appears, names a place as `County, ST`, carries no raw H3 index in the hover form, pins with Technical details, and puts the H3 index only there. The gaps threshold changes the mapped geography. The Studio's row hover highlights, describes, shares one identity with the card, and brings the row into view |
+
+### 18.11 A frame-rate regression I introduced, and the harness gap that let it be misread
+
+The gate caught a real regression: **23.8 fps sustained against the 55 fps budget**, down
+from 58–59 fps. It was mine, and diagnosing it exposed a weakness in the harness.
+
+**The defect.** Adding hover and click meant passing `onHoverCell` and `onPickCell` into
+`HexMap`, and I listed them in the layer-building effect's dependency array. They arrive as
+inline arrow functions, so they are new objects on every render of the parent — and the
+national view re-renders on every zoom change, which during a pan is **every frame**. The
+effect rebuilt all three layers and re-uploaded the 370,384-vertex buffer once per frame.
+
+The callbacks were already read through a ref refreshed on every render, so they never
+belonged in the deps. Only the boolean *whether picking is enabled* can change what the
+layer must be rebuilt for. After the fix: **60.0 fps sustained, frame time p50 16.7 ms** —
+one frame per vsync, matching the pre-pass baseline exactly.
+
+**The harness gap.** `perf-fps.mjs` had strong guards on *what was rendered* — ≥50,000
+cells, a per-vertex colour buffer, no software rasteriser, no missing WebGL context — and
+**no guard on whether the environment could render at all.** The TTI harness has exactly
+that guard, a `benchmarkIndex` floor added under amendment A27. The frame-rate harness had
+no counterpart, so it reported `FAIL: 23.8 fps` with no evidence about whether the figure
+described the application or the machine.
+
+That is not a hypothetical distinction. On this run it misled the author: a follow-up
+measurement taken while another browser held 43% CPU returned 7.1 fps, and was read as
+proof that the machine rather than the code was at fault. It was not.
+
+**The guard now added.** Before measuring, the harness drives the identical camera path
+over the identical page with the analytical layer turned off — the measured scene minus the
+thing being measured, and therefore strictly cheaper. If that cannot hold the budget, the
+environment cannot demonstrate anything about the more expensive scene, and the run reports
+**NOT MEASURED** rather than FAIL.
+
+Measured immediately, on the same machine, minutes apart:
+
+| Scene | Sustained (worst 1 s window) |
+|---|---:|
+| Basemap only, layer off (calibration) | **60.0 fps** |
+| Full layer, before the fix | 26.3 fps |
+| Full layer, picking disabled | 22.4 fps (so picking was not the cause) |
+| Committed baseline `e970c50`, built in a clean worktree from the same data | **60.0 fps** |
+| Full layer, after the fix | **60.0 fps** |
+
+The baseline comparison is what settled it: the previous commit's build reached 60.0 fps on
+the same machine within minutes of the failing run, so the machine was not the variable.
+
+**The guard cannot launder a regression.** Calibration renders a strictly cheaper scene, so
+a genuine per-frame cost still fails — calibration holds vsync while the measured run does
+not, which is precisely what happened here. The guard can only ever convert a FAIL into
+NOT MEASURED, never a FAIL into a PASS, and it did not prevent this defect from having to
+be fixed.
+
+No previously reported frame-rate figure is affected: every one was a PASS, and a validity
+guard cannot turn a pass into anything else.
+
+### 18.12 Gate evidence — `make gate PHASE=6`, 2026-09-05
+
+```
+--- 1. lint (ruff + mypy strict + frontend typecheck) ---
+ruff: All checks passed!
+mypy: Success: no issues found in 148 source files
+
+--- 2+3. full test suite under coverage, and coverage thresholds ---
+144 tests passed
+repository wide                                6270 stmts  0 miss  1482 branch  100%
+pipeline/model      100%    pipeline/spatial    100%    pipeline/validation  100%
+pipeline/quality    100%    pipeline/schemas    100%    pipeline/discovery   100%
+pipeline/export     100%    pipeline/sources    100%    pipeline/transform   100%
+
+--- 4. prior-phase gate suites replayed (Phase 0 through 5) ---
+  test_source_findings.py        PASS  23 passed
+  test_domain_rules.py           PASS  39 passed
+  test_phase2_gates.py           PASS  37 passed
+  test_phase3_gates.py           PASS  20 passed
+  test_phase3_corrections.py     PASS  32 passed
+  test_phase4_gates.py           PASS  23 passed
+  test_phase5_gates.py           PASS  33 passed
+  test_gate_protocol.py          PASS  91 passed
+  test_smoke_forward.py          PASS  11 passed
+  test_smoke_forward_phase2.py   PASS   5 passed
+  test_smoke_forward_phase3.py   PASS   5 passed
+  test_smoke_forward_phase4.py   PASS   5 passed
+  test_smoke_forward_phase5.py   PASS   7 passed
+
+--- 6. D3 copy lint (source and frontend) ---
+copy lint: clean (233 files, 15 rules)
+
+--- 7. determinism (semantic, CLAUDE.md 14.1) ---
+determinism: identical
+
+--- frontend ---
+88 tests passed (7 files)
+slowest greedy re-solve   0.0334 s   (budget 2.0 s)
+PASS: app shell 225.8 KB of 600.0 KB (37.6% of budget)
+  rendered difference: 89,796 of 897,820 pixels changed (10.00%), palette 69.9%
+PASS: the analytical layer is visibly rendered
+PASS: the interface reads correctly to someone who knows nothing about it
+
+--- environment-dependent class: reference-environment hard gate ---
+  page under test holds 52,912 cells (represented)
+  machine validity: median benchmarkIndex 4147 (floor 3500)
+  median Time to Interactive      2.91 s   (budget 3.0 s)
+  median FCP 0.20 s   LCP 1.61 s   TBT 273 ms   CLS 0.031   SI 1.33 s
+PASS: Time to Interactive 2.91 s of 3.0 s (96.9% of budget)
+
+  machine validity: basemap-only calibration 58.9 fps sustained (floor 55)
+  cells in the rendered layer: 52,912
+  colour buffer: 1,481,536 bytes for 370,384 vertices (per-vertex, correct)
+  frames presented 362   frame time p50/p95/p99  16.7 / 16.7 / 16.8 ms
+PASS: sustained 60.0 fps against a 55 fps budget
+
+=== Phase 6 gate: PASS ===
+```
+
+**Two diagnostics moved, and neither is a budget.** Largest Contentful Paint went from
+0.90 s to 1.61 s and Cumulative Layout Shift from 0.002 to 0.031, both measured on the
+same reference environment. The gated metric, Time to Interactive, improved slightly
+(2.93 s → 2.91 s), and the frame rate is unchanged at the vsync ceiling.
+
+The LCP change is the largest painted element changing identity: the map summary panel and
+the map surface now paint later and larger than the sidebar text that previously held the
+title. The CLS change is a fifteen-fold increase from a very small base and remains an
+order of magnitude inside the 0.1 "good" boundary; it was not chased further because CLS is
+not a §11.3 budget and no threshold anywhere depends on it. Both are recorded here so the
+movement is on the record rather than discovered later as an unexplained drift.
+
+Screenshots of the interactions are in `docs/evidence/ux/`, captured by
+`web/scripts/shots.mjs` from the production static export:
+`explore-national-hover.png`, `explore-gaps-map.png`, `explore-gaps-pinned.png`,
+`explore-studio-row-hover.png`.
+
+### 18.13 What this pass did not do, and what is still not known
+
+- **The unmoderated usability check remains the one unmet Phase 6 criterion.** It was not
+  run, not simulated and not self-administered, and it must now be run against this
+  interface rather than the earlier one.
+- **Several portfolio rows can carry the same place name.** A Washington portfolio of 20
+  areas contains four separate cells in King County, all shown as "King County, WA". The
+  rank number disambiguates them and appears in both the table and on the map marker, so
+  the identity is recoverable — but the *name* alone is not unique. Adding a directional or
+  neighbourhood qualifier would require a place dataset the project does not have, and
+  inventing one from a centroid is exactly what §18.3 refuses to do.
+- **The `near` field of the feature card is unused.** It exists for finer context that a
+  future place dataset could supply; nothing populates it today, and nothing guesses.
+- **Hover requires a pointer.** Keyboard and touch access to the per-cell detail was not
+  built. The information is reachable in the Studio's table on any device, and on the two
+  map-only views it currently is not.
+- **The lens filters and the display grouping are presentation.** No exported artifact, no
+  optimiser input and no published figure changes with them, which is the property that
+  makes them safe to add; it also means they cannot be cited as analysis.

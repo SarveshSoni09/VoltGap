@@ -26,6 +26,24 @@
  * the reported renderer so the run is interpretable, and fails if it finds itself on a
  * software rasteriser, where a frame rate would describe the harness rather than the
  * application.
+ *
+ * **Machine validity, and why it exists.** A frame rate is only evidence about the layer
+ * if the environment could have rendered it. The harness therefore calibrates first: it
+ * drives the identical camera path over the identical page with the analytical layer
+ * turned off, which is the same scene minus the thing being measured, and so is strictly
+ * cheaper. If the environment cannot sustain the budget on the CHEAPER scene, it cannot
+ * demonstrate anything about the more expensive one, and the run reports NOT MEASURED
+ * rather than FAIL.
+ *
+ * This is the frame-rate counterpart of the TTI harness's `benchmarkIndex` floor, and it
+ * exists for the same reason (CLAUDE.md §11.3, amendment A27): a measurement that cannot
+ * be taken must be reported as not taken. It was added after a gate run reported
+ * `FAIL: 23.8 fps` on a machine whose GPU was being contended by another application —
+ * a real measurement of a contended machine, and no evidence at all about the budget.
+ *
+ * It cannot be used to launder a genuine regression into a pass. Calibration renders a
+ * strictly cheaper scene, so a real per-frame cost in the layer still fails: calibration
+ * holds vsync and the measured run does not.
  */
 
 import { spawn } from "node:child_process";
@@ -43,6 +61,78 @@ const PORT = Number(process.env.PERF_PORT ?? 4398);
 /** The national surface is 53,208 cells. Anything far below it means the
  *  benchmark is measuring something other than the national layer. */
 const MIN_CELLS = 50000;
+/**
+ * The floor the basemap-only calibration must clear for the run to be interpretable.
+ *
+ * Set to the budget itself, on the argument above: an environment that cannot reach 55 fps
+ * drawing the scene WITHOUT the analytical layer cannot produce evidence about whether the
+ * layer holds 55 fps.
+ */
+const CALIBRATION_FLOOR_FPS = BUDGET_FPS;
+const CALIBRATION_MS = 2500;
+
+/**
+ * The measurement itself, serialised into the page.
+ *
+ * Defined once and used twice — once to calibrate the environment and once to measure
+ * the layer — so the two runs differ only in what the page is drawing, never in how it
+ * is driven.
+ */
+const driveCameraPath =
+async (measureMs, windowMs) => {
+  const map = window.__voltgapMap;
+  if (!map) throw new Error("map handle absent");
+  const frames = [];
+  const started = performance.now();
+  await new Promise((resolve) => {
+    const step = (now) => {
+      frames.push(now);
+      const t = (now - started) / measureMs;
+      if (t >= 1) {
+        resolve(undefined);
+        return;
+      }
+      // A fixed path: pan west to east across the contiguous US, with a zoom
+      // oscillation on top so both operations are exercised continuously.
+      map.jumpTo({
+        center: [-124 + 50 * t, 38 + 4 * Math.sin(t * Math.PI * 2)],
+        zoom: 4.0 + 1.4 * Math.sin(t * Math.PI * 4),
+      });
+      requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
+  });
+
+  const elapsed = (frames[frames.length - 1] - frames[0]) / 1000;
+  const mean = (frames.length - 1) / elapsed;
+
+  // Minimum frame rate over any sliding window of `windowMs`.
+  let worst = Infinity;
+  let start = 0;
+  for (let end = 0; end < frames.length; end += 1) {
+    while (frames[end] - frames[start] > windowMs) start += 1;
+    const span = frames[end] - frames[start];
+    if (span >= windowMs * 0.9 && end > start) {
+      worst = Math.min(worst, ((end - start) / span) * 1000);
+    }
+  }
+
+  const deltas = [];
+  for (let i = 1; i < frames.length; i += 1) deltas.push(frames[i] - frames[i - 1]);
+  deltas.sort((a, b) => a - b);
+  const pct = (p) => deltas[Math.min(deltas.length - 1, Math.floor(deltas.length * p))];
+
+  return {
+    frames: frames.length,
+    elapsed,
+    mean,
+    worstWindow: Number.isFinite(worst) ? worst : mean,
+    p50: pct(0.5),
+    p95: pct(0.95),
+    p99: pct(0.99),
+    longest: deltas[deltas.length - 1],
+  };
+};
 
 const server = spawn(
   "node", [fileURLToPath(new URL("../serve-static.mjs", import.meta.url))],
@@ -144,65 +234,50 @@ try {
     );
     process.exit(1);
   }
+  // --- machine validity: can this environment render at all? -------------------------
+  //
+  // The same page, the same data, the same camera path, with the analytical layer turned
+  // off. That is the measured scene MINUS the thing being measured, so it is strictly
+  // cheaper: if it cannot hold the budget, a lower figure on the full scene says nothing
+  // about the layer. Reported as NOT MEASURED, never as a budget failure.
+  const calibrationPage = await browser.newPage();
+  await calibrationPage.setViewport({ width: 1600, height: 1000, deviceScaleFactor: 1 });
+  await calibrationPage.goto(`http://localhost:${PORT}/?resolution=native&layer=off`, {
+    waitUntil: "networkidle0", timeout: 120000,
+  });
+  await calibrationPage.waitForFunction(() => Boolean(window.__voltgapMap),
+    { timeout: 120000 });
+  await new Promise((resolve) => setTimeout(resolve, WARMUP_MS));
+  const calibration = await calibrationPage.evaluate(
+    driveCameraPath, CALIBRATION_MS, WINDOW_MS);
+  await calibrationPage.close();
+  console.log(
+    `  machine validity: basemap-only calibration ${calibration.worstWindow.toFixed(1)} ` +
+      `fps sustained (floor ${CALIBRATION_FLOOR_FPS})`,
+  );
+  if (calibration.worstWindow < CALIBRATION_FLOOR_FPS) {
+    console.error("");
+    console.error(
+      `NOT MEASURED: this environment sustained only ` +
+        `${calibration.worstWindow.toFixed(1)} fps drawing the page WITHOUT the ` +
+        `analytical layer, below the ${CALIBRATION_FLOOR_FPS} fps floor. The scene that ` +
+        "cannot reach the budget here is the cheaper one, so a frame rate measured with " +
+        "the layer would describe the machine rather than the application.",
+    );
+    console.error(
+      "  Usual cause: another application contending for the GPU or the window server. " +
+        "Close it and re-run. This is a validity guard, not a budget failure — the " +
+        "counterpart of the TTI harness's benchmarkIndex floor. See CLAUDE.md 11.3 (A27).",
+    );
+    process.exit(2);
+  }
+
   // deck.gl uploads the 53,208-cell buffer on the first frames after the layer is set;
   // measuring through that would measure a one-off upload rather than sustained render.
   await new Promise((resolve) => setTimeout(resolve, WARMUP_MS));
 
   const result = await page.evaluate(
-    async (measureMs, windowMs) => {
-      const map = window.__voltgapMap;
-      if (!map) throw new Error("map handle absent");
-      const frames = [];
-      const started = performance.now();
-      await new Promise((resolve) => {
-        const step = (now) => {
-          frames.push(now);
-          const t = (now - started) / measureMs;
-          if (t >= 1) {
-            resolve(undefined);
-            return;
-          }
-          // A fixed path: pan west to east across the contiguous US, with a zoom
-          // oscillation on top so both operations are exercised continuously.
-          map.jumpTo({
-            center: [-124 + 50 * t, 38 + 4 * Math.sin(t * Math.PI * 2)],
-            zoom: 4.0 + 1.4 * Math.sin(t * Math.PI * 4),
-          });
-          requestAnimationFrame(step);
-        };
-        requestAnimationFrame(step);
-      });
-
-      const elapsed = (frames[frames.length - 1] - frames[0]) / 1000;
-      const mean = (frames.length - 1) / elapsed;
-
-      // Minimum frame rate over any sliding window of `windowMs`.
-      let worst = Infinity;
-      let start = 0;
-      for (let end = 0; end < frames.length; end += 1) {
-        while (frames[end] - frames[start] > windowMs) start += 1;
-        const span = frames[end] - frames[start];
-        if (span >= windowMs * 0.9 && end > start) {
-          worst = Math.min(worst, ((end - start) / span) * 1000);
-        }
-      }
-
-      const deltas = [];
-      for (let i = 1; i < frames.length; i += 1) deltas.push(frames[i] - frames[i - 1]);
-      deltas.sort((a, b) => a - b);
-      const pct = (p) => deltas[Math.min(deltas.length - 1, Math.floor(deltas.length * p))];
-
-      return {
-        frames: frames.length,
-        elapsed,
-        mean,
-        worstWindow: Number.isFinite(worst) ? worst : mean,
-        p50: pct(0.5),
-        p95: pct(0.95),
-        p99: pct(0.99),
-        longest: deltas[deltas.length - 1],
-      };
-    },
+    driveCameraPath,
     MEASURE_MS, WINDOW_MS,
   );
 

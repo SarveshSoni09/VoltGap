@@ -116,8 +116,28 @@ export function headlineReason(row: HexRow, cohort: Cohort): string {
  * must never be presented as one.
  */
 export function areaName(row: HexRow, rank: number): string {
-  if (row.county_name && row.state_code) {
-    return `${row.county_name}, ${row.state_code}`;
-  }
-  return `Area ${String(rank).padStart(2, "0")}`;
+  return placeName(row.county_name, row.state_code) ?? `Area ${String(rank).padStart(2, "0")}`;
+}
+
+/**
+ * The one place identity the whole product uses, so a table row and a map tooltip name the
+ * same cell the same way.
+ *
+ * Returns null rather than a guess when the pipeline could not attribute a county. No city
+ * is inferred: an H3 centroid is not an address, and "Seattle area" would be an invention
+ * unless a place dataset supported it. That limitation is recorded in the Phase 6 report.
+ */
+export function placeName(county: string, state: string): string | null {
+  if (!county || !state) return null;
+  return `${county}, ${state}`;
+}
+
+/** How a grouped area is described when it spans more than one county. */
+export function groupedPlaceName(
+  county: string, state: string, counties: number,
+): string | null {
+  const base = placeName(county, state);
+  if (base === null) return null;
+  if (counties <= 1) return base;
+  return `${base} and ${counties - 1} nearby ${counties === 2 ? "county" : "counties"}`;
 }

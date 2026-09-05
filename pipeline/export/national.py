@@ -329,7 +329,12 @@ def build_national(
     supply = load_hex_supply(resolution=resolution)
 
     counties = load_county_names()
-    placenames: dict[str, tuple[str, str, float]] = {}
+    # Keyed by (state, cell), because the artifact's grain is (h3_index, state_fips), not
+    # h3_index: a resolution-6 cell straddling a state line is published once per state,
+    # each row carrying that state's share of the population. Keying the label by cell
+    # alone let the last state processed overwrite the label for both rows, so 301 rows
+    # named a county in the wrong state (impact log I-30).
+    placenames: dict[tuple[str, str], tuple[str, str, float]] = {}
     scores: list[float] = []
     grains: list[str] = []
     by_state: dict[str, list[HexCell]] = {}
@@ -344,7 +349,8 @@ def build_national(
         assert_provenance_survived(cells)
         unallocated_total += sum(unallocated.values())
         by_state[state] = cells
-        placenames.update(dominant_counties(weights, counties))
+        for cell_index, place in dominant_counties(weights, counties).items():
+            placenames[(state, cell_index)] = place
         for cell in cells:
             scores.append(cell.uncertainty_score)
             grains.append(cell.dominant_evidence_grain)
@@ -358,7 +364,8 @@ def build_national(
     for state, cells in by_state.items():
         state_rows = [cell_row(cell, state, threshold) for cell in cells]
         for row in state_rows:
-            name, code, share = placenames.get(str(row["h3_index"]), ("", "", 0.0))
+            name, code, share = placenames.get(
+                (state, str(row["h3_index"])), ("", "", 0.0))
             row["county_name"] = name
             row["state_code"] = code
             row["county_population_share"] = round(share, 4)

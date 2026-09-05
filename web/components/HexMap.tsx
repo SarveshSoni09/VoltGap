@@ -1,6 +1,6 @@
 "use client";
 
-import { ScatterplotLayer, SolidPolygonLayer } from "@deck.gl/layers";
+import { ScatterplotLayer, SolidPolygonLayer, TextLayer } from "@deck.gl/layers";
 import { MapboxOverlay } from "@deck.gl/mapbox";
 import maplibregl from "maplibre-gl";
 import { useEffect, useRef, useState } from "react";
@@ -73,6 +73,17 @@ export interface HexMapProps {
   readonly initialViewState?: { longitude: number; latitude: number; zoom: number };
   /** Reports the map's zoom so the view can pick a display resolution (lib/aggregate.ts). */
   readonly onZoom?: (zoom: number) => void;
+  /** Index of the hovered cell in `boundaries`, or null. Drives the shared feature card. */
+  readonly onHoverCell?: (index: number | null, x: number, y: number) => void;
+  /** Index of the clicked cell, which pins the card and syncs any table. */
+  readonly onPickCell?: (index: number | null) => void;
+  /** Index of the hovered selected marker, for map-to-table highlighting. */
+  readonly onHoverSelected?: (rank: number | null, x: number, y: number) => void;
+  readonly onPickSelected?: (rank: number | null) => void;
+  /** Rank currently highlighted from the table, outlined on the map. */
+  readonly highlightRank?: number | null;
+  /** Camera target; changing it flies the map there. */
+  readonly focus?: { longitude: number; latitude: number; zoom: number } | null;
 }
 
 function BasemapWarning() {
@@ -101,6 +112,12 @@ export default function HexMap({
   analyticalLayer = true,
   initialViewState = DEFAULT_VIEW,
   onZoom,
+  onHoverCell,
+  onPickCell,
+  onHoverSelected,
+  onPickSelected,
+  highlightRank = null,
+  focus = null,
 }: HexMapProps) {
   const container = useRef<HTMLDivElement | null>(null);
   const map = useRef<maplibregl.Map | null>(null);
@@ -109,6 +126,10 @@ export default function HexMap({
   // Held in a ref so the mount-once effect never needs it as a dependency.
   const onZoomRef = useRef(onZoom);
   onZoomRef.current = onZoom;
+  const handlers = useRef({ onHoverCell, onPickCell, onHoverSelected, onPickSelected });
+  handlers.current = { onHoverCell, onPickCell, onHoverSelected, onPickSelected };
+  /** Whether the analytical layer answers a pointer — a boolean, so it is a stable dep. */
+  const pickable = onHoverCell !== undefined || onPickCell !== undefined;
   const [basemapFailed, setBasemapFailed] = useState(false);
 
   useEffect(() => {
@@ -209,7 +230,14 @@ export default function HexMap({
           extruded: false,
           filled: true,
           stroked: false,
-          pickable: false,
+          // Picking is what turns the surface from a picture into something explorable:
+          // a reader can ask any cell where it is and what its value means.
+          pickable,
+          onHover: (info) =>
+            handlers.current.onHoverCell?.(
+              info.index >= 0 ? info.index : null, info.x, info.y),
+          onClick: (info) =>
+            handlers.current.onPickCell?.(info.index >= 0 ? info.index : null),
         }),
       );
     }
@@ -227,11 +255,38 @@ export default function HexMap({
           id: "selected",
           data: selected as SelectedDatum[],
           getPosition: (d) => [d.longitude, d.latitude],
-          getFillColor: [255, 193, 61, 255],
-          getLineColor: [26, 24, 18, 230],
-          getRadius: 4200,
-          radiusMinPixels: 7, radiusMaxPixels: 20,
-          stroked: true, lineWidthMinPixels: 1.5,
+          getFillColor: (d) =>
+            d.rank === highlightRank ? [255, 255, 255, 255] : [255, 193, 61, 255],
+          getLineColor: (d) =>
+            d.rank === highlightRank ? [255, 193, 61, 255] : [26, 24, 18, 230],
+          getRadius: (d) => (d.rank === highlightRank ? 7000 : 4200),
+          radiusMinPixels: 10, radiusMaxPixels: 24,
+          stroked: true, lineWidthMinPixels: 2,
+          pickable: true,
+          onHover: (info) =>
+            handlers.current.onHoverSelected?.(
+              info.object ? (info.object as SelectedDatum).rank : null, info.x, info.y),
+          onClick: (info) =>
+            handlers.current.onPickSelected?.(
+              info.object ? (info.object as SelectedDatum).rank : null),
+          updateTriggers: {
+            getFillColor: highlightRank, getLineColor: highlightRank,
+            getRadius: highlightRank,
+          },
+        }),
+        // Rank labels, so "which dot is candidate #4" is answerable by looking.
+        new TextLayer<SelectedDatum>({
+          id: "selected-rank",
+          data: selected as SelectedDatum[],
+          getPosition: (d) => [d.longitude, d.latitude],
+          getText: (d) => String(d.rank),
+          getColor: [26, 24, 18, 255],
+          getSize: 11,
+          sizeUnits: "pixels",
+          fontWeight: 700,
+          getTextAnchor: "middle",
+          getAlignmentBaseline: "center",
+          pickable: false,
         }),
       );
     }
@@ -257,7 +312,24 @@ export default function HexMap({
     // DRAWN - the rendering regression test covers that separately.
     (window as unknown as { __voltgapLayerCells?: number }).__voltgapLayerCells =
       analyticalLayer ? (boundaries?.length ?? 0) : 0;
-  }, [boundaries, colors, sites, selected, analyticalLayer]);
+    // `onHoverCell` / `onPickCell` are deliberately NOT dependencies.
+    //
+    // They arrive as inline arrow functions, so they are new objects on every render of
+    // the parent — and the national view re-renders on every zoom change, which during a
+    // pan is every frame. Listing them here rebuilt all three layers and re-uploaded the
+    // 370,384-vertex buffer once per frame, which measured 26.3 fps against a 60.0 fps
+    // baseline on the same machine. The callbacks are read through `handlers.current`,
+    // which is refreshed on every render, so the layer always calls the current one; only
+    // WHETHER picking is enabled can change what the layer must be rebuilt for.
+  }, [boundaries, colors, sites, selected, analyticalLayer, highlightRank, pickable]);
+
+  // Fly to a place chosen elsewhere on the page — a table row, or a regional summary.
+  useEffect(() => {
+    if (map.current === null || focus === null) return;
+    map.current.easeTo({
+      center: [focus.longitude, focus.latitude], zoom: focus.zoom, duration: 700,
+    });
+  }, [focus]);
 
   return (
     <>

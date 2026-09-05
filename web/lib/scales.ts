@@ -87,3 +87,17 @@ export function formatCompact(value: number): string {
   if (abs >= 10) return value.toFixed(0);
   return value.toFixed(2);
 }
+
+/**
+ * A physical count, written the way a count is written.
+ *
+ * `formatCompact` shows two decimals below 10, which is right for a modelled quantity like
+ * estimated vehicles and wrong for ports: a tooltip reading "Fast-charging ports 0.00"
+ * describes a thing that is counted, not measured, and says "none" the long way round.
+ */
+export function formatCount(value: number, none = "none"): string {
+  if (!Number.isFinite(value)) return "\u2014";
+  if (value === 0) return none;
+  if (Math.abs(value) >= 1_000) return formatCompact(value);
+  return value.toFixed(0);
+}
