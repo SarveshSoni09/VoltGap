@@ -310,3 +310,50 @@ td.num, th.num { text-align: right; font-family: var(--mono); }
 
 /* Room for the close control, which would otherwise sit on top of the place name. */
 .card-anchor.pinned .fcard { padding-top: 1.75rem; }
+
+
+/* --- Geography control ---------------------------------------------------------------
+   The first question on a map page is "where am I looking", so it is the first control,
+   and its reset sits beside it rather than hiding in the map. */
+.geo-row { display: flex; flex-wrap: wrap; gap: 0.4rem; align-items: center; }
+.geo-row select { flex: 1 1 100%; min-width: 0; }
+.geo-reset {
+  flex: 0 0 auto;
+  white-space: nowrap;
+  padding: 0.32rem 0.6rem;
+  font-size: 0.76rem;
+  border: 1px solid var(--rule);
+  border-radius: 5px;
+  background: var(--panel);
+  color: var(--ink-soft);
+  cursor: pointer;
+}
+.geo-reset:hover { color: var(--ink); border-color: var(--ink-faint); }
+
+/* The sentence that keeps a highlighted subset attached to the whole it came from. */
+.subset {
+  margin: 0.45rem 0 0;
+  padding: 0.5rem 0.6rem;
+  font-size: 0.78rem;
+  line-height: 1.45;
+  color: var(--ink-soft);
+  background: rgba(150, 142, 168, 0.12);
+  border-left: 3px solid rgba(150, 142, 168, 0.55);
+  border-radius: 0 5px 5px 0;
+}
+.subset strong { color: var(--ink); }
+
+/* A deliberate route onward, rather than expecting the reader to re-pick their state. */
+.handoff {
+  display: block;
+  margin: 0.25rem 0 0.5rem;
+  padding: 0.55rem 0.7rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--ink);
+  background: var(--panel);
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  text-decoration: none;
+}
+.handoff:hover { border-color: var(--ink-faint); background: var(--panel-strong, var(--panel)); }

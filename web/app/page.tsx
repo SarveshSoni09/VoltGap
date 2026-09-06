@@ -17,9 +17,13 @@ import {
 } from "../lib/aggregate";
 import { STATE_NAMES } from "../lib/data/states";
 import { groupedPlaceName } from "../lib/reasons";
+import {
+  boundsOf, geographyLabel, NATIONAL, statesPresent, US_BOUNDS,
+  type Bounds, type StateOption,
+} from "../lib/geography";
 import { perVertexColors } from "../lib/render";
 import {
-  cellColor, formatCompact, formatCount, quantileScale, rampColor,
+  analyticalOpacity, cellColor, formatCompact, formatCount, quantileScale, rampColor,
 } from "../lib/scales";
 import {
   EVIDENCE_GRAIN_LABELS,
@@ -65,6 +69,18 @@ export default function NationalOverview() {
    * the heaviest real rendering path so the guard keeps its original meaning.
    */
   const [forceNative, setForceNative] = useState(false);
+  /**
+   * The geography under examination. `NATIONAL` or a state FIPS.
+   *
+   * Selecting a state **filters the analysis**, it does not only move the camera: the
+   * cells, the totals, the colour scale's quantile breaks and the reliability mix all
+   * describe the selected state alone. The alternative — zoom only — would leave national
+   * figures beside a state map, which is the kind of quiet mismatch this project exists to
+   * avoid. The interface says which it is, and `tests/geography.test.ts` asserts the
+   * parity that makes the claim checkable.
+   */
+  const [state, setState] = useState<string>(NATIONAL);
+  const [fit, setFit] = useState<Bounds | null>(null);
   /** Which drawn cell the reader is asking about, and whether they pinned the answer. */
   const [hovered, setHovered] = useState<number | null>(null);
   const [pinned, setPinned] = useState<number | null>(null);
@@ -125,12 +141,54 @@ export default function NationalOverview() {
     return out;
   }, [table]);
 
+  const stateOptions = useMemo<StateOption[]>(
+    () => (table === null
+      ? []
+      : statesPresent(table.strs("state_fips"), table.strs("state_code"))),
+    [table],
+  );
+  const selectedState = useMemo(
+    () => stateOptions.find((o) => o.fips === state) ?? null,
+    [stateOptions, state],
+  );
+
+  /** Extent per state, from the published cell centroids. Computed once per load. */
+  const stateBounds = useMemo(() => {
+    const out = new Map<string, Bounds>();
+    if (table === null) return out;
+    const fips = table.strs("state_fips");
+    const lon = table.nums("longitude");
+    const lat = table.nums("latitude");
+    const points = new Map<string, { longitude: number; latitude: number }[]>();
+    for (let i = 0; i < table.length; i += 1) {
+      const key = fips[i] ?? "";
+      if (key === "") continue;
+      let list = points.get(key);
+      if (list === undefined) { list = []; points.set(key, list); }
+      list.push({ longitude: lon[i] ?? 0, latitude: lat[i] ?? 0 });
+    }
+    for (const [key, list] of points) {
+      const b = boundsOf(list);
+      if (b !== null) out.set(key, b);
+    }
+    return out;
+  }, [table]);
+
+  // The analytical universe for everything on this page. Filtering here, once, is what
+  // keeps the map, the figures and the legend describing the same set of cells.
+  const universe = useMemo(
+    () => (selectedState === null
+      ? nativeCells
+      : nativeCells.filter((c) => c.state_fips === selectedState.fips)),
+    [nativeCells, selectedState],
+  );
+
   // Display resolution only. The analytical surface stays at resolution 6, and
   // tests/aggregate.test.ts proves the roll-up conserves every additive quantity.
   const resolution = forceNative ? NATIVE_RESOLUTION : displayResolution(zoom);
   const shown = useMemo(
-    () => aggregate(nativeCells, resolution),
-    [nativeCells, resolution],
+    () => aggregate(universe, resolution),
+    [universe, resolution],
   );
 
   useEffect(() => {
@@ -177,14 +235,30 @@ export default function NationalOverview() {
     );
   }, [boundaries, values]);
 
-  const summary = useMemo(() => (table === null ? null : summarise(table)), [table]);
+  /**
+   * The evidence summary for the selected geography.
+   *
+   * Scoped by row index rather than by rebuilding a table, so the reliability mix and the
+   * demand total beside the map are computed from exactly the rows the map is drawing.
+   * That identity is what `tests/geography.test.ts` checks.
+   */
+  const summary = useMemo(() => {
+    if (table === null) return null;
+    if (selectedState === null) return summarise(table);
+    const fips = table.strs("state_fips");
+    const rows: number[] = [];
+    for (let i = 0; i < table.length; i += 1) {
+      if (fips[i] === selectedState.fips) rows.push(i);
+    }
+    return summarise(table, rows);
+  }, [table, selectedState]);
 
   /**
    * Distinct areas, not published rows. A cell straddling a state line is published once
    * per state, so the row count is 296 higher than the number of places on the map.
    */
   const areaCount = useMemo(
-    () => new Set(nativeCells.map((c) => c.h3_index)).size, [nativeCells]);
+    () => new Set(universe.map((c) => c.h3_index)).size, [universe]);
 
   /** Where the highest values are, stated above the map so it is not a hover-only fact. */
   const leaders = useMemo(() => {
@@ -202,6 +276,11 @@ export default function NationalOverview() {
   // The card for whichever cell is being asked about. Pinned wins over hovered, so moving
   // the mouse toward the pinned card's own buttons does not replace it.
   const active = pinned ?? hovered;
+  /** The ring drawn around whichever cell the card is describing. */
+  const outlined = useMemo(
+    () => (active === null ? [] : [shown[active]?.h3_index ?? ""].filter(Boolean)),
+    [active, shown],
+  );
   const card = useMemo(() => {
     if (active === null) return null;
     const cell = shown[active];
@@ -303,6 +382,49 @@ export default function NationalOverview() {
         </div>
 
         <div className="field">
+          <label htmlFor="geography">Geography</label>
+          <div className="geo-row">
+            <select
+              id="geography"
+              value={state}
+              onChange={(e) => {
+                const next = e.target.value;
+                setState(next);
+                setPinned(null);
+                setHovered(null);
+                const option = stateOptions.find((o) => o.fips === next) ?? null;
+                setFit(
+                  option === null ? US_BOUNDS : stateBounds.get(option.fips) ?? US_BOUNDS,
+                );
+              }}
+            >
+              <option value={NATIONAL}>United States</option>
+              {stateOptions.map((o) => (
+                <option key={o.fips} value={o.fips}>{o.name}</option>
+              ))}
+            </select>
+            {selectedState !== null && (
+              <button
+                type="button"
+                className="geo-reset"
+                onClick={() => {
+                  setState(NATIONAL);
+                  setPinned(null);
+                  setHovered(null);
+                  setFit(US_BOUNDS);
+                }}
+              >
+                Reset to U.S.
+              </button>
+            )}
+          </div>
+          <p className="hint">
+            Selecting a state narrows the estimates on this page to that state, not just
+            the map view. Every figure here describes {geographyLabel(selectedState)}.
+          </p>
+        </div>
+
+        <div className="field">
           <label htmlFor="metric">Show</label>
           <select
             id="metric"
@@ -344,6 +466,15 @@ export default function NationalOverview() {
               <div className="l">populated areas estimated</div>
             </div>
           </div>
+        )}
+
+        {selectedState !== null && STATE_NAMES[selectedState.fips] !== undefined && (
+          <a
+            className="handoff"
+            href={`/studio/?state=${selectedState.fips}&from=national`}
+          >
+            Plan new locations in {selectedState.name} →
+          </a>
         )}
 
         <Disclosure question="What do the unshaded areas mean?">
@@ -432,20 +563,25 @@ export default function NationalOverview() {
           <>
             <div className="mapsummary">
               <div>
-                {METRIC_LABELS[metric]} ·{" "}
+                {METRIC_LABELS[metric]} in{" "}
+                <strong>{geographyLabel(selectedState)}</strong> ·{" "}
                 <strong>{formatCompact(areaCount)}</strong> populated areas
                 {resolution < NATIVE_RESOLUTION && ", grouped for display"}
               </div>
               <div className="places">
                 {leaders.length === 0
                   ? "Hover any area to see what it is."
-                  : `Highest here: ${leaders.join(" · ")}. Hover any area for detail.`}
+                  : `Highest in ${geographyLabel(selectedState)}: ${
+                      leaders.join(" · ")}. Hover any area for detail.`}
               </div>
             </div>
             <HexMap
               boundaries={boundaries}
               colors={colors}
               analyticalLayer={analyticalLayer}
+              fillOpacity={analyticalOpacity(zoom)}
+              fitBounds={fit}
+              outlineCells={outlined}
               onZoom={setZoom}
               onHoverCell={(index, x, y) => {
                 setHovered(index);

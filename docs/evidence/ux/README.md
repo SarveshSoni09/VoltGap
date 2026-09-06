@@ -27,3 +27,25 @@ and the charging-gaps view had no map at all.
 | `explore-studio-row-hover.png` | Hovering table row 3 highlights the row and enlarges map marker ③; the card names the same area with the same rank. Map and table are one list. |
 
 Nothing about the model, the artifacts or the thresholds differs between any of these sets.
+
+## Layer hierarchy and geography pass (2026-09-06)
+
+Captured by `web/scripts/shots-geo.mjs` from the production static export, 1440×900,
+headless Chrome on the host GPU. The `geo-before-*` images were produced by building commit
+`011528c` in a separate git worktree against the identical published data, so the
+comparison is between two builds rather than between a build and a description.
+
+| File | Zoom | What to look for |
+|---|---|---|
+| `geo-before-demand-national.png` | 3.4 | City labels washed out; no state borders |
+| `geo-before-demand-local.png` | 9.5 | Seattle metro with **neither I-5 nor I-405 visible** |
+| `geo-before-gaps-people.png` | 3.4 | 100 dots; the other 20,451 gap areas absent |
+| `geo-demand-national.png` | 3.4 | Labels and state borders read through the surface |
+| `geo-demand-state.png` | 6.2 | Washington; cells resolve, county context remains |
+| `geo-demand-local.png` | 9.5 | Highways crisp through an 0.88-opacity surface |
+| `geo-demand-washington.png` | fit | U.S. → Washington; 401 drawn cells |
+| `geo-demand-texas.png` | fit | Washington → Texas; 1,303 drawn cells |
+| `geo-demand-reset.png` | fit | Reset to U.S.; 4,012 drawn cells |
+| `geo-gaps-all.png` | 3.4 | The whole gap universe |
+| `geo-gaps-people-national.png` | 3.4 | Highlighted 100 over grey context, ranked nationally |
+| `geo-gaps-people-washington.png` | fit | The same view ranked within Washington |

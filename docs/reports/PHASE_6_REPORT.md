@@ -1531,3 +1531,603 @@ Screenshots of the interactions are in `docs/evidence/ux/`, captured by
 - **The lens filters and the display grouping are presentation.** No exported artifact, no
   optimiser input and no published figure changes with them, which is the property that
   makes them safe to add; it also means they cannot be cited as analysis.
+
+---
+
+## 19. The map as a map — layer hierarchy, zoom-dependent styling, gap-category audit, and geographic navigation
+
+This section covers a correction pass raised after manual review of the interface built in
+§18. The finding was that the analytical overlay had become visually dominant enough to
+erase the geography underneath it: city and place names, state borders, major roads and
+coastline detail were not readable through the coloured H3 surface. A map that renders
+53,208 polygons correctly and still cannot tell the reader where they are looking has
+failed at being a map, which is a different failure from the WebGL defect fixed in §18.7
+and is not caught by any check that existed.
+
+Three further questions were raised in the same review: whether the Charging Gaps
+categories were sparse because of a defect or by design, whether the specialised categories
+should hide the rest of the gap, and how a reader is supposed to reach a particular state.
+
+### 19.1 Item 43 — why the overlay erased the geography
+
+**Root cause, established by reading the render configuration rather than by adjusting
+opacity until it looked better.**
+
+The deck.gl overlay was constructed in `web/components/HexMap.tsx` as:
+
+```js
+const deck = new MapboxOverlay({ interleaved: false, layers: [] });
+```
+
+`interleaved: false` gives deck.gl **its own canvas, composited over the finished basemap
+canvas**. Under that arrangement there is no layer ordering to adjust: every analytical
+polygon is above every basemap feature, because the two are not in the same render pass at
+all. Fill opacity was the only remaining lever, and the requirement — "do not solve this by
+making the analytical layer so faint that the metric becomes unreadable" — correctly rules
+that lever out.
+
+So the four candidate causes offered in the review resolve as:
+
+| Candidate | Finding |
+|---|---|
+| Analytical polygons render above basemap symbol/label layers | **Yes — necessarily, and not adjustably.** Separate canvases |
+| Fill opacity | 215/255 (84%). A contributing factor, not the cause |
+| Polygon outline opacity | Not applicable; the layer is `stroked: false` |
+| Blending behaviour | Standard alpha. Not the cause |
+
+**The fix is the render mode, not the opacity.** The overlay is now interleaved, and the
+analytical layer is inserted into the basemap's own layer stack by id:
+
+```js
+const deck = new MapboxOverlay({ interleaved: true, layers: [] });
+// ...
+new SolidPolygonLayer({ id: "hex6", beforeId: beforeId.current, opacity: fillOpacity, ... })
+```
+
+The insertion point was chosen by reading the published OpenFreeMap Positron style rather
+than by guessing. Its 55 layers are ordered:
+
+```
+[  0] background
+[  1] fill    park, water, landcover_ice_shelf, landcover_glacier,
+              landuse_residential, landcover_wood
+[  7] line    waterway
+[  8] fill    building
+[  9] line    tunnel_motorway_casing   <-- analytical surface inserted HERE
+     ...      tunnels, aeroway, road_pier, highway_*, railway_*,
+              boundary_3, boundary_2, boundary_disputed
+[ 36] symbol  waterway_line_label ... place labels, 19 layers
+```
+
+Inserting before `tunnel_motorway_casing` produces exactly the stack the review asked for:
+
+```
+water, landcover, buildings          (below — the ground the metric sits on)
+ANALYTICAL POLYGON FILL
+roads, railways, state and county boundaries
+place labels                         (above — always readable)
+hover outline, selection, rank markers   (above everything)
+```
+
+The id is verified against the loaded style before use, because `beforeId` naming an absent
+layer makes MapLibre throw:
+
+```js
+instance.on("load", () => {
+  const present = instance.getStyle().layers.some((l) => l.id === ANALYTICAL_BEFORE_ID);
+  beforeId.current = present ? ANALYTICAL_BEFORE_ID : null;
+  if (!present) console.warn(`basemap has no layer "${ANALYTICAL_BEFORE_ID}": ...`);
+```
+
+If the basemap changes shape the overlay degrades to drawing on top — a worse map, not a
+broken one, which is directive **D8** applied to presentation.
+
+### 19.2 A second cause, found only by looking: the basemap does not draw state borders
+
+Fixing the layer order made place labels and roads readable, and **state borders still did
+not appear at national zoom**. That is not an ordering problem. Positron's boundary layer
+is defined as:
+
+```json
+{ "id": "boundary_3", "type": "line", "source-layer": "boundary",
+  "minzoom": 8,
+  "filter": ["all", [">=", ["get","admin_level"], 3], ["<=", ["get","admin_level"], 6], ...] }
+```
+
+`minzoom: 8`. US state boundaries are `admin_level` 4, so between the national view and
+city zoom — the range this product is actually read at — the basemap draws **no state
+borders at all**.
+
+The features themselves are present in the tiles well below zoom 8. Measured directly in
+the running page at the default camera:
+
+```js
+map.querySourceFeatures("openmaptiles", { sourceLayer: "boundary" })
+// { zoom: 3.4, levels: { "2": 6, "4": 5 }, total: 11 }
+```
+
+`admin_level: 4` features are returned at zoom 3.4. So nothing new needs fetching — only a
+layer that draws them. `addStateBoundaries()` adds one against the basemap's own source,
+filtered to `admin_level === 4`, capped at `maxzoom: 8` where Positron's own layer takes
+over, inserted before the first label layer. **No new artifact, no new request, no new
+dependency** (directive D4).
+
+### 19.3 Item 44 — zoom-dependent styling
+
+A single fill treatment cannot serve national through local. `analyticalOpacity(zoom)` in
+`web/lib/scales.ts`:
+
+```ts
+export function analyticalOpacity(zoom: number): number {
+  if (!Number.isFinite(zoom)) return 0.72;
+  if (zoom <= 4) return 0.55;
+  if (zoom >= 9) return 0.88;
+  return 0.55 + ((zoom - 4) / 5) * (0.88 - 0.55);
+}
+```
+
+| Band | Opacity | What it serves |
+|---|---:|---|
+| National, zoom ≤ 4 | 0.55 | Regional pattern is primary; state borders and large-city labels stay legible |
+| Regional, 4–9 | 0.55 → 0.88 | Individual cells resolve while county and city context remains |
+| Local, zoom ≥ 9 | 0.88 | The individual cell dominates; roads and place names still read through |
+
+Applied as a deck.gl **layer uniform**, never baked into the colour buffer — re-expanding
+370,384 vertices on a zoom change is exactly the per-frame work that cost 26 fps in §18.11.
+The floor is 0.55 rather than something fainter because the instruction was explicit that
+the metric must stay readable; the fix for an overpowering overlay is the layer order, not
+fading the data out.
+
+The hovered or selected cell additionally receives a ring (`PathLayer`, 2.2 px, drawn above
+the fill and below the markers), so the reader can see precisely which cell the feature
+card describes.
+
+### 19.4 Items 45–47 — the Charging Gaps category audit
+
+**This was audited before anything was redesigned, and computed independently of the
+frontend** — the numbers below come from DuckDB over the published
+`web/public/data/access_points.parquet` (239,780 block-group access points), not from
+re-running the browser's own code.
+
+**The exact implemented predicates**, at the default 16.1 km threshold:
+
+| View | Predicate | Ranking | Cutoff |
+|---|---|---|---|
+| All gap areas | `km_to_nearest_dcfc_site > threshold`, rolled up to H3 res 6, `population > 0` for drawing | by population, no trim | none |
+| Most people affected | the same gap universe | by cell population, descending | **top 100** |
+| Lower-income households | the same gap universe | by `Σ population × income_share_under_35k` | **top 100** |
+| Furthest from charging | the same gap universe | by population-weighted distance | **top 100** |
+
+**The universe, measured:**
+
+```
+access points                       239,780
+total population                331,449,281
+gap cells at 16.1 km                 20,781
+  of which populated                 20,551
+  of which uninhabited                  230
+gap population                   32,142,103   (9.7% of the US)
+```
+
+**Per category, as item 45 requires:**
+
+| View | Cells | % of gap cells | Population | % of gap population | Lower-income pop |
+|---|---:|---:|---:|---:|---:|
+| All gaps | 20,551 | 100.00% | 32,142,103 | 100.00% | 8,644,390 |
+| Most people affected | 100 | 0.49% | 1,485,137 | 4.62% | 434,460 |
+| Lower-income households | 100 | 0.49% | 1,351,435 | 4.20% | 480,515 |
+| Furthest from charging | 100 | 0.49% | 156,105 | **0.49%** | 33,602 |
+
+**Set relationships:**
+
+```
+                people    equity  distance
+people             100        66         0
+equity              66       100         0
+distance             0         0       100
+
+union of the three specialised views       234 cells
+in exactly one                             168
+in exactly two                              66
+in all three                                 0
+```
+
+**Cells in none of the three specialised views: 20,317 — 98.86% of populated gap cells,
+holding 30,210,939 people, 94.0% of the affected population.** Their median population
+(1,133) and median distance (25.2 km) are indistinguishable from the gap population as a
+whole (1,138 and 25.2 km): they are not a residue of odd cells, they are the ordinary body
+of the problem.
+
+**Ties, nulls and exclusions.** No ties at any cutoff (exactly one cell sits at each of
+10,433 people, 3,220 lower-income people, 150.1 km). Zero nulls in population, income
+share, distance or state across all 239,780 rows. Distance range 0.01–1918.82 km, income
+share 0.000–1.000 — no unit mismatch, no out-of-range value. Uninhabited cells (230) are
+counted in the headline figures, which are about distance, but excluded from the map, whose
+colour means people.
+
+**Defect probes named in item 47, each checked:**
+
+| Probe | Finding |
+|---|---|
+| Filtering before vs after geographic selection | Was national-only before this pass; now scoped, and tested both ways |
+| Percentile using national vs state denominator | No percentiles are used; it is a top-N |
+| Top-N truncation | **Present and intended: `limit: 100`. This is the cause of the sparsity** |
+| `AND` where `OR` intended | Single predicate per view; no compound condition exists |
+| Missing population/income fields | Zero nulls across 239,780 rows |
+| Null propagation | None to propagate |
+| Confidence filters | None applied on this page |
+| Numeric unit mismatch, miles vs km | Kilometres throughout; range is plausible for both |
+| Inequality direction | `> threshold` selects the far side; verified against the summary at five thresholds |
+| Sorting followed by unintended slice | The slice is intended and is the documented rule |
+| Frontend filtering vs artifact semantics | The audit above reproduces the frontend result from the artifact independently |
+| H3 identifier mismatch between artifacts | **45 of 20,781 gap cells (0.22%), holding 0.13% of gap population**, have no row in the demand artifact and so cannot be named from it. They fall back to "Unnamed area". Recorded as assumption A-6.14 |
+| Filters applied to already-filtered subsets | Each view ranks the full gap universe, not another view's output |
+| Global vs state-local thresholds | Was global; item 51 addresses it — see §19.6 |
+
+**Verdict, stated plainly as item 54 requires: the original sparsity was correct by design
+and simultaneously a visualization problem.** There is no filtering or data bug. The
+categories really are a top-100 truncation of a 20,551-area universe, and the three of them
+together cover 234 areas — 1.1%. What was wrong is that the interface drew only those 100
+and removed the other 20,451 from the map, so a page about a 32-million-person problem
+displayed it as a hundred dots, and the word "most" was doing work no stated rule
+supported.
+
+### 19.5 Items 46 and 48 — stating the rule, and keeping the subset attached to the whole
+
+Every view now states its own predicate with the live cutoff, for example:
+
+> The 100 areas with the largest population beyond that distance — every highlighted area
+> holds at least 10,433 people.
+
+and carries a subset statement computed from the data being displayed:
+
+> These **100** areas are 0.5% of the **20.6k** gap areas in the United States, and hold
+> 4.6% of the affected people. The rest stay on the map in grey.
+
+The map now draws **the entire gap universe**, with the selected view highlighted:
+
+- other gap areas — flat desaturated grey-purple, `rgba(150,142,168,90)`;
+- the selected view's areas — the full colour ramp, painted last so they sit above.
+
+Both treatments live in one `SolidPolygonLayer` and one colour buffer, so the second
+treatment costs four bytes per vertex rather than a second geometry upload. The quantile
+breaks are computed over the highlighted areas only; scaling them against the whole gap
+would compress the top hundred into one indistinguishable colour, which is the opposite of
+what selecting the view asked for. The legend states the relationship:
+
+> other gap areas — a much larger problem this view is a subset of
+
+### 19.6 Items 49–52 — geographic navigation, and what selecting a state means
+
+**Semantics: option B — analytical filtering plus visual zoom.** Chosen deliberately and
+stated in the interface on both pages:
+
+> Selecting a state narrows the estimates on this page to that state, not just the map
+> view. Every figure here describes Washington.
+
+Under option A the figures beside the map would keep describing the country while the map
+showed one state, and every denominator on the page would silently mean something other
+than what the reader sees.
+
+Consistently updated on selection: the drawn cells, the demand total, the populated-area
+count, the reliability tier mix, the evidence-grain breakdown, the colour scale's quantile
+breaks, the gap population, the gap share, the affected lower-income population, the
+neighbourhood count, the specialised view rankings, and the leading-counties line.
+
+The scoping is applied inside the arithmetic rather than to its output, because a ratio
+whose numerator and denominator describe different geographies is a wrong number:
+
+```ts
+export function gapAtThreshold(table, thresholdKm, column, stateFips?): GapSummary {
+  for (let i = 0; i < table.length; i += 1) {
+    if (stateFips !== undefined && states[i] !== stateFips) continue;
+    const people = population[i] ?? 0;
+    total += people;                       // denominator scoped too
+    if ((distance[i] ?? 0) > thresholdKm) { inGap += people; ... }
+```
+
+**Item 51 — ranking scope. This was measured, and it decided the design.**
+
+| Ranked nationally, top 100 | States represented | States that would show an EMPTY map |
+|---|---:|---:|
+| Most people affected | 29 of 49 | **20** |
+| Lower-income households | 24 of 49 | **25** |
+| Furthest from charging | **4 of 49** (Alaska 71, Montana 17, Hawaii 10, North Dakota 2) | **45** |
+
+Washington has 262 populated gap areas and **zero** of them appear in the national hundred
+furthest. A reader who selected Washington and kept a national ranking would be shown an
+empty map, which is the specific failure item 51 anticipates.
+
+**Rankings are therefore recomputed within the selected geography, and the interface says
+which geography it ranked within** — the map heading reads "Most people affected in
+Washington", produced by `scopedLabel()`, and "Most people affected nationally" when
+nothing is selected. Washington's own hundred furthest have a 26.2 km cutoff against the
+national 150.1 km, and are 38.2% of that state's gap areas rather than 0.49% — the same
+control, a different and explicitly named question.
+
+**Navigation.** Both map pages carry a `Geography` select as their first control, listing
+only states the loaded artifact actually contains (built from the data, so a state with no
+published cells cannot be offered), with a `Reset to U.S.` beside it. Selecting a state
+fits the camera to that state's published cell extent, computed from the cells themselves
+rather than from a boundary file, so the frame and the analysis describe the same set.
+The distance threshold and the selected metric are preserved across a geography change.
+Where the Studio covers the selected state, a hand-off appears — "Explore candidate areas
+in Washington →" — carrying `?state=`, which the Studio already reads.
+
+### 19.7 A frame-rate regression this pass introduced, caught by the gate
+
+`perf-fps.mjs` reported **21.0 fps against the 55 fps budget**, with the basemap-only
+calibration passing at 60.0 fps — so, unlike the episode in §18.11, the harness itself
+established immediately that the environment was sound and the code was not.
+
+**The obvious suspects were both wrong, and were eliminated by measurement rather than by
+reasoning:**
+
+| Isolation | Sustained |
+|---|---:|
+| Full change as written | 21.0 fps |
+| Interleaved, state-boundary layer removed | 21.4 fps |
+| **Overlay mode restored (`interleaved: false`)**, boundaries present | **21.4 fps** |
+
+Neither the new render mode nor the new boundary layer was responsible.
+
+**The actual cause.** The binary payload was constructed inline inside the layer-building
+effect:
+
+```js
+new SolidPolygonLayer({
+  id: "hex6",
+  data: { length, startIndices, attributes: { getPolygon: {...}, getFillColor: {...} } },
+```
+
+That object's **identity** is what deck.gl diffs to decide whether to re-upload 370,384
+vertices and a 1.48 MB colour buffer. Building it inline made every layer rebuild a full
+GPU upload. That was harmless while the effect only re-ran when the buffers themselves
+changed — and became a defect the moment `fillOpacity`, which varies continuously with
+zoom, entered the same effect's dependencies. A routine zoom then re-uploaded the entire
+national surface.
+
+The payload is now memoised on the buffers:
+
+```js
+const binary = useMemo(() => { ... }, [boundaries, colors]);
+```
+
+so a rebuild for opacity, outline or picking reuses the identical reference and deck.gl
+skips the upload. **60.0 fps sustained, p50/p95/p99 frame time 16.7/16.7/16.8 ms** — one
+frame per vsync, matching the baseline exactly.
+
+This is the second regression in this area from the same underlying shape: work that is
+cheap when a dependency is stable becomes per-interaction work when a new dependency is
+added. The fix applied here is the general one — the expensive payload is now stable by
+construction, so future props can be added to that effect without re-introducing it.
+
+### 19.7b Interleaved rendering broke the rendering regression check, twice
+
+The gate failed after the layer-order change, in the check added under **I-29** to prove
+the analytical layer is visibly drawn. Both failures were real consequences of interleaving
+and neither was worked around.
+
+**First: the check assumed two canvases.** In overlay mode deck.gl has its own canvas
+stacked over MapLibre's, and the check screenshotted `canvas[1]`. Interleaved, deck.gl
+draws into MapLibre's canvas and creates none of its own, so the wait condition
+(`canvas.length >= 2`) timed out silently and the next line crashed on `undefined`. The
+check now waits for at least one canvas and measures the largest, which is the map in
+either mode — in overlay mode the two were the same size and stacked, so the compared
+region is unchanged.
+
+**Second, and more serious: `Page.captureScreenshot` becomes unusable.** Measured on this
+machine, same page, same viewport:
+
+| Page | Cells drawn | `Page.captureScreenshot` |
+|---|---:|---:|
+| `?resolution=native` | 52,912 | **208,775 ms** |
+| `?resolution=native&layer=off` | 0 | 102 ms |
+| default (display aggregation) | 4,012 | 94 ms |
+
+Two thousand times slower, and only with the interleaved layer at full resolution. The
+map itself is not slow — the same page sustains 60.0 fps with p99 frame time 16.8 ms — so
+this is specific to Chrome's screenshot path re-rendering a large custom layer inside
+MapLibre's render pass.
+
+**Resolution: read the drawing buffer directly.** A `?preserve=1` test affordance — the
+third, alongside the existing `?layer=off` and `?resolution=native` — asks MapLibre for a
+context whose drawing buffer survives the frame:
+
+```ts
+canvasContextAttributes: {
+  preserveDrawingBuffer:
+    new URLSearchParams(window.location.search).get("preserve") === "1",
+},
+```
+
+The check then reads `canvas.toDataURL("image/png")`: **38 ms**, identical pixels. The flag
+is off in production, because preserving the buffer costs memory bandwidth on every frame
+and the §11.3 frame-rate budget is measured without it.
+
+**The check was not weakened, and this was verified rather than asserted.** Its thresholds
+are unchanged (≥2% of pixels changed, ≥20% of those carrying the layer palette), and it was
+re-tested against a deliberately near-invisible layer (`opacity: 0.02`):
+
+```
+rendered difference: 51,416 of 897,820 pixels changed (5.73%), threshold 2%
+of those, 0.0% carry the layer's palette (threshold 20%)
+FAIL: only 0.0% of the changed pixels carry the layer's palette. The layer is drawing
+geometry but not its colours - the symptom of a colour-attribute defect...
+```
+
+Note that 5.73% of pixels still changed with the layer effectively invisible, which is
+exactly why the palette assertion was added under I-29 and why a pixel count alone is not
+sufficient evidence of rendering.
+
+**Passing figures after the change: 54,947 of 897,820 pixels changed (6.12%), of which
+94.3% carry the palette.** Against the previous run's 10.00% and 69.9%: fewer pixels change
+because the fill is now 0.55 opaque at national zoom with roads and labels punching through
+it, and a higher share of what does change is pure palette because the fill no longer sits
+on top of grey basemap linework.
+
+### 19.8 Item 53 — the map reviewed as a map
+
+Checked at national (zoom 3.4), state (6.2) and local (9.5) zoom on both map pages, against
+the screenshots listed in §19.9.
+
+| Question | Before | After |
+|---|---|---|
+| Can I read important city labels? | No — washed out at every zoom | Yes. At national: Seattle, Portland, Denver, Chicago, Dallas, Houston, Atlanta, Miami, New York, Boston. At local: Seattle, Bellevue, Renton, Kirkland, Bremerton |
+| Can I identify state boundaries? | No | Yes, at every zoom — added, since the basemap gates its own at zoom 8 |
+| Can I understand which state or county I am in? | Only by hovering | Yes: labels, borders, the map heading, and the hover card |
+| Can I distinguish analytical colour from basemap geography? | Poorly | Yes — the basemap is grey, the surface is the viridis ramp, and geography draws above it |
+| Can I identify the hovered or selected feature? | Card only | Card plus a ring drawn on the cell |
+| Can I understand what blank space means? | Legend | Legend, unchanged: "no estimate — nobody lives here" |
+| Can I see what changed after selecting a filter? | No — the rest of the gap vanished | Yes — the context remains in grey and the subset line quantifies the change |
+| Can I return to the national context easily? | No control existed | `Reset to U.S.` |
+
+**Major roads at local zoom are the clearest single demonstration.** In
+`geo-before-demand-local.png` neither I-5 nor I-405 is visible anywhere in the Seattle
+metro; in `geo-demand-local.png` both are crisp white lines through the surface.
+
+### 19.9 Item 54 — evidence
+
+Screenshots in `docs/evidence/ux/`, captured by `web/scripts/shots-geo.mjs` from the
+production static export at 1440×900 on the host GPU. The "before" images were produced by
+building commit `011528c` in a separate git worktree against the identical published data,
+so the comparison is of two builds and not of two descriptions:
+
+| File | What it shows |
+|---|---|
+| `geo-before-demand-national.png` | Before: national, labels washed out |
+| `geo-before-demand-local.png` | Before: Seattle at zoom 9.5 — **no roads visible at all** |
+| `geo-before-gaps-people.png` | Before: 100 dots, the rest of the gap absent |
+| `geo-demand-national.png` | After: national, city labels and state borders readable |
+| `geo-demand-state.png` | After: Washington at zoom 6.2 |
+| `geo-demand-local.png` | After: Seattle at zoom 9.5, highways and place names through the surface |
+| `geo-demand-washington.png` | U.S. → Washington |
+| `geo-demand-texas.png` | Washington → Texas |
+| `geo-demand-reset.png` | Reset to national |
+| `geo-gaps-all.png` | The whole gap universe |
+| `geo-gaps-people-national.png` | Highlighted subset over grey context, nationally |
+| `geo-gaps-people-washington.png` | The same view scoped to Washington |
+
+**Drawn-cell counts through the state-filter sequence**, read from `__voltgapLayerCells`
+during the capture run, confirming the filter changes the analysis and not only the camera:
+
+```
+United States -> Washington -> Texas -> reset
+   4,012            401        1,303      4,012      (display-aggregated parents)
+```
+
+**Three interface defects found by looking at the screenshots, and fixed:**
+
+1. **Raw FIPS codes leaked as place names.** The gaps summary read "Mostly in Texas
+   (195.3k), 39 (139.9k), 20 (121.8k), 22 (119.2k)" — `lib/data/states.ts` covers only the
+   six states the frontier publishes, so every other FIPS fell through to its digits. Now
+   resolved through `nameByFips()`, built from the loaded artifact, covering all 51.
+2. **The geography select collapsed to a chevron** when a state was selected, because the
+   `Reset to U.S.` label out-competed it for flex width.
+3. **A denominator label contradicted its own number.** With Washington selected the page
+   showed "5.6% — of the US population". The figure was correctly state-scoped; the label
+   was not. Now "of Washington's population". This is precisely the mismatch item 50 warns
+   about, and it survived until a screenshot was read.
+
+A fourth was found in the demand view: the map heading said "Highest here:" while listing
+the leaders of the whole selected geography, so zoomed into Seattle it named three
+California counties. It now reads "Highest in the United States:" or "Highest in
+Washington:", matching what it computes.
+
+### 19.10 Tests added
+
+`web/tests/geography.test.ts` (18 tests) and additions to `web/tests/access.test.ts`
+(bringing it to 35), run against the 4,000-point real published fixture:
+
+- the control offers only geographies present in the data; a FIPS with no nameable code is
+  skipped rather than shown as a bare number;
+- state parts sum exactly to the national whole at 16.1 km;
+- a state-scoped summary equals the national result restricted to that state;
+- **the share's denominator is scoped too** — asserted as equal to the state's own
+  population, with an explicit assertion that it differs from the national share, so a
+  future change that scoped only the numerator would fail rather than silently pass;
+- the specialised views select exactly the top N, and nothing outside beats the cutoff;
+- the context set is retained, not deleted, and context plus highlighted equals the whole;
+- no nulls, no negative distances, income share within [0, 1];
+- zoom-dependent opacity is monotonic between anchors, never below 0.55, never above 0.88,
+  and degrades to a usable value on a non-finite zoom.
+
+### 19.11 What this pass did not do
+
+- **No model, threshold, objective, candidate rule, uncertainty component or validation
+  result changed.** The state filter and the display grouping are presentation and
+  selection over published quantities; the specialised views sort and trim columns that are
+  in the data dictionary. No new score exists, hidden or otherwise.
+- **The unmoderated usability check remains the one unmet Phase 6 criterion (A-6.4).** It
+  was not run and must be run against this interface.
+- **State outlines come from the basemap's vector tiles, not from a project artifact.**
+  They are cartographic context, and no analysis depends on them. If OpenFreeMap stops
+  serving the `boundary` source layer they disappear and the map degrades; nothing computed
+  changes.
+- **Hover and the ring remain pointer interactions** (A-6.13, still open). The geography
+  select is keyboard-reachable; the per-cell detail on the two map-only views is not.
+- **45 gap cells cannot be named** and read "Unnamed area" (A-6.14).
+- **The three specialised views are still a top-100 truncation.** That was found to be
+  correct by design and is now stated rather than implied; it is not a claim that 100 is
+  the right number, and no evidence here establishes that it is.
+
+### 19.12 Gate evidence — `make gate PHASE=6`, 2026-09-06
+
+```
+--- 1. lint (ruff + mypy strict + frontend typecheck) ---
+ruff: All checks passed!
+mypy: Success: no issues found in 148 source files
+
+--- 2+3. full test suite under coverage, and coverage thresholds ---
+repository wide                        6270 stmts  0 miss  1482 branch  100%
+model 100%   spatial 100%   validation 100%   quality 100%   schemas 100%
+discovery 100%   export 100%   sources 100%   transform 100%
+
+--- 4. prior-phase gate suites replayed (Phase 0 through 5) ---
+  test_source_findings.py   PASS 23     test_domain_rules.py         PASS 39
+  test_phase2_gates.py      PASS 37     test_phase3_gates.py         PASS 20
+  test_phase3_corrections.py PASS 32    test_phase4_gates.py         PASS 23
+  test_phase5_gates.py      PASS 33     test_gate_protocol.py        PASS 91
+  test_smoke_forward.py     PASS 11     ...phase2 5  ...phase3 5
+  ...phase4 5               ...phase5 7
+
+--- 6. D3 copy lint (source and frontend) ---
+copy lint: clean (235 files, 15 rules)
+
+--- 7. determinism (semantic, CLAUDE.md 14.1) ---
+determinism: identical
+
+--- frontend ---
+124 tests passed (8 files)          [was 88; +18 geography, +18 access]
+slowest greedy re-solve   0.0235 s   (budget 2.0 s)
+PASS: app shell 229.4 KB of 600.0 KB (38.2% of budget)
+  rendered difference: 54,947 of 897,820 pixels changed (6.12%), threshold 2%
+  of those, 94.3% carry the layer's palette (threshold 20%)
+PASS: the analytical layer is visibly rendered
+PASS: the interface reads correctly to someone who knows nothing about it
+
+--- environment-dependent class: reference-environment hard gate ---
+  run 1/5  TTI 2.86s   run 2/5  2.91s   run 3/5  2.93s
+  run 4/5  2.93s       run 5/5  2.92s
+  Machine validity: median benchmarkIndex 4147 (floor 3500)
+  median TTI 2.92 s (budget 3.0 s)
+  median FCP 0.20 s   LCP 2.64 s   TBT 297 ms   CLS 0.031   SI 1.41 s
+PASS: Time to Interactive 2.92 s of 3.0 s (97.4% of budget)
+
+  cells in the rendered layer: 52,912
+  colour buffer: 1,481,536 bytes for 370,384 vertices (per-vertex, correct)
+  machine validity: basemap-only calibration 60.0 fps sustained (floor 55)
+PASS: sustained 60.0 fps against a 55 fps budget
+
+=== Phase 6 gate: PASS ===
+```
+
+**Movement against the §18.12 run, and why.** The app shell grew 225.8 → 229.4 KB (3.6 KB,
+38.2% of budget) for the geography module, the state-boundary layer and the new controls.
+Largest Contentful Paint rose 1.61 → 2.64 s: the largest painted element is now the map
+surface itself, which paints later and larger than the sidebar text that previously held
+the title. TTI, the gated metric, is unchanged within noise (2.91 → 2.92 s), and the frame
+rate is unchanged at the vsync ceiling. The rendering-check figures moved as explained in
+§19.7b. Greedy re-solve improved 0.0334 → 0.0235 s; nothing in this pass touched the
+solver, so that is machine variance on a measurement with two orders of magnitude of
+headroom.

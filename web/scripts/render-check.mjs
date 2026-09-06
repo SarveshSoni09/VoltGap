@@ -75,24 +75,61 @@ try {
   const shoot = async (query) => {
     const page = await browser.newPage();
     await page.setViewport({ width: 1400, height: 900, deviceScaleFactor: 1 });
-    await page.goto(`http://localhost:${PORT}/${query}`, {
+    const url = `${query}${query.includes("?") ? "&" : "?"}preserve=1`;
+    await page.goto(`http://localhost:${PORT}/${url}`, {
       waitUntil: "networkidle0", timeout: 120000,
     });
     // The map is created only once its container has real layout, and the geometry
-    // arrives from a worker after that, so wait for the layer rather than a fixed delay.
+    // arrives from a worker after that, so wait for a drawn canvas rather than a fixed
+    // delay.
+    //
+    // The count is >= 1, not >= 2. deck.gl renders INTERLEAVED into MapLibre's own canvas
+    // so that basemap labels and boundaries can draw above the analytical fill, and it
+    // therefore no longer creates a second canvas of its own. Requiring two silently
+    // stopped waiting and then crashed on `canvas[1]`.
     await page
       .waitForFunction(
-        () => document.querySelectorAll("canvas").length >= 2,
+        () => document.querySelectorAll("canvas").length >= 1,
         { timeout: 120000 },
       )
       .catch(() => undefined);
     await new Promise((resolve) => setTimeout(resolve, 6000));
+    // The largest canvas is the map, in either render mode. In the old overlay mode the
+    // two canvases were the same size and stacked, so the clip rectangle is unchanged and
+    // this compares like with like against every previously recorded result.
     const box = await page.evaluate(() => {
-      const canvas = document.querySelectorAll("canvas")[1];
-      const r = canvas.getBoundingClientRect();
+      const all = [...document.querySelectorAll("canvas")];
+      if (all.length === 0) throw new Error("no canvas: the map did not mount");
+      const canvas = all
+        .map((c) => ({ c, r: c.getBoundingClientRect() }))
+        .sort((a, b) => b.r.width * b.r.height - a.r.width * a.r.height)[0];
+      const r = canvas.r;
+      if (r.width < 100 || r.height < 100) {
+        throw new Error(`map canvas is ${r.width}x${r.height}: too small to compare`);
+      }
       return { x: r.x, y: r.y, width: r.width, height: r.height };
     });
-    const shot = await page.screenshot({ clip: box, type: "png" });
+    // Read the map's drawing buffer directly rather than via `Page.captureScreenshot`.
+    //
+    // Not a convenience: with the analytical layer interleaved into MapLibre's render pass
+    // at the full 52,912 cells, `Page.captureScreenshot` took **208,775 ms**, against
+    // 102 ms with the layer off — measured on this machine. Reading the canvas takes 38 ms
+    // and returns the identical pixels. `?preserve=1` asks the map for a WebGL context
+    // whose drawing buffer survives the frame, which is what makes the read possible.
+    //
+    // `box` is still computed above because it fails loudly on an unmounted or collapsed
+    // map, which is the defect guarded in I-29.
+    void box;
+    const shot = Buffer.from(
+      await page.evaluate(() => {
+        const all = [...document.querySelectorAll("canvas")];
+        const c = all
+          .map((x) => ({ x, r: x.getBoundingClientRect() }))
+          .sort((a, b) => b.r.width * b.r.height - a.r.width * a.r.height)[0].x;
+        return c.toDataURL("image/png").slice("data:image/png;base64,".length);
+      }),
+      "base64",
+    );
     const state = await page.evaluate(() => {
       const map = window.__voltgapMap;
       const overlay = map ? (map._controls || []).find((c) => c && c._deck) : null;

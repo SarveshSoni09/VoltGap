@@ -1168,3 +1168,95 @@ rather than a prior phase's output, so they do not belong here:
   entry only if a later phase had already published something depending on it.
 - `SETUP.md` names a retired NREL host and describes the Census API key as optional.
   Recorded as corrections in `docs/SOURCE_VERIFICATION.md` §3.
+
+## I-31 — The analytical overlay erased the geography beneath it
+
+- **Discovered in:** Phase 6, manual interface review (2026-09-06)
+- **Affects:** Phase 6 presentation only
+- **Severity:** **S2 Degrading** — the published surface and every computed value were
+  correct; the map was not usable as a map.
+- **Assumed:** that a correctly rendered analytical layer over a basemap yields a readable
+  map, and that overlay strength is a matter of fill opacity.
+- **Actually true:** the deck.gl overlay was configured `interleaved: false`, giving it a
+  separate canvas composited over the finished basemap. Under that arrangement no layer
+  ordering exists to adjust — every analytical polygon is above every road, boundary and
+  place label by construction — and opacity is the only lever, which cannot solve it
+  without making the metric unreadable. Separately, and not an ordering problem at all,
+  OpenFreeMap Positron gates its own `boundary_3` layer at `minzoom: 8`, so **no state
+  borders were drawn anywhere below zoom 8** regardless of ordering.
+- **Evidence:** `geo-before-demand-local.png` shows the Seattle metro at zoom 9.5 with
+  neither I-5 nor I-405 visible. `querySourceFeatures` returns `admin_level: 4` features at
+  zoom 3.4, so the boundary data was present and undrawn.
+- **Published outputs wrong:** none. No artifact, model, threshold or figure is affected.
+- **Response:** interleaved rendering with the analytical fill inserted before
+  `tunnel_motorway_casing`, verified against the loaded style; a state-boundary layer added
+  against the basemap's own source; zoom-dependent fill opacity 0.55–0.88. Reported in
+  `PHASE_6_REPORT.md` §19.1–19.3.
+- **Status:** RESOLVED.
+
+## I-32 — Charging Gaps specialised views hid 94% of the problem
+
+- **Discovered in:** Phase 6, manual interface review (2026-09-06)
+- **Affects:** Phase 6 presentation only
+- **Severity:** **S3 Cosmetic** — presentation and copy. No computation was wrong.
+- **Assumed by the reviewer:** that the sparse specialised views might be dropping valid
+  cells through a filtering defect.
+- **Actually true:** **no defect.** Audited independently against the published artifact:
+  zero nulls in 239,780 rows, no unit mismatch, no tie ambiguity, correct inequality
+  direction, no compound-predicate error, each view ranking the full gap universe rather
+  than another view's output. The views are a deliberate `limit: 100` over 20,551 populated
+  gap cells. What was wrong was presentational: the map drew only the 100 and removed the
+  other 20,451, and the label said "most affected" without stating the rule that defines
+  "most".
+- **Evidence:** overlap matrix (people ∩ equity = 66, distance disjoint from both), union
+  234 cells, 20,317 cells (98.86%, 94.0% of affected population) in no specialised view.
+- **Published outputs wrong:** none.
+- **Response:** the whole gap universe is drawn with the selected view highlighted over it;
+  each view states its predicate and live cutoff; a subset line quantifies the
+  relationship. Rankings recomputed within the selected geography, because a national
+  top-100 by distance covers 4 of 49 states and would show 45 states an empty map.
+  Reported in §19.4–19.6.
+- **Status:** RESOLVED. Assumption **A-6.15** records that the choice of 100 is unvalidated.
+
+## I-33 — Inline binary payload made a zoom re-upload the national surface
+
+- **Discovered in:** Phase 6, by the frame-rate gate (2026-09-06)
+- **Affects:** Phase 6 rendering performance
+- **Severity:** **S2 Degrading** — 21.0 fps sustained against a 55 fps budget, caught before
+  commit.
+- **Assumed:** that adding `fillOpacity` to the layer-building effect's dependencies was
+  free, since opacity is a shader uniform.
+- **Actually true:** the `SolidPolygonLayer` `data` object was constructed inline in that
+  effect, so its identity changed on every rebuild and deck.gl re-uploaded 370,384 vertices
+  and a 1.48 MB colour buffer each time. Because `analyticalOpacity(zoom)` varies
+  continuously, an ordinary zoom triggered a full upload.
+- **Evidence:** basemap-only calibration passed at 60.0 fps, so the environment was sound.
+  Isolation eliminated both new suspects — 21.4 fps with the state-boundary layer removed,
+  and 21.4 fps with `interleaved: false` restored.
+- **Published outputs wrong:** none.
+- **Response:** the payload is memoised on `[boundaries, colors]`, so any other rebuild
+  reuses the reference and deck.gl skips the upload. 60.0 fps sustained, p99 16.8 ms.
+  Reported in §19.7. Related to **I-29** and to §18.11 — the same shape of defect a third
+  time, now fixed generally rather than case by case.
+- **Status:** RESOLVED.
+
+## I-34 — Interleaved rendering made the rendering regression check unusable
+
+- **Discovered in:** Phase 6, by the gate (2026-09-06)
+- **Affects:** Phase 6 verification tooling
+- **Severity:** **S2 Degrading** — the check crashed, then hung. A gate that cannot run its
+  rendering guard cannot report a pass.
+- **Assumed:** that `web/scripts/render-check.mjs` was independent of how deck.gl composites.
+- **Actually true:** it depended on it twice. It screenshotted `canvas[1]`, which exists
+  only in overlay mode where deck.gl has its own canvas; interleaved, there is one canvas
+  and the wait condition timed out before crashing on `undefined`. And Chrome's
+  `Page.captureScreenshot` on an interleaved layer of 52,912 cells took **208,775 ms**
+  against 102 ms with the layer off and 94 ms at display resolution — measured, all three.
+- **Published outputs wrong:** none. This is verification tooling.
+- **Response:** the check waits for at least one canvas and measures the largest, which is
+  the map in either mode; and it reads the drawing buffer directly (38 ms) under a new
+  `?preserve=1` test affordance rather than through `Page.captureScreenshot`. Thresholds
+  unchanged. **Re-verified against a deliberately near-invisible layer**, which it still
+  fails with the correct diagnosis — and which still changed 5.73% of pixels, the reason
+  the palette assertion from I-29 exists.
+- **Status:** RESOLVED. Reported in `PHASE_6_REPORT.md` §19.7b.

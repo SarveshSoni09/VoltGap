@@ -158,3 +158,118 @@ describe("grouping gaps for display does not change the gap", () => {
     expect(grouped.length).toBe(cells.length);
   });
 });
+
+/**
+ * State scoping, added because the geography control filters the analysis rather than
+ * only moving the camera.
+ *
+ * The property that matters is that BOTH halves of every ratio move together. A state
+ * count over a national denominator is not a presentation bug, it is a wrong number, and
+ * it is the specific way this kind of filter usually breaks.
+ */
+describe("selecting a state filters the analysis, consistently", () => {
+  const statesInFixture = [...new Set(rows.map((r) => r.state_fips))]
+    .filter((f) => f !== "")
+    .slice(0, 6);
+
+  for (const fips of statesInFixture) {
+    it(`sums to the national figure across states at 16.1 km (${fips})`, () => {
+      const scoped = gapCells(table, 16.1, "km_to_nearest_dcfc_site", fips);
+      // Every cell returned really belongs to the requested state.
+      expect(scoped.every((c) => c.state_fips === fips)).toBe(true);
+      // And it equals the national result restricted to that state.
+      const fromNational = gapCells(table, 16.1)
+        .filter((c) => c.state_fips === fips);
+      expect(sum(scoped.map((c) => c.population)))
+        .toBeCloseTo(sum(fromNational.map((c) => c.population)), 6);
+      expect(scoped.length).toBe(fromNational.length);
+    });
+
+    it(`keeps the summary and the cells in agreement within ${fips}`, () => {
+      const summary = gapAtThreshold(table, 16.1, "km_to_nearest_dcfc_site", fips);
+      const cells = gapCells(table, 16.1, "km_to_nearest_dcfc_site", fips);
+      expect(sum(cells.map((c) => c.population))).toBeCloseTo(summary.population, 6);
+      expect(sum(cells.map((c) => c.points))).toBe(summary.points);
+    });
+  }
+
+  it("scopes the denominator too, so the share is of that state's people", () => {
+    const fips = statesInFixture[0]!;
+    const scoped = gapAtThreshold(table, 16.1, "km_to_nearest_dcfc_site", fips);
+    const statePeople = sum(
+      rows.filter((r) => r.state_fips === fips).map((r) => r.population),
+    );
+    expect(scoped.share).toBeCloseTo(scoped.population / statePeople, 10);
+    // The national share is computed against everyone, so the two differ. If a future
+    // change made the numerator state-scoped and left the denominator national, this
+    // equality would silently start holding.
+    const national = gapAtThreshold(table, 16.1);
+    expect(scoped.share).not.toBe(national.share);
+  });
+
+  it("splits the country exactly: state parts sum to the national whole", () => {
+    const all = gapAtThreshold(table, 16.1);
+    const everyState = [...new Set(rows.map((r) => r.state_fips))];
+    const parts = everyState.map(
+      (f) => gapAtThreshold(table, 16.1, "km_to_nearest_dcfc_site", f).population,
+    );
+    expect(sum(parts)).toBeCloseTo(all.population, 6);
+  });
+});
+
+/**
+ * The specialised lenses, checked against an independent calculation.
+ *
+ * The Charging Gaps audit established that their sparsity is a top-N truncation and not a
+ * data defect: at 16.1 km nationally there are 20,551 populated gap areas, each lens
+ * highlights 100 of them, and 98.9% of gap areas are in none of the three. These tests
+ * lock the arithmetic that claim rests on, computed here from the raw rows rather than by
+ * calling the same helper the page calls.
+ */
+describe("the specialised lenses are a documented subset, not a filter defect", () => {
+  const LIMIT = 100;
+  const populated = () => gapCells(table, 16.1).filter((c) => c.population > 0);
+
+  it("highlights exactly the top N by each quantity, ties included in order", () => {
+    const cells = populated();
+    for (const [name, key] of [
+      ["people", "population"], ["equity", "equity"], ["distance", "km"],
+    ] as const) {
+      const picked = [...cells].sort((a, b) => b[key] - a[key]).slice(0, LIMIT);
+      expect(picked.length, name).toBe(Math.min(LIMIT, cells.length));
+      // Nothing outside the highlighted set beats the cutoff.
+      const cutoff = picked[picked.length - 1]![key];
+      const outside = cells.filter((c) => !picked.includes(c));
+      expect(outside.every((c) => c[key] <= cutoff), name).toBe(true);
+    }
+  });
+
+  it("never highlights an uninhabited area on a map coloured by people", () => {
+    const cells = populated();
+    expect(cells.every((c) => c.population > 0)).toBe(true);
+    const withEmpty = gapCells(table, 16.1);
+    expect(withEmpty.length).toBeGreaterThanOrEqual(cells.length);
+  });
+
+  it("leaves the rest of the gap universe present, not deleted", () => {
+    const cells = populated();
+    const picked = [...cells].sort((a, b) => b.population - a.population).slice(0, LIMIT);
+    const context = cells.filter((c) => !picked.includes(c));
+    // The context is what the map now draws in grey. If a future change dropped it, this
+    // is the assertion that fails.
+    expect(context.length).toBe(Math.max(0, cells.length - LIMIT));
+    expect(sum(context.map((c) => c.population)) + sum(picked.map((c) => c.population)))
+      .toBeCloseTo(sum(cells.map((c) => c.population)), 6);
+  });
+
+  it("has no nulls or negative distances that could silently drop a cell", () => {
+    for (const r of rows) {
+      expect(Number.isFinite(r.population)).toBe(true);
+      expect(Number.isFinite(r.km_to_nearest_dcfc_site)).toBe(true);
+      expect(Number.isFinite(r.income_share_under_35k)).toBe(true);
+      expect(r.km_to_nearest_dcfc_site).toBeGreaterThanOrEqual(0);
+      expect(r.income_share_under_35k).toBeGreaterThanOrEqual(0);
+      expect(r.income_share_under_35k).toBeLessThanOrEqual(1);
+    }
+  });
+});

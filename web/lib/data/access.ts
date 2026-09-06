@@ -37,20 +37,31 @@ export interface GapSummary {
   readonly equityPopulation: number;
 }
 
-/** Population beyond the threshold. The same arithmetic the pipeline publishes. */
+/**
+ * Population beyond the threshold. The same arithmetic the pipeline publishes.
+ *
+ * `stateFips` narrows BOTH the numerator and the denominator, so the share it reports is
+ * "this share of the selected state's people", never a state count over a national total.
+ * That is the whole reason the filter lives in here rather than being applied to the
+ * result: a ratio whose two halves describe different geographies is a wrong number, not
+ * a presentation choice.
+ */
 export function gapAtThreshold(
   table: ColumnTable,
   thresholdKm: number,
   column: "km_to_nearest_dcfc_site" | "km_to_nearest_l2_site" = "km_to_nearest_dcfc_site",
+  stateFips?: string,
 ): GapSummary {
   const population = table.nums("population");
   const distance = table.nums(column);
   const income = table.nums("income_share_under_35k");
+  const states = table.strs("state_fips");
   let inGap = 0;
   let total = 0;
   let count = 0;
   let equity = 0;
   for (let i = 0; i < table.length; i += 1) {
+    if (stateFips !== undefined && states[i] !== stateFips) continue;
     const people = population[i] ?? 0;
     total += people;
     if ((distance[i] ?? 0) > thresholdKm) {
@@ -101,6 +112,7 @@ export function gapCells(
   table: ColumnTable,
   thresholdKm: number,
   column: "km_to_nearest_dcfc_site" | "km_to_nearest_l2_site" = "km_to_nearest_dcfc_site",
+  stateFips?: string,
 ): GapCell[] {
   const cells = table.strs("h3_index");
   const population = table.nums("population");
@@ -112,6 +124,7 @@ export function gapCells(
     string,
     { pop: number; wkm: number; km: number; eq: number; n: number; state: string }>();
   for (let i = 0; i < table.length; i += 1) {
+    if (stateFips !== undefined && states[i] !== stateFips) continue;
     if ((distance[i] ?? 0) <= thresholdKm) continue;
     const cell = cells[i] ?? "";
     let g = groups.get(cell);

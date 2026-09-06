@@ -33,6 +33,31 @@ export const TIER_OPACITY: Record<Tier, number> = { A: 235, B: 175, C: 105 };
 /** One opacity for every drawn cell, so colour means the metric and only the metric. */
 export const CELL_ALPHA = 215;
 
+/**
+ * How solid the analytical surface is at a given zoom.
+ *
+ * One fill treatment cannot serve the whole range. At national zoom the reader is looking
+ * for a regional pattern and needs state borders and big-city labels to place it, so the
+ * surface steps back. Zoomed in they are reading one area's value and the individual cell
+ * should dominate, with local roads and place names still legible through it.
+ *
+ * Applied as a deck.gl layer uniform, never baked into the colour buffer: re-expanding
+ * 370,384 vertices on every zoom change is exactly the per-frame work that cost 26 fps
+ * once already.
+ *
+ * The floor is 0.55 rather than something fainter because the metric has to stay readable
+ * — the fix for an overpowering overlay is putting the labels above it, not making the
+ * data too faint to read.
+ */
+export function analyticalOpacity(zoom: number): number {
+  if (!Number.isFinite(zoom)) return 0.72;
+  if (zoom <= 4) return 0.55;
+  if (zoom >= 9) return 0.88;
+  // Linear between the anchors rather than a step, so the change reads as the map
+  // settling rather than as a redraw. It is applied when the zoom settles, not per frame.
+  return 0.55 + ((zoom - 4) / 5) * (0.88 - 0.55);
+}
+
 export function rampColor(t: number): [number, number, number] {
   const clamped = Number.isFinite(t) ? Math.min(1, Math.max(0, t)) : 0;
   const scaled = clamped * (RAMP.length - 1);

@@ -1,13 +1,15 @@
 "use client";
 
-import { ScatterplotLayer, SolidPolygonLayer, TextLayer } from "@deck.gl/layers";
+import { PathLayer, ScatterplotLayer, SolidPolygonLayer, TextLayer } from "@deck.gl/layers";
+import { cellToBoundary } from "h3-js";
 import { MapboxOverlay } from "@deck.gl/mapbox";
 import maplibregl from "maplibre-gl";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import "maplibre-gl/dist/maplibre-gl.css";
 
 import type { Boundaries } from "../lib/data/geometry";
+import type { Bounds } from "../lib/geography";
 
 /**
  * The map. Imported dynamically by every view that uses it, so deck.gl and MapLibre stay
@@ -39,6 +41,72 @@ import type { Boundaries } from "../lib/data/geometry";
  * geographic context is missing instead of showing an empty country.
  */
 const BASEMAP = "https://tiles.openfreemap.org/styles/positron";
+
+/**
+ * Where the analytical surface is inserted into the basemap's own layer stack.
+ *
+ * The overlay used to be a separate canvas painted over the finished basemap
+ * (`interleaved: false`), which put every analytical polygon above every road, boundary
+ * and place label. The map rendered correctly and was unusable as a map: a reader could
+ * see that a region scored highly without being able to tell which region it was.
+ *
+ * Positron's stack is background → landcover and water fills → building → **road, railway
+ * and boundary lines** → labels. Inserting before `tunnel_motorway_casing`, the first of
+ * the line layers, produces the intended reading order:
+ *
+ *     water and landcover        (below — context the metric sits on)
+ *     ANALYTICAL POLYGON FILL
+ *     roads, railways, state and county boundaries
+ *     place labels               (above — always readable)
+ *     hover, selection, markers  (above everything, in the overlay's own pass)
+ *
+ * If the basemap ever stops publishing this layer id, MapLibre throws on the insert; the
+ * catch below degrades to overlay-on-top rather than losing the analytical layer, and says
+ * so in the console. A missing label hierarchy is a worse map, not a broken one.
+ */
+const ANALYTICAL_BEFORE_ID = "tunnel_motorway_casing";
+
+/**
+ * State outlines at the zooms where the basemap does not draw them.
+ *
+ * Positron's own `boundary_3` layer carries admin levels 3-6 but is gated at `minzoom: 8`,
+ * so between the national view and city zoom there are no state borders at all — which is
+ * most of the range this product is read at. The features themselves are present in the
+ * tiles well below that (measured: admin_level 4 features are returned by
+ * `querySourceFeatures` at zoom 3.4), so nothing new needs fetching; only a layer that
+ * draws them.
+ *
+ * Added above the analytical fill and below the labels, using the basemap's own source, so
+ * it costs no artifact and no request. It fades out at zoom 8 where the basemap's own
+ * boundary layer takes over, rather than doubling it.
+ */
+function addStateBoundaries(map: maplibregl.Map): void {
+  if (map.getLayer("voltgap-state-boundary") !== undefined) return;
+  if (map.getSource("openmaptiles") === undefined) return;
+  try {
+    map.addLayer({
+      id: "voltgap-state-boundary",
+      type: "line",
+      source: "openmaptiles",
+      "source-layer": "boundary",
+      filter: ["all",
+        ["==", ["get", "admin_level"], 4],
+        ["!=", ["get", "maritime"], 1],
+        ["!=", ["get", "disputed"], 1],
+      ],
+      maxzoom: 8,
+      paint: {
+        "line-color": "hsl(0,0%,45%)",
+        "line-width": ["interpolate", ["linear"], ["zoom"], 2, 0.6, 5, 1.0, 8, 1.4],
+        "line-opacity": ["interpolate", ["linear"], ["zoom"], 2, 0.5, 4, 0.75, 8, 0.5],
+      },
+    }, "waterway_line_label");
+  } catch (e) {
+    // The basemap changed shape. A map without state outlines is still a usable map.
+    // eslint-disable-next-line no-console
+    console.warn("state boundaries unavailable:", e);
+  }
+}
 
 /** A selected portfolio area, drawn as a dominant marker on top of the faint eligible set. */
 export interface SelectedDatum {
@@ -84,6 +152,22 @@ export interface HexMapProps {
   readonly highlightRank?: number | null;
   /** Camera target; changing it flies the map there. */
   readonly focus?: { longitude: number; latitude: number; zoom: number } | null;
+  /**
+   * Camera extent; changing it fits the map to these bounds. Used by the geography
+   * control, where "show me Washington" means a frame, not a point and a guessed zoom.
+   */
+  readonly fitBounds?: Bounds | null;
+  /**
+   * Fill opacity for the analytical surface, 0..1. A uniform, not a per-vertex value, so
+   * zoom-dependent styling costs no buffer rebuild — see `analyticalOpacity` in
+   * `lib/scales.ts` for why it varies and by how much.
+   */
+  readonly fillOpacity?: number;
+  /**
+   * H3 cells to outline. The hovered or selected area, drawn as a ring above the fill so
+   * the reader can see exactly which cell the card is describing.
+   */
+  readonly outlineCells?: readonly string[];
 }
 
 function BasemapWarning() {
@@ -118,6 +202,9 @@ export default function HexMap({
   onPickSelected,
   highlightRank = null,
   focus = null,
+  fitBounds = null,
+  fillOpacity = 1,
+  outlineCells,
 }: HexMapProps) {
   const container = useRef<HTMLDivElement | null>(null);
   const map = useRef<maplibregl.Map | null>(null);
@@ -131,6 +218,16 @@ export default function HexMap({
   /** Whether the analytical layer answers a pointer — a boolean, so it is a stable dep. */
   const pickable = onHoverCell !== undefined || onPickCell !== undefined;
   const [basemapFailed, setBasemapFailed] = useState(false);
+  /**
+   * Set once the basemap style is parsed and the insertion point has been checked.
+   *
+   * `beforeId` naming a layer the style does not have makes MapLibre throw, so the id is
+   * verified against the loaded style rather than trusted. If it is absent the overlay
+   * still draws — on top, as it used to — and the console says the label hierarchy was
+   * lost. Degrading explicitly beats an empty map (directive D8).
+   */
+  const [styleReady, setStyleReady] = useState(false);
+  const beforeId = useRef<string | null>(null);
 
   useEffect(() => {
     const node = container.current;
@@ -172,6 +269,23 @@ export default function HexMap({
       center: [initialViewState.longitude, initialViewState.latitude],
       zoom: initialViewState.zoom,
       attributionControl: { compact: true },
+      /**
+       * Test affordance, like `?layer=off` and `?resolution=native`.
+       *
+       * Reading pixels back off a WebGL canvas requires the drawing buffer to survive the
+       * frame. Chrome's own `Page.captureScreenshot` normally arranges that itself, but
+       * with the analytical layer interleaved into MapLibre's render pass at the full
+       * 52,912 cells it takes **208 seconds** against 102 ms with the layer off — measured,
+       * not estimated. With this flag the rendering regression check reads the canvas
+       * directly instead, which is fast and captures exactly the same pixels.
+       *
+       * Off in production, because preserving the buffer costs memory bandwidth on every
+       * frame and the §11.3 frame-rate budget is measured without it.
+       */
+      canvasContextAttributes: {
+        preserveDrawingBuffer:
+          new URLSearchParams(window.location.search).get("preserve") === "1",
+      },
     });
     instance.addControl(new maplibregl.NavigationControl({ showCompass: false }));
     if (onZoomRef.current) {
@@ -179,12 +293,30 @@ export default function HexMap({
       instance.on("zoomend", report);
       instance.on("load", report);
     }
+    instance.on("load", () => {
+      const present = instance.getStyle().layers.some(
+        (l) => l.id === ANALYTICAL_BEFORE_ID,
+      );
+      beforeId.current = present ? ANALYTICAL_BEFORE_ID : null;
+      addStateBoundaries(instance);
+      if (!present) {
+        // eslint-disable-next-line no-console
+        console.warn(
+          `basemap has no layer "${ANALYTICAL_BEFORE_ID}": analytical fill will draw ` +
+          "above place labels",
+        );
+      }
+      setStyleReady(true);
+    });
     instance.on("error", (event) => {
       // eslint-disable-next-line no-console
       console.warn("basemap:", event.error?.message ?? event);
       setBasemapFailed(true);
     });
-    const deck = new MapboxOverlay({ interleaved: false, layers: [] });
+    // Interleaved: deck.gl draws inside MapLibre's own render pass, which is what makes
+    // `beforeId` meaningful. Without it there is no way to put a basemap label above an
+    // analytical polygon, because the two are on different canvases.
+    const deck = new MapboxOverlay({ interleaved: true, layers: [] });
     instance.addControl(deck);
     map.current = instance;
     overlay.current = deck;
@@ -211,22 +343,42 @@ export default function HexMap({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  /**
+   * The binary payload, held stable across re-renders.
+   *
+   * This object's IDENTITY is what deck.gl diffs to decide whether to re-upload 370,384
+   * vertices and a 1.48 MB colour buffer. Building it inline inside the layer effect made
+   * every rebuild a full GPU upload, so once `fillOpacity` — which varies continuously
+   * with zoom — entered that effect's dependencies, a routine zoom re-uploaded the whole
+   * surface and the sustained frame rate fell from 60.0 to 21.4 fps.
+   *
+   * Memoised on the buffers themselves, so a layer rebuild for any other reason (opacity,
+   * outline, picking) reuses this reference and deck.gl skips the upload entirely.
+   */
+  const binary = useMemo(() => {
+    if (boundaries === null || colors === null) return null;
+    return {
+      length: boundaries.length,
+      startIndices: boundaries.startIndices,
+      attributes: {
+        getPolygon: { value: boundaries.positions, size: 2 },
+        getFillColor: { value: colors, size: 4, normalized: false },
+      },
+    };
+  }, [boundaries, colors]);
+
   useEffect(() => {
     if (overlay.current === null) return;
     const layers = [];
-    if (analyticalLayer && boundaries !== null && colors !== null) {
+    if (analyticalLayer && binary !== null) {
       layers.push(
         new SolidPolygonLayer({
           id: "hex6",
-          data: {
-            length: boundaries.length,
-            startIndices: boundaries.startIndices,
-            attributes: {
-              getPolygon: { value: boundaries.positions, size: 2 },
-              getFillColor: { value: colors, size: 4, normalized: false },
-            },
-          },
+          data: binary,
           positionFormat: "XY",
+          // Under the roads, boundaries and labels. See ANALYTICAL_BEFORE_ID.
+          beforeId: beforeId.current ?? undefined,
+          opacity: fillOpacity,
           extruded: false,
           filled: true,
           stroked: false,
@@ -238,6 +390,25 @@ export default function HexMap({
               info.index >= 0 ? info.index : null, info.x, info.y),
           onClick: (info) =>
             handlers.current.onPickCell?.(info.index >= 0 ? info.index : null),
+        }),
+      );
+    }
+    if (outlineCells && outlineCells.length > 0) {
+      layers.push(
+        new PathLayer<string>({
+          id: "outline",
+          data: outlineCells as string[],
+          getPath: (h) => {
+            const ring = cellToBoundary(h, true);
+            return ring as unknown as [number, number][];
+          },
+          getColor: [26, 24, 18, 235],
+          getWidth: 2.2,
+          widthUnits: "pixels",
+          widthMinPixels: 2,
+          jointRounded: true,
+          capRounded: true,
+          pickable: false,
         }),
       );
     }
@@ -321,7 +492,18 @@ export default function HexMap({
     // baseline on the same machine. The callbacks are read through `handlers.current`,
     // which is refreshed on every render, so the layer always calls the current one; only
     // WHETHER picking is enabled can change what the layer must be rebuilt for.
-  }, [boundaries, colors, sites, selected, analyticalLayer, highlightRank, pickable]);
+  }, [binary, sites, selected, analyticalLayer, highlightRank, pickable,
+      fillOpacity, outlineCells, styleReady]);
+
+  // Fit the camera to a geography chosen in the sidebar. Distinct from `focus`: this is
+  // "show me this whole area", which needs an extent, not a centre and a guessed zoom.
+  useEffect(() => {
+    if (map.current === null || fitBounds === null) return;
+    map.current.fitBounds(
+      [[fitBounds.west, fitBounds.south], [fitBounds.east, fitBounds.north]],
+      { padding: 40, duration: 800, maxZoom: 9 },
+    );
+  }, [fitBounds]);
 
   // Fly to a place chosen elsewhere on the page — a table row, or a regional summary.
   useEffect(() => {
