@@ -357,3 +357,109 @@ td.num, th.num { text-align: right; font-family: var(--mono); }
   text-decoration: none;
 }
 .handoff:hover { border-color: var(--ink-faint); background: var(--panel-strong, var(--panel)); }
+
+/* --- How it works: the plain-language entry point ------------------------------------ */
+.howto .journey { list-style: none; padding: 0; margin: 1.2rem 0; }
+.howto .journey > li {
+  display: flex; gap: 0.9rem; align-items: flex-start;
+  padding: 0.85rem 0; border-top: 1px solid var(--rule);
+}
+.howto .journey > li:first-child { border-top: none; }
+.howto .journey h3 { margin: 0 0 0.2rem; font-size: 1rem; }
+.howto .journey p { margin: 0; color: var(--ink-dim); }
+.jn {
+  flex: none; width: 1.65rem; height: 1.65rem; border-radius: 50%;
+  display: grid; place-items: center; font-size: 0.8rem; font-weight: 700;
+  background: var(--accent-dim); color: var(--bg); margin-top: 0.1rem;
+}
+.limits { margin: 1rem 0; }
+.limits > div { padding: 0.7rem 0; border-top: 1px solid var(--rule); }
+.limits > div:first-child { border-top: none; }
+.limits dt { font-weight: 650; margin-bottom: 0.2rem; }
+.limits dd { margin: 0; color: var(--ink-dim); }
+
+.cta {
+  margin: 1.6rem 0; padding: 1rem 1.1rem; border-radius: 10px;
+  border: 1px solid var(--rule); background: var(--surface);
+}
+.cta.quiet { background: transparent; }
+.cta > p { margin: 0 0 0.7rem; }
+.cta-row { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.btn {
+  display: inline-block; padding: 0.45rem 0.85rem; border-radius: 7px;
+  border: 1px solid var(--rule); color: var(--ink); text-decoration: none;
+  font-size: 0.9rem; font-weight: 550;
+}
+.btn:hover { border-color: var(--accent-dim); }
+.btn.primary { background: var(--accent-dim); color: var(--bg); border-color: transparent; }
+.btn.primary:hover { filter: brightness(1.08); }
+
+/* --- Methodology: sticky contents + long-form technical layout ----------------------- */
+.methodology { display: grid; grid-template-columns: 15rem minmax(0, 1fr); gap: 2.2rem; }
+.method-body { min-width: 0; }
+.toc { position: sticky; top: 1rem; align-self: start; max-height: calc(100vh - 2rem); overflow-y: auto; }
+.toc-title {
+  font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.07em;
+  color: var(--ink-faint); margin-bottom: 0.5rem;
+}
+.toc ol { list-style: none; margin: 0; padding: 0; }
+.toc li { margin: 0; }
+.toc a {
+  display: block; padding: 0.28rem 0.5rem; font-size: 0.82rem; line-height: 1.35;
+  color: var(--ink-dim); text-decoration: none; border-left: 2px solid transparent;
+}
+.toc a:hover { color: var(--ink); }
+.toc a.current { color: var(--ink); border-left-color: var(--accent); font-weight: 600; }
+
+.method-body h2 { scroll-margin-top: 1.2rem; padding-top: 0.6rem; border-top: 1px solid var(--rule); }
+.method-body h3 { font-size: 0.98rem; margin-top: 1.3rem; }
+.table-scroll { overflow-x: auto; margin: 0.9rem 0; }
+.table-scroll table { min-width: 100%; }
+table.src { font-size: 0.82rem; }
+table.src td.lim { color: var(--ink-dim); min-width: 15rem; }
+pre.rule {
+  background: var(--surface); border: 1px solid var(--rule); border-radius: 8px;
+  padding: 0.75rem 0.9rem; overflow-x: auto; font-size: 0.85rem; line-height: 1.5;
+}
+.limitations li { margin-bottom: 0.45rem; }
+
+.pipeline-diagram { list-style: none; margin: 1.1rem 0; padding: 0; }
+.pipeline-diagram > li { position: relative; padding-bottom: 1.35rem; }
+.pipeline-diagram > li:last-child { padding-bottom: 0; }
+/* The connector between stages, drawn rather than typed, so it never becomes stray text
+   for a screen reader. */
+.pipeline-diagram > li:not(:last-child)::after {
+  content: ""; position: absolute; left: 1.42rem; bottom: 0.25rem;
+  width: 1px; height: 1.1rem; background: var(--rule);
+}
+.pd-box {
+  display: flex; gap: 0.75rem; align-items: flex-start;
+  padding: 0.6rem 0.8rem; border: 1px solid var(--rule); border-radius: 8px;
+  background: var(--surface);
+}
+.pd-n {
+  flex: none; width: 1.35rem; height: 1.35rem; border-radius: 5px;
+  display: grid; place-items: center; font-size: 0.72rem; font-weight: 700;
+  background: var(--bg); border: 1px solid var(--rule); color: var(--ink-dim);
+}
+.pd-box strong { display: block; font-size: 0.9rem; }
+.pd-detail { display: block; font-size: 0.8rem; color: var(--ink-dim); margin-top: 0.1rem; }
+
+.h3-figure { width: 100%; max-width: 460px; height: auto; margin: 1rem 0; }
+.h3-label { font-size: 9px; fill: var(--ink-faint); }
+
+.stack { display: grid; gap: 0.9rem; margin: 1rem 0; }
+.stack h4 {
+  margin: 0 0 0.15rem; font-size: 0.72rem; text-transform: uppercase;
+  letter-spacing: 0.07em; color: var(--ink-faint);
+}
+.stack p { margin: 0; }
+
+@media (max-width: 900px) {
+  .methodology { grid-template-columns: 1fr; gap: 1rem; }
+  .toc {
+    position: static; max-height: none;
+    border: 1px solid var(--rule); border-radius: 8px; padding: 0.7rem 0.6rem;
+  }
+  .toc ol { columns: 2; column-gap: 1rem; }
+}

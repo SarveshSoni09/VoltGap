@@ -48,7 +48,19 @@ web/node_modules
 web/.next
 web/out
 web/tsconfig.tsbuildinfo
-# Generated publication artifacts. Rebuilt by `make artifacts` from the accepted
-# pipeline outputs, and by the Phase 6 gate before it runs the acceptance tests, so a
-# clean clone reproduces them rather than trusting a committed copy.
-web/public/data/
+# Generated publication artifacts are NOW COMMITTED, deliberately.
+#
+# They are rebuilt by `make artifacts` from the accepted pipeline outputs, and by the
+# Phase 6 gate before it runs the acceptance tests, so a developer clone still reproduces
+# them rather than trusting the committed copy. But reproducing them requires the
+# git-ignored 4.4 GB source cache, which a deployment build host does not have and must
+# not need.
+#
+# Ignoring them meant a clean clone contained zero files under web/public/, so a static
+# host would build successfully and serve an application whose every data fetch 404s. The
+# whole set is 11 MB across 10 files, largest 7.1 MB - comfortably inside Git and host
+# limits - so versioning them with the release is simpler and more reliable than staging
+# them through object storage, and it keeps the deployed site byte-identical to the
+# artifacts the gate verified.
+#
+# See docs/DEPLOYMENT.md for the reasoning and the alternative that was rejected.

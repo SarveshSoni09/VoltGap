@@ -42,9 +42,14 @@ def phase4() -> dict[str, Any]:
 # --- P6-A: the static export exists and is real ---------------------------------------
 
 def test_p6_a_the_static_export_produced_every_core_view() -> None:
-    """§11.1: three Core views plus Methodology, all statically exported."""
+    """§11.1: three Core views plus Methodology, all statically exported.
+
+    "How it works" joins them for the release: the same requirement that makes the
+    caveats a first-class view rather than small print applies to the explanation a
+    first-time reader needs before the caveats mean anything.
+    """
     for page in ("index.html", "access/index.html", "studio/index.html",
-                 "methodology/index.html"):
+                 "methodology/index.html", "how-it-works/index.html"):
         path = OUT / page
         assert path.is_file(), f"{page} was not exported"
         assert path.stat().st_size > 2000, f"{page} is suspiciously small"
@@ -65,6 +70,26 @@ def test_p6_a_the_methodology_view_renders_its_content_statically() -> None:
     assert "negative result" in html
     assert "sub-state anchored" in html
     assert "No approximation bound is claimed" in html
+    # The technical record must actually carry the record, not link to it. These are the
+    # load-bearing figures a reader would come here to check.
+    assert "2,104,242" in html, "the capacity double-counting result"
+    assert "0.3203" in html, "the reconciled demand-model WAPE"
+    assert "96 of 96" in html, "frontier solver status"
+    assert "3.14%" in html, "worst measured greedy shortfall"
+    assert "unmoderated usability check has not been run" in html
+
+
+def test_p6_a_the_plain_language_view_stays_free_of_internal_vocabulary() -> None:
+    """The entry point is for a reader who has never heard of VoltGap.
+
+    Its job fails quietly if implementation vocabulary leaks into it, so the terms that
+    belong behind the Methodology link are asserted absent rather than reviewed by eye.
+    """
+    html = (OUT / "how-it-works" / "index.html").read_text(encoding="utf-8")
+    for term in ("H3", "Poisson", "ε-constraint", "CBC", "WAPE", "evidence_grain",
+                 "sub-state anchored", "Pareto"):
+        assert term not in html, f"{term!r} leaked into the plain-language view"
+    assert "Explore Methodology" in html, "the route to the detail must exist"
 
 
 # --- P6-B: performance budget, CI-enforced --------------------------------------------

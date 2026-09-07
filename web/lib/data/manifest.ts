@@ -50,6 +50,15 @@ export async function loadManifest(base: string = DATA_BASE): Promise<Manifest> 
  * Says the age plainly rather than hiding it: a stale-but-correct site beats a
  * fresh-but-broken one (§13.2), but only if the reader can tell which one they are looking
  * at.
+ *
+ * **The wording is deliberately about the build, not about a refresh.** This release is a
+ * fixed, manually published snapshot: there is no scheduled ETL behind it, so the earlier
+ * copy — "Data refreshed today", and past the threshold "The scheduled refresh may have
+ * stopped" — asserted an automation that does not exist and would have become a false
+ * statement on the fourteenth day after publication. `computed_at` is the moment the
+ * artifacts were BUILT; the upstream data carry their own, older vintages, which the
+ * manifest lists separately under `source_vintages`. Conflating the two would tell a
+ * reader that year-old registration data was refreshed this morning.
  */
 export function freshness(manifest: Manifest, now: Date = new Date()): Freshness {
   const computedAt = new Date(manifest.computed_at);
@@ -61,7 +70,7 @@ export function freshness(manifest: Manifest, now: Date = new Date()): Freshness
     stale,
     staleAfterDays: manifest.stale_after_days,
     message: stale
-      ? `Data is ${Math.floor(ageDays)} days old, past the ${manifest.stale_after_days}-day refresh threshold. The scheduled refresh may have stopped.`
-      : `Data refreshed ${ageDays < 1 ? "today" : `${Math.floor(ageDays)} days ago`}.`,
+      ? `Data artifacts built ${Math.floor(ageDays)} days ago, past this release's ${manifest.stale_after_days}-day freshness threshold. Sources carry their own, older vintages.`
+      : `Data artifacts built ${ageDays < 1 ? "today" : `${Math.floor(ageDays)} days ago`}. Sources carry their own, older vintages.`,
   };
 }

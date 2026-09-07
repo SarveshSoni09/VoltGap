@@ -1,0 +1,530 @@
+{
+  "computed_at": "2026-09-07T04:53:42.592476+00:00",
+  "stale_after_days": 14,
+  "artifacts": {
+    "access_points.parquet": {
+      "name": "access_points.parquet",
+      "bytes": 7413590,
+      "rows": 239780,
+      "sha256": "00e0b7be239f8bbe1170f9e59f123a07b5678775809a4eab8b0c56cc670b09a9",
+      "columns": [
+        "block_group_geoid",
+        "tract_geoid",
+        "state_fips",
+        "h3_index",
+        "latitude",
+        "longitude",
+        "population",
+        "km_to_nearest_dcfc_site",
+        "km_to_nearest_l2_site",
+        "income_share_under_35k"
+      ]
+    },
+    "frontier/California.json": {
+      "name": "frontier/California.json",
+      "bytes": 6071,
+      "rows": 16,
+      "sha256": "cb45a9541ea2fb5317e0e69d7a241400b7ca860c651477d3fde120c4f1312fc8",
+      "columns": [
+        "budget_sites",
+        "cbc_optimality_gap",
+        "cbc_status",
+        "demand_covered",
+        "epsilon",
+        "equity_population_covered",
+        "objective_sense",
+        "sites_selected",
+        "solve_seconds",
+        "state"
+      ]
+    },
+    "frontier/Montana.json": {
+      "name": "frontier/Montana.json",
+      "bytes": 5947,
+      "rows": 16,
+      "sha256": "e013b49dc41da89fb3b0c8567ab30d40f123619e3c472e2abe001cc8cca2458b",
+      "columns": [
+        "budget_sites",
+        "cbc_optimality_gap",
+        "cbc_status",
+        "demand_covered",
+        "epsilon",
+        "equity_population_covered",
+        "objective_sense",
+        "sites_selected",
+        "solve_seconds",
+        "state"
+      ]
+    },
+    "frontier/Tennessee.json": {
+      "name": "frontier/Tennessee.json",
+      "bytes": 6044,
+      "rows": 16,
+      "sha256": "637646a5065a3d113b4898f0f1f6f23ff68698f647f3da71bbd1412385b355d0",
+      "columns": [
+        "budget_sites",
+        "cbc_optimality_gap",
+        "cbc_status",
+        "demand_covered",
+        "epsilon",
+        "equity_population_covered",
+        "objective_sense",
+        "sites_selected",
+        "solve_seconds",
+        "state"
+      ]
+    },
+    "frontier/Texas.json": {
+      "name": "frontier/Texas.json",
+      "bytes": 5978,
+      "rows": 16,
+      "sha256": "6904f28cdfc01d24aa9f7aee54f975ea7d88feb534b27e9094aa59deaf31751c",
+      "columns": [
+        "budget_sites",
+        "cbc_optimality_gap",
+        "cbc_status",
+        "demand_covered",
+        "epsilon",
+        "equity_population_covered",
+        "objective_sense",
+        "sites_selected",
+        "solve_seconds",
+        "state"
+      ]
+    },
+    "frontier/Vermont.json": {
+      "name": "frontier/Vermont.json",
+      "bytes": 5965,
+      "rows": 16,
+      "sha256": "0fd03bd146590421e1a6f0117fd88a39777d5e4f97567840ce0300a658b2aa0c",
+      "columns": [
+        "budget_sites",
+        "cbc_optimality_gap",
+        "cbc_status",
+        "demand_covered",
+        "epsilon",
+        "equity_population_covered",
+        "objective_sense",
+        "sites_selected",
+        "solve_seconds",
+        "state"
+      ]
+    },
+    "frontier/Washington.json": {
+      "name": "frontier/Washington.json",
+      "bytes": 6063,
+      "rows": 16,
+      "sha256": "c3fbf5c69ecf6b07d0854446f8bed70c607c549ff5f8a005580f40afbaeaa720",
+      "columns": [
+        "budget_sites",
+        "cbc_optimality_gap",
+        "cbc_status",
+        "demand_covered",
+        "epsilon",
+        "equity_population_covered",
+        "objective_sense",
+        "sites_selected",
+        "solve_seconds",
+        "state"
+      ]
+    },
+    "hex6_national.parquet": {
+      "name": "hex6_national.parquet",
+      "bytes": 3106918,
+      "rows": 53208,
+      "sha256": "716e8e457b943b3568b85ceddae13680a83795cc55ba98f0d1325d10d89bb562",
+      "columns": [
+        "h3_index",
+        "state_fips",
+        "latitude",
+        "longitude",
+        "area_km2",
+        "demand_bev",
+        "population",
+        "households",
+        "equity_population",
+        "uncertainty_score",
+        "confidence_tier",
+        "sub_state_anchored_share",
+        "dominant_evidence_grain",
+        "share_native_tract",
+        "share_zip_anchored",
+        "share_county_anchored",
+        "share_state_total_only",
+        "share_observed_count",
+        "share_zero_by_absence",
+        "share_modelled",
+        "tracts_contributing",
+        "largest_tract_share",
+        "station_count",
+        "dcfc_ports",
+        "l2_ports",
+        "km_to_nearest_dcfc_site",
+        "km_to_nearest_public_site",
+        "county_name",
+        "state_code",
+        "county_population_share",
+        "km_to_nearest_primary_secondary_road",
+        "passes_road_filter"
+      ]
+    },
+    "sites.parquet": {
+      "name": "sites.parquet",
+      "bytes": 1120664,
+      "rows": 82056,
+      "sha256": "d979fb42680fbb161dd77e3c02a32d70e434bb3bc5f126ad17a50e49f1ab3c3a",
+      "columns": [
+        "latitude",
+        "longitude",
+        "serves_dcfc"
+      ]
+    }
+  },
+  "source_vintages": {
+    "acs_5_year": "2024",
+    "afdc_state_registrations": "2023",
+    "afdc_stations": "current snapshot",
+    "tiger_roads": "2024"
+  },
+  "pipeline_phases": {
+    "demand_surface": "Phase 3 (accepted)",
+    "siting_and_frontier": "Phase 4 (accepted)",
+    "validation": "Phase 5 (accepted)"
+  },
+  "notes": {
+    "national_cells": 53208,
+    "national_demand_bev": 5568123.0027,
+    "unallocated_demand_bev": 48800.0,
+    "unallocated_note": "demand in tracts with no block-group population weight, reported rather than dropped",
+    "sub_state_anchored_share_of_demand": 0.077005,
+    "access_points": 239780,
+    "access_grain": "BLOCK GROUP population-weighted points, finer than tract. \u00a711.4 names this file tract_access.parquet; calling it that would misdescribe its grain, so it ships as access_points.parquet",
+    "dcfc_sensitivity_curve": [
+      {
+        "threshold_km": 1.0,
+        "population_in_gap": 297173397.0
+      },
+      {
+        "threshold_km": 2.0,
+        "population_in_gap": 232399078.0
+      },
+      {
+        "threshold_km": 3.0,
+        "population_in_gap": 176111962.0
+      },
+      {
+        "threshold_km": 4.0,
+        "population_in_gap": 136342058.0
+      },
+      {
+        "threshold_km": 5.0,
+        "population_in_gap": 109266854.0
+      },
+      {
+        "threshold_km": 6.0,
+        "population_in_gap": 90940406.0
+      },
+      {
+        "threshold_km": 7.0,
+        "population_in_gap": 78375720.0
+      },
+      {
+        "threshold_km": 8.0,
+        "population_in_gap": 69151762.0
+      },
+      {
+        "threshold_km": 9.0,
+        "population_in_gap": 61691465.0
+      },
+      {
+        "threshold_km": 10.0,
+        "population_in_gap": 55655567.0
+      },
+      {
+        "threshold_km": 11.0,
+        "population_in_gap": 50448696.0
+      },
+      {
+        "threshold_km": 12.0,
+        "population_in_gap": 45934925.0
+      },
+      {
+        "threshold_km": 13.0,
+        "population_in_gap": 42008045.0
+      },
+      {
+        "threshold_km": 14.0,
+        "population_in_gap": 38535508.0
+      },
+      {
+        "threshold_km": 15.0,
+        "population_in_gap": 35312334.0
+      },
+      {
+        "threshold_km": 16.0,
+        "population_in_gap": 32420829.0
+      },
+      {
+        "threshold_km": 17.0,
+        "population_in_gap": 29850647.0
+      },
+      {
+        "threshold_km": 18.0,
+        "population_in_gap": 27525520.0
+      },
+      {
+        "threshold_km": 19.0,
+        "population_in_gap": 25374206.0
+      },
+      {
+        "threshold_km": 20.0,
+        "population_in_gap": 23248208.0
+      },
+      {
+        "threshold_km": 21.0,
+        "population_in_gap": 21345683.0
+      },
+      {
+        "threshold_km": 22.0,
+        "population_in_gap": 19719212.0
+      },
+      {
+        "threshold_km": 23.0,
+        "population_in_gap": 18242069.0
+      },
+      {
+        "threshold_km": 24.0,
+        "population_in_gap": 16892952.0
+      },
+      {
+        "threshold_km": 25.0,
+        "population_in_gap": 15599365.0
+      },
+      {
+        "threshold_km": 26.0,
+        "population_in_gap": 14486644.0
+      },
+      {
+        "threshold_km": 27.0,
+        "population_in_gap": 13461967.0
+      },
+      {
+        "threshold_km": 28.0,
+        "population_in_gap": 12503684.0
+      },
+      {
+        "threshold_km": 29.0,
+        "population_in_gap": 11638235.0
+      },
+      {
+        "threshold_km": 30.0,
+        "population_in_gap": 10815551.0
+      },
+      {
+        "threshold_km": 31.0,
+        "population_in_gap": 10013072.0
+      },
+      {
+        "threshold_km": 32.0,
+        "population_in_gap": 9284256.0
+      },
+      {
+        "threshold_km": 33.0,
+        "population_in_gap": 8644961.0
+      },
+      {
+        "threshold_km": 34.0,
+        "population_in_gap": 8037274.0
+      },
+      {
+        "threshold_km": 35.0,
+        "population_in_gap": 7444727.0
+      },
+      {
+        "threshold_km": 36.0,
+        "population_in_gap": 6913289.0
+      },
+      {
+        "threshold_km": 37.0,
+        "population_in_gap": 6456976.0
+      },
+      {
+        "threshold_km": 38.0,
+        "population_in_gap": 6044665.0
+      },
+      {
+        "threshold_km": 39.0,
+        "population_in_gap": 5627555.0
+      },
+      {
+        "threshold_km": 40.0,
+        "population_in_gap": 5285762.0
+      },
+      {
+        "threshold_km": 41.0,
+        "population_in_gap": 4971776.0
+      },
+      {
+        "threshold_km": 42.0,
+        "population_in_gap": 4668653.0
+      },
+      {
+        "threshold_km": 43.0,
+        "population_in_gap": 4433844.0
+      },
+      {
+        "threshold_km": 44.0,
+        "population_in_gap": 4213320.0
+      },
+      {
+        "threshold_km": 45.0,
+        "population_in_gap": 3966503.0
+      },
+      {
+        "threshold_km": 46.0,
+        "population_in_gap": 3764162.0
+      },
+      {
+        "threshold_km": 47.0,
+        "population_in_gap": 3557939.0
+      },
+      {
+        "threshold_km": 48.0,
+        "population_in_gap": 3375108.0
+      },
+      {
+        "threshold_km": 49.0,
+        "population_in_gap": 3206962.0
+      },
+      {
+        "threshold_km": 50.0,
+        "population_in_gap": 3017629.0
+      },
+      {
+        "threshold_km": 51.0,
+        "population_in_gap": 2861671.0
+      },
+      {
+        "threshold_km": 52.0,
+        "population_in_gap": 2693782.0
+      },
+      {
+        "threshold_km": 53.0,
+        "population_in_gap": 2548537.0
+      },
+      {
+        "threshold_km": 54.0,
+        "population_in_gap": 2429332.0
+      },
+      {
+        "threshold_km": 55.0,
+        "population_in_gap": 2318186.0
+      },
+      {
+        "threshold_km": 56.0,
+        "population_in_gap": 2186854.0
+      },
+      {
+        "threshold_km": 57.0,
+        "population_in_gap": 2093109.0
+      },
+      {
+        "threshold_km": 58.0,
+        "population_in_gap": 2000654.0
+      },
+      {
+        "threshold_km": 59.0,
+        "population_in_gap": 1927154.0
+      },
+      {
+        "threshold_km": 60.0,
+        "population_in_gap": 1846053.0
+      },
+      {
+        "threshold_km": 61.0,
+        "population_in_gap": 1798175.0
+      },
+      {
+        "threshold_km": 62.0,
+        "population_in_gap": 1729531.0
+      },
+      {
+        "threshold_km": 63.0,
+        "population_in_gap": 1647751.0
+      },
+      {
+        "threshold_km": 64.0,
+        "population_in_gap": 1569423.0
+      },
+      {
+        "threshold_km": 65.0,
+        "population_in_gap": 1505565.0
+      },
+      {
+        "threshold_km": 66.0,
+        "population_in_gap": 1445315.0
+      },
+      {
+        "threshold_km": 67.0,
+        "population_in_gap": 1374331.0
+      },
+      {
+        "threshold_km": 68.0,
+        "population_in_gap": 1311961.0
+      },
+      {
+        "threshold_km": 69.0,
+        "population_in_gap": 1249711.0
+      },
+      {
+        "threshold_km": 70.0,
+        "population_in_gap": 1191656.0
+      },
+      {
+        "threshold_km": 71.0,
+        "population_in_gap": 1134532.0
+      },
+      {
+        "threshold_km": 72.0,
+        "population_in_gap": 1088736.0
+      },
+      {
+        "threshold_km": 73.0,
+        "population_in_gap": 1034956.0
+      },
+      {
+        "threshold_km": 74.0,
+        "population_in_gap": 982669.0
+      },
+      {
+        "threshold_km": 75.0,
+        "population_in_gap": 942311.0
+      },
+      {
+        "threshold_km": 76.0,
+        "population_in_gap": 896889.0
+      },
+      {
+        "threshold_km": 77.0,
+        "population_in_gap": 849511.0
+      },
+      {
+        "threshold_km": 78.0,
+        "population_in_gap": 822584.0
+      },
+      {
+        "threshold_km": 79.0,
+        "population_in_gap": 780504.0
+      },
+      {
+        "threshold_km": 80.0,
+        "population_in_gap": 745849.0
+      }
+    ],
+    "degradations": {
+      "sites_pmtiles": "NOT PRODUCED. tippecanoe is unavailable in this build environment, so the site layer ships as a parquet POINT layer rather than a vector tile set. It is not a substitute for tiles at high zoom.",
+      "transmission_pmtiles": "NOT SHIPPED. An opt-in contextual layer only (\u00a711.4). \u00a77.9 requires it never function as, or be described as, an interconnection constraint, and it is not a Core dependency.",
+      "hex8_metro": "NOT PRODUCED this phase. Metro drill-down at H3 resolution 8 is a lazy-loaded enhancement (\u00a711.4); Core renders the national resolution-6 surface."
+    }
+  }
+}

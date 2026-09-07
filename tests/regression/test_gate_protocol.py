@@ -11,7 +11,11 @@ Nothing here asserts a runtime. These assert that what the gate *runs* is comple
 
 from __future__ import annotations
 
+import hashlib
+import json
 import re
+import subprocess
+from pathlib import Path
 
 import pytest
 
@@ -236,12 +240,71 @@ def test_the_phase_6_gate_builds_generated_inputs_before_it_tests_them() -> None
     assert build_at < test_at, "artifacts and the export must be built before the tests"
 
 
-def test_the_generated_artifacts_are_not_committed() -> None:
-    """They are reproducible from the accepted pipeline, so committing them would make a
-    stale copy indistinguishable from a fresh build."""
+def test_the_build_output_is_not_committed() -> None:
+    """`web/out` is a pure build product with no deployment role of its own."""
     ignored = (PATHS.root / ".gitignore").read_text(encoding="utf-8")
-    assert "web/public/data/" in ignored
     assert "web/out" in ignored
+
+
+def test_the_committed_artifacts_match_what_the_pipeline_produces() -> None:
+    """The published artifacts ARE committed, and this is what makes that safe.
+
+    They were git-ignored until the release audit, on the reasoning that they are
+    reproducible from the accepted pipeline and that committing them would make a stale
+    copy indistinguishable from a fresh build. The first half is true. The second half was
+    the thing to fix, not a reason to keep ignoring them — because ignoring them meant a
+    clean clone contained no runtime data at all, so a static host would build cleanly and
+    serve an application whose every data fetch returned 404.
+
+    So the guarantee is now enforced rather than sidestepped. The gate rebuilds the
+    artifacts before this runs; if the committed copy had drifted from the pipeline, the
+    rebuild would have overwritten it and this comparison would fail. That detects
+    staleness, which the old rule never did.
+
+    Comparison is SEMANTIC, exactly as CLAUDE.md 14.1 defines determinism: `solve_seconds`
+    and `computed_at` are wall-clock facts about when a run happened, not about what the
+    data are, and they move on every rebuild by design.
+    """
+    repo = PATHS.root
+    data = repo / "web" / "public" / "data"
+    committed = subprocess.run(
+        ["git", "ls-files", "web/public/data"],
+        cwd=repo, capture_output=True, text=True, check=True,
+    ).stdout.split()
+    assert committed, "the runtime artifacts must be committed, or a clean clone is empty"
+
+    volatile = {"solve_seconds", "computed_at", "sha256", "bytes"}
+
+    def semantic(raw: bytes, name: str) -> object:
+        if not name.endswith(".json"):
+            return hashlib.sha256(raw).hexdigest()
+
+        def strip(node: object) -> object:
+            if isinstance(node, dict):
+                return {k: strip(v) for k, v in node.items() if k not in volatile}
+            if isinstance(node, list):
+                return [strip(v) for v in node]
+            return node
+
+        return strip(json.loads(raw))
+
+    drifted = []
+    for path in committed:
+        blob = subprocess.run(
+            ["git", "show", f"HEAD:{path}"], cwd=repo, capture_output=True, check=False,
+        )
+        if blob.returncode != 0:
+            continue  # not yet in HEAD; the working copy is the first commit of it
+        name = Path(path).name
+        on_disk = (data / Path(path).relative_to("web/public/data")).read_bytes()
+        if semantic(blob.stdout, name) != semantic(on_disk, name):
+            drifted.append(path)
+
+    assert not drifted, (
+        "committed artifacts differ from what the pipeline just produced, so the deployed "
+        f"site would serve something the gate did not verify: {drifted}. "
+        "Run `make artifacts` and commit the result."
+    )
 
 
 # --- 11.3: three performance budgets, each enforced ----------------------------------

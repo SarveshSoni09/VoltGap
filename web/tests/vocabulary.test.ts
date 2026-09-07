@@ -138,17 +138,35 @@ describe("freshness indicator (§13.3)", () => {
     source_vintages: {}, pipeline_phases: {}, notes: {},
   });
 
-  it("says the data is fresh inside the threshold", () => {
+  it("reports the build age inside the threshold, not a refresh", () => {
     const state = freshness(manifest("2026-09-01T00:00:00Z"), new Date("2026-09-03T00:00:00Z"));
     expect(state.stale).toBe(false);
-    expect(state.message).toMatch(/refreshed/i);
+    expect(state.message).toMatch(/artifacts built 2 days ago/i);
   });
 
   it("says so plainly past the threshold, rather than showing a stale number", () => {
     const state = freshness(manifest("2026-07-01T00:00:00Z"), new Date("2026-09-01T00:00:00Z"));
     expect(state.stale).toBe(true);
-    expect(state.message).toMatch(/62 days old/);
-    expect(state.message).toMatch(/refresh may have stopped/i);
+    expect(state.message).toMatch(/62 days ago/);
+    expect(state.message).toMatch(/freshness threshold/i);
+  });
+
+  it("never claims a scheduled refresh, because this release has none", () => {
+    // The earlier copy said "The scheduled refresh may have stopped" past the threshold,
+    // which asserted an automation that does not exist and would have become a false
+    // statement on the fourteenth day after publication. Asserted absent at both ends of
+    // the threshold so it cannot come back in either branch.
+    for (const [built, now] of [
+      ["2026-09-01T00:00:00Z", "2026-09-03T00:00:00Z"],
+      ["2026-07-01T00:00:00Z", "2026-09-01T00:00:00Z"],
+    ] as const) {
+      const message = freshness(manifest(built), new Date(now)).message;
+      expect(message).not.toMatch(/scheduled refresh/i);
+      expect(message).not.toMatch(/refreshed/i);
+      // computed_at is when the artifacts were BUILT; the sources are older, and the
+      // message must not let a reader conflate the two.
+      expect(message).toMatch(/sources carry their own, older vintages/i);
+    }
   });
 
   it("takes the threshold from the manifest, so page and pipeline cannot disagree", () => {
