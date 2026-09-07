@@ -1,6 +1,6 @@
 "use client";
 
-import { cellToParent } from "h3-js";
+import { cellToLatLng, cellToParent } from "h3-js";
 import dynamic from "next/dynamic";
 import { useEffect, useMemo, useState } from "react";
 
@@ -124,6 +124,14 @@ export default function AccessAndEquity() {
    */
   const [state, setState] = useState<string>(NATIONAL);
   const [fit, setFit] = useState<Bounds | null>(null);
+  /**
+   * Where the reader asked to be taken, from the card of an area they clicked.
+   *
+   * Distinct from `fit`, which frames a whole geography. This centres one area and leaves
+   * the geography, the distance threshold and the selected view exactly as they were.
+   */
+  const [focus, setFocus] =
+    useState<{ longitude: number; latitude: number; zoom: number } | null>(null);
 
   useEffect(() => {
     loadAccessTable().then(setPoints).catch((e: Error) => setError(e.message));
@@ -583,6 +591,7 @@ export default function AccessAndEquity() {
               colors={colors}
               fillOpacity={analyticalOpacity(zoom)}
               fitBounds={fit}
+              focus={focus}
               outlineCells={outlined}
               onZoom={setZoom}
               onHoverCell={(index, x, y) => {
@@ -618,16 +627,31 @@ export default function AccessAndEquity() {
                         ]
                   }
                   actions={
-                    pinned === null
-                      ? undefined
-                      : STATE_NAMES[shown.state_fips] !== undefined && (
+                    pinned === null ? undefined : (
+                      <>
+                        <button
+                          type="button"
+                          className="fcard-action"
+                          onClick={() => {
+                            const [lat, lng] = cellToLatLng(shown.h3_index);
+                            setFocus({
+                              longitude: lng, latitude: lat,
+                              zoom: Math.max(zoom, 8),
+                            });
+                          }}
+                        >
+                          Zoom to this area
+                        </button>
+                        {STATE_NAMES[shown.state_fips] !== undefined && (
                           <a
                             className="fcard-action"
                             href={`/studio/?state=${shown.state_fips}&from=gaps&threshold=${threshold.toFixed(1)}`}
                           >
                             Plan locations in {STATE_NAMES[shown.state_fips]}
                           </a>
-                        )
+                        )}
+                      </>
+                    )
                   }
                 />
               </CardAnchor>

@@ -2131,3 +2131,140 @@ rate is unchanged at the vsync ceiling. The rendering-check figures moved as exp
 §19.7b. Greedy re-solve improved 0.0334 → 0.0235 s; nothing in this pass touched the
 solver, so that is machine variance on a measurement with two orders of magnitude of
 headroom.
+
+### 19.13 Two gaps in the §19 pass, closed — 2026-09-06
+
+A status review of §19 against items 43–54 found two places where the work was reported as
+done but was only partly done. Both are now closed. Recorded here as a new section rather
+than by editing §19.9 and §19.11, so the earlier claim and its correction both stay
+visible.
+
+**Gap 1 — item 52's "click a location, zoom to that area" was only implemented in the
+Studio.** The `focus` camera prop existed on `HexMap` and the Siting Studio used it for row
+and marker clicks, but the EV Demand and Charging Gaps maps were never wired to it: clicking
+a cell pinned its card and moved nothing.
+
+Both map pages now carry a **Zoom to this area** action in the pinned card, beside the
+existing hand-off to the Studio. Verified in the built export rather than asserted:
+
+```
+national: button=true  zoom 3.40 -> 8.00, centre moved 3.53 deg
+gaps:     button=true  zoom 3.40 -> 8.00, centre moved 3.53 deg
+```
+
+It centres and never zooms out (`Math.max(zoom, 8)`), because a reader who is already close
+is asking to centre, not to be pulled back to a fixed level. The selected geography, metric,
+distance threshold and view are all left untouched — confirmed in
+`geo-gaps-zoom-to-area.png`, which shows the map at a Colorado/Kansas border area with
+"United States", 16.1 km and "All gap areas" still set.
+
+**One consequence, stated rather than hidden: the card closes when the zoom changes the
+display grouping.** Pins are held by index into the drawn set, and a zoom that regroups
+areas would leave that index pointing at a *different* cell. Clearing it is the existing
+guard against showing the reader the wrong area's numbers, and it is the right trade;
+carrying a pin across a regrouping would need pinning by H3 index instead, which is a
+change to the pinning model and not part of this correction.
+
+**Gap 2 — item 47's tests ran against the fixture, not the published artifact.** The audit
+figures in §19.4 came from a one-off DuckDB query. The committed regressions in
+`web/tests/access.test.ts` recompute independently of the browser's helpers, but over the
+4,000-point fixture, so a change to the *artifact* would not have re-verified any published
+count.
+
+Seven tests are now in `tests/regression/test_phase6_gates.py`, reading the shipped
+239,780-point `access_points.parquet` and re-deriving the quantities in SQL:
+
+| Test | Locks |
+|---|---|
+| `test_p6_h_the_gap_universe_matches_the_figures_the_report_publishes` | 20,781 gap cells, 20,551 populated, 230 uninhabited, 32,142,103 people |
+| `test_p6_h_each_specialised_view_is_the_documented_top_n` (×3) | 100 cells and the exact population of each view, plus that nothing outside beats the cutoff |
+| `test_p6_h_the_specialised_views_are_a_small_subset_of_a_much_larger_gap` | union 234, people ∩ equity 66, distance disjoint from both, 20,317 uncovered, >98% of cells and >93% of population outside all three |
+| `test_p6_h_a_national_ranking_would_leave_most_states_with_an_empty_map` | 49 states in the gap, 4 in the national furthest hundred, Washington's 262 areas and its absence from that hundred |
+| `test_p6_h_no_gap_point_carries_a_null_that_could_silently_drop_a_cell` | zero nulls, no negative distance, income share within [0, 1] |
+
+Asserting each view's **population** and not only its count is what makes these checks on
+the *ranking* rather than on the slice: any list trimmed to 100 has 100 entries, but only
+the correct ordering has that population. The `test_p6_h_a_national_ranking...` test exists
+so that if the fact underpinning §19.6's design decision ever stops holding, the reasoning
+is revisited rather than silently surviving in the report.
+
+### 19.14 Gate evidence for §19.13 — `make gate PHASE=6`, 2026-09-06
+
+```
+ruff: All checks passed!    mypy: Success: no issues found in 148 source files
+repository wide                    6270 stmts  0 miss  1482 branch  100%
+model / spatial / validation / quality / schemas / discovery / export /
+sources / transform                                            all 100%
+
+prior-phase gate suites replayed (Phase 0 through 5): 13 suites, all PASS
+  source_findings 23   domain_rules 39   phase2 37   phase3 20
+  phase3_corrections 32   phase4 23   phase5 33   gate_protocol 91
+  smoke_forward 11 / 5 / 5 / 5 / 7
+
+Phase 6 acceptance criteria:  26 passed   [was 19; +7 published-artifact gap tests]
+copy lint: clean (235 files, 15 rules)
+determinism: identical
+
+frontend:                    124 tests passed (8 files)
+slowest greedy re-solve      0.0288 s  (budget 2.0 s)
+PASS: app shell 229.6 KB of 600.0 KB (38.3% of budget)
+  rendered difference: 54,947 of 897,820 pixels changed (6.12%), threshold 2%
+  of those, 94.3% carry the layer's palette (threshold 20%)
+PASS: the analytical layer is visibly rendered
+PASS: the interface reads correctly to someone who knows nothing about it
+
+Machine validity: median benchmarkIndex 4135 (floor 3500)
+  median TTI 2.94 s (budget 3.0 s)
+  median FCP 0.20 s  LCP 2.66 s  TBT 303 ms  CLS 0.031  SI 1.42 s
+PASS: Time to Interactive 2.94 s of 3.0 s (98.0% of budget)
+
+  cells in the rendered layer: 52,912
+  machine validity: basemap-only calibration 58.9 fps sustained (floor 55)
+  frame time p50 / p95 / p99   16.7 / 16.8 / 16.8 ms
+PASS: sustained 60.0 fps against a 55 fps budget
+
+=== Phase 6 gate: PASS ===
+```
+
+**Two gate runs preceded this one and neither is reported as a pass.**
+
+The first failed `mypy --strict` on the new tests themselves: `tests/regression/
+test_phase6_gates.py:282: Unsupported operand types for <= ("str" and "float")`. Indexing a
+`tuple[str, float, float, float, str]` with a variable makes every field the union of all
+of them. The tests passed `pytest` and had not been run through the linter, which is the
+author's process error, not a tooling gap — the gate caught it, and the fix (a `NamedTuple`
+plus a `RANKED_BY` map of typed accessors) also made the ranking tests say which column
+they rank by instead of writing `c[1]`, `c[2]`, `c[3]`.
+
+The second failed on the environment, and is recorded because it identifies a real property
+of this reference machine:
+
+```
+NOT MEASURED: median Lighthouse benchmarkIndex 2190 is below the 3500 floor for this
+reference environment (quiescent range 4032-4136), so the machine was contended.
+```
+
+**Cause: the repository sits on the macOS Desktop with iCloud "Desktop & Documents" sync
+enabled.** `~/Library/Mobile Documents/com~apple~CloudDocs/Desktop` exists,
+`fileproviderd` was measured at 18.5% CPU with `bird` at 3%, and `brctl status` hung. A gate
+run writes ~12 MB of parquet artifacts, a full Next build, twelve screenshots and coverage
+data, iCloud begins uploading them, and the performance benchmarks — which run at the end of
+that same gate — execute straight into the sync the gate itself triggered. **The gate
+contends with itself.**
+
+Re-measured once the sync drained, with the machine otherwise in normal interactive use
+(browser and chat applications open): median `benchmarkIndex` **4135**, inside the
+documented quiescent range, TTI 2.94 s. So the 2190 was the sync burst and not a property
+of the hardware.
+
+Two things this establishes, both worth carrying forward:
+
+1. **The layered guards work, and a single one would not have.** `perf-settle` passed — load
+   was under its 0.6/core target — and the `benchmarkIndex` floor still caught the
+   contention. Assumption **A-6.9** is the reason a wrong number was not published.
+2. **Normal interactive use does not invalidate a measurement on this machine; a large
+   iCloud sync does.** An attempt to wait for one-minute load below 1.2 would have waited
+   indefinitely, because the desktop applications alone hold it near 6. The load target is
+   not the arbiter; `benchmarkIndex` is.
+
+Recorded as assumption **A-6.17**.

@@ -49,3 +49,6 @@ comparison is between two builds rather than between a build and a description.
 | `geo-gaps-all.png` | 3.4 | The whole gap universe |
 | `geo-gaps-people-national.png` | 3.4 | Highlighted 100 over grey context, ranked nationally |
 | `geo-gaps-people-washington.png` | fit | The same view ranked within Washington |
+
+| `geo-national-zoom-to-area.png` | after | EV Demand after "Zoom to this area" from a pinned card |
+| `geo-gaps-zoom-to-area.png` | after | Charging Gaps likewise, with geography, threshold and view preserved |

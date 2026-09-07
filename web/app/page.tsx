@@ -1,5 +1,6 @@
 "use client";
 
+import { cellToLatLng } from "h3-js";
 import dynamic from "next/dynamic";
 import { useEffect, useMemo, useState } from "react";
 
@@ -81,6 +82,15 @@ export default function NationalOverview() {
    */
   const [state, setState] = useState<string>(NATIONAL);
   const [fit, setFit] = useState<Bounds | null>(null);
+  /**
+   * Where the reader asked to be taken, from the card of an area they clicked.
+   *
+   * Distinct from `fit`, which frames a whole geography. This centres one area and keeps
+   * the current geography, metric and threshold untouched — moving the camera is the only
+   * thing it does, so a reader can look closer without losing the question they set up.
+   */
+  const [focus, setFocus] =
+    useState<{ longitude: number; latitude: number; zoom: number } | null>(null);
   /** Which drawn cell the reader is asking about, and whether they pinned the answer. */
   const [hovered, setHovered] = useState<number | null>(null);
   const [pinned, setPinned] = useState<number | null>(null);
@@ -327,6 +337,8 @@ export default function NationalOverview() {
 
     return {
       place,
+      // Carried so the card can offer to centre the map on the area it describes.
+      h3_index: cell.h3_index,
       state_fips: cell.state_fips,
       primaryLabel: chosen.primary.label,
       primaryValue: chosen.primary.value,
@@ -581,6 +593,7 @@ export default function NationalOverview() {
               analyticalLayer={analyticalLayer}
               fillOpacity={analyticalOpacity(zoom)}
               fitBounds={fit}
+              focus={focus}
               outlineCells={outlined}
               onZoom={setZoom}
               onHoverCell={(index, x, y) => {
@@ -604,16 +617,36 @@ export default function NationalOverview() {
                   reliability={card.reliability}
                   technical={pinned !== null ? card.technical : undefined}
                   actions={
-                    // Offered only where the Studio actually covers the state, rather
-                    // than sending the reader somewhere that cannot answer them.
-                    pinned !== null && STATE_NAMES[card.state_fips] !== undefined ? (
-                      <a
-                        className="fcard-action"
-                        href={`/studio/?state=${card.state_fips}&from=national`}
-                      >
-                        Plan locations in {STATE_NAMES[card.state_fips]}
-                      </a>
-                    ) : undefined
+                    pinned === null ? undefined : (
+                      <>
+                        <button
+                          type="button"
+                          className="fcard-action"
+                          onClick={() => {
+                            const [lat, lng] = cellToLatLng(card.h3_index);
+                            // Never zooms out: a reader who is already close is asking to
+                            // centre, not to be pulled back to a fixed level.
+                            setFocus({
+                              longitude: lng, latitude: lat,
+                              zoom: Math.max(zoom, 8),
+                            });
+                          }}
+                        >
+                          Zoom to this area
+                        </button>
+                        {/* Offered only where the Studio actually covers the state,
+                            rather than sending the reader somewhere that cannot
+                            answer them. */}
+                        {STATE_NAMES[card.state_fips] !== undefined && (
+                          <a
+                            className="fcard-action"
+                            href={`/studio/?state=${card.state_fips}&from=national`}
+                          >
+                            Plan locations in {STATE_NAMES[card.state_fips]}
+                          </a>
+                        )}
+                      </>
+                    )
                   }
                 />
               </CardAnchor>
