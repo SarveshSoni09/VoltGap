@@ -10,7 +10,7 @@
       "equity_population_covered": 75404.91,
       "objective_sense": "maximise_demand_subject_to_equity",
       "sites_selected": 20,
-      "solve_seconds": 0.035,
+      "solve_seconds": 0.032,
       "state": "Montana"
     },
     {
@@ -22,7 +22,7 @@
       "equity_population_covered": 75404.91,
       "objective_sense": "maximise_demand_subject_to_equity",
       "sites_selected": 20,
-      "solve_seconds": 0.034,
+      "solve_seconds": 0.033,
       "state": "Montana"
     },
     {
@@ -34,7 +34,7 @@
       "equity_population_covered": 75404.91,
       "objective_sense": "maximise_demand_subject_to_equity",
       "sites_selected": 20,
-      "solve_seconds": 0.034,
+      "solve_seconds": 0.033,
       "state": "Montana"
     },
     {
@@ -46,7 +46,7 @@
       "equity_population_covered": 75404.91,
       "objective_sense": "maximise_demand_subject_to_equity",
       "sites_selected": 20,
-      "solve_seconds": 0.034,
+      "solve_seconds": 0.033,
       "state": "Montana"
     },
     {
@@ -58,7 +58,7 @@
       "equity_population_covered": 75404.91,
       "objective_sense": "maximise_demand_subject_to_equity",
       "sites_selected": 20,
-      "solve_seconds": 0.034,
+      "solve_seconds": 0.033,
       "state": "Montana"
     },
     {
@@ -70,7 +70,7 @@
       "equity_population_covered": 75404.91,
       "objective_sense": "maximise_demand_subject_to_equity",
       "sites_selected": 20,
-      "solve_seconds": 0.034,
+      "solve_seconds": 0.033,
       "state": "Montana"
     },
     {
@@ -82,7 +82,7 @@
       "equity_population_covered": 75404.91,
       "objective_sense": "maximise_demand_subject_to_equity",
       "sites_selected": 20,
-      "solve_seconds": 0.035,
+      "solve_seconds": 0.033,
       "state": "Montana"
     },
     {
@@ -94,7 +94,7 @@
       "equity_population_covered": 77098.23,
       "objective_sense": "maximise_demand_subject_to_equity",
       "sites_selected": 20,
-      "solve_seconds": 0.139,
+      "solve_seconds": 0.095,
       "state": "Montana"
     },
     {
@@ -106,7 +106,7 @@
       "equity_population_covered": 87567.55,
       "objective_sense": "maximise_equity_subject_to_demand",
       "sites_selected": 20,
-      "solve_seconds": 0.034,
+      "solve_seconds": 0.033,
       "state": "Montana"
     },
     {
@@ -118,7 +118,7 @@
       "equity_population_covered": 87567.55,
       "objective_sense": "maximise_equity_subject_to_demand",
       "sites_selected": 20,
-      "solve_seconds": 0.034,
+      "solve_seconds": 0.033,
       "state": "Montana"
     },
     {
@@ -166,7 +166,7 @@
       "equity_population_covered": 87567.55,
       "objective_sense": "maximise_equity_subject_to_demand",
       "sites_selected": 20,
-      "solve_seconds": 0.032,
+      "solve_seconds": 0.033,
       "state": "Montana"
     },
     {
@@ -178,7 +178,7 @@
       "equity_population_covered": 87567.55,
       "objective_sense": "maximise_equity_subject_to_demand",
       "sites_selected": 20,
-      "solve_seconds": 0.031,
+      "solve_seconds": 0.034,
       "state": "Montana"
     },
     {
@@ -190,7 +190,7 @@
       "equity_population_covered": 86206.21,
       "objective_sense": "maximise_equity_subject_to_demand",
       "sites_selected": 20,
-      "solve_seconds": 0.059,
+      "solve_seconds": 0.053,
       "state": "Montana"
     }
   ],

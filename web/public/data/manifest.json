@@ -1,5 +1,5 @@
 {
-  "computed_at": "2026-09-07T04:53:42.592476+00:00",
+  "computed_at": "2026-09-07T05:40:22.988165+00:00",
   "stale_after_days": 14,
   "artifacts": {
     "access_points.parquet": {
@@ -22,9 +22,9 @@
     },
     "frontier/California.json": {
       "name": "frontier/California.json",
-      "bytes": 6071,
+      "bytes": 6068,
       "rows": 16,
-      "sha256": "cb45a9541ea2fb5317e0e69d7a241400b7ca860c651477d3fde120c4f1312fc8",
+      "sha256": "2c417942d8e1f9276d41229e5b7bf024820af67c5be7b00adf771520abe36317",
       "columns": [
         "budget_sites",
         "cbc_optimality_gap",
@@ -42,7 +42,7 @@
       "name": "frontier/Montana.json",
       "bytes": 5947,
       "rows": 16,
-      "sha256": "e013b49dc41da89fb3b0c8567ab30d40f123619e3c472e2abe001cc8cca2458b",
+      "sha256": "1796ffb25062f595bbfd44ff8bfa0e8b1b51ac627d47b9dd964fb8392a8c3423",
       "columns": [
         "budget_sites",
         "cbc_optimality_gap",
@@ -58,9 +58,9 @@
     },
     "frontier/Tennessee.json": {
       "name": "frontier/Tennessee.json",
-      "bytes": 6044,
+      "bytes": 6043,
       "rows": 16,
-      "sha256": "637646a5065a3d113b4898f0f1f6f23ff68698f647f3da71bbd1412385b355d0",
+      "sha256": "c90a15d97262998bcdfb83eae150c73ecad0962010ffe03effe81ec524437cf5",
       "columns": [
         "budget_sites",
         "cbc_optimality_gap",
@@ -76,9 +76,9 @@
     },
     "frontier/Texas.json": {
       "name": "frontier/Texas.json",
-      "bytes": 5978,
+      "bytes": 5977,
       "rows": 16,
-      "sha256": "6904f28cdfc01d24aa9f7aee54f975ea7d88feb534b27e9094aa59deaf31751c",
+      "sha256": "7c3a0d88045db6d06f36bd636ec147271cdb83ed858436148121437b7167d693",
       "columns": [
         "budget_sites",
         "cbc_optimality_gap",
@@ -96,7 +96,7 @@
       "name": "frontier/Vermont.json",
       "bytes": 5965,
       "rows": 16,
-      "sha256": "0fd03bd146590421e1a6f0117fd88a39777d5e4f97567840ce0300a658b2aa0c",
+      "sha256": "affb7d893be1f2560942f6b895467f29b1fb14cd1b370956fb722abfd2337f6f",
       "columns": [
         "budget_sites",
         "cbc_optimality_gap",
@@ -114,7 +114,7 @@
       "name": "frontier/Washington.json",
       "bytes": 6063,
       "rows": 16,
-      "sha256": "c3fbf5c69ecf6b07d0854446f8bed70c607c549ff5f8a005580f40afbaeaa720",
+      "sha256": "53a3b2bc7efd69bdaf15af99e019132f7917a38db8186bb62e11071df100ec60",
       "columns": [
         "budget_sites",
         "cbc_optimality_gap",

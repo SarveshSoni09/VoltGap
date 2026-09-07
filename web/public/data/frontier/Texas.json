@@ -10,7 +10,7 @@
       "equity_population_covered": 462341.55,
       "objective_sense": "maximise_demand_subject_to_equity",
       "sites_selected": 20,
-      "solve_seconds": 0.142,
+      "solve_seconds": 0.115,
       "state": "Texas"
     },
     {
@@ -22,7 +22,7 @@
       "equity_population_covered": 462341.55,
       "objective_sense": "maximise_demand_subject_to_equity",
       "sites_selected": 20,
-      "solve_seconds": 0.122,
+      "solve_seconds": 0.102,
       "state": "Texas"
     },
     {
@@ -34,7 +34,7 @@
       "equity_population_covered": 462341.55,
       "objective_sense": "maximise_demand_subject_to_equity",
       "sites_selected": 20,
-      "solve_seconds": 0.117,
+      "solve_seconds": 0.099,
       "state": "Texas"
     },
     {
@@ -46,7 +46,7 @@
       "equity_population_covered": 462341.55,
       "objective_sense": "maximise_demand_subject_to_equity",
       "sites_selected": 20,
-      "solve_seconds": 0.111,
+      "solve_seconds": 0.095,
       "state": "Texas"
     },
     {
@@ -58,7 +58,7 @@
       "equity_population_covered": 549503.06,
       "objective_sense": "maximise_demand_subject_to_equity",
       "sites_selected": 20,
-      "solve_seconds": 0.606,
+      "solve_seconds": 0.454,
       "state": "Texas"
     },
     {
@@ -70,7 +70,7 @@
       "equity_population_covered": 683377.0,
       "objective_sense": "maximise_demand_subject_to_equity",
       "sites_selected": 20,
-      "solve_seconds": 0.517,
+      "solve_seconds": 0.43,
       "state": "Texas"
     },
     {
@@ -82,7 +82,7 @@
       "equity_population_covered": 817824.94,
       "objective_sense": "maximise_demand_subject_to_equity",
       "sites_selected": 20,
-      "solve_seconds": 0.414,
+      "solve_seconds": 0.36,
       "state": "Texas"
     },
     {
@@ -94,7 +94,7 @@
       "equity_population_covered": 954384.92,
       "objective_sense": "maximise_demand_subject_to_equity",
       "sites_selected": 20,
-      "solve_seconds": 0.395,
+      "solve_seconds": 0.336,
       "state": "Texas"
     },
     {
@@ -106,7 +106,7 @@
       "equity_population_covered": 1089067.15,
       "objective_sense": "maximise_equity_subject_to_demand",
       "sites_selected": 20,
-      "solve_seconds": 0.126,
+      "solve_seconds": 0.109,
       "state": "Texas"
     },
     {
@@ -118,7 +118,7 @@
       "equity_population_covered": 1089067.15,
       "objective_sense": "maximise_equity_subject_to_demand",
       "sites_selected": 20,
-      "solve_seconds": 0.11,
+      "solve_seconds": 0.097,
       "state": "Texas"
     },
     {
@@ -130,7 +130,7 @@
       "equity_population_covered": 1089067.15,
       "objective_sense": "maximise_equity_subject_to_demand",
       "sites_selected": 20,
-      "solve_seconds": 0.117,
+      "solve_seconds": 0.097,
       "state": "Texas"
     },
     {
@@ -142,7 +142,7 @@
       "equity_population_covered": 1089067.15,
       "objective_sense": "maximise_equity_subject_to_demand",
       "sites_selected": 20,
-      "solve_seconds": 0.114,
+      "solve_seconds": 0.096,
       "state": "Texas"
     },
     {
@@ -154,7 +154,7 @@
       "equity_population_covered": 1069025.51,
       "objective_sense": "maximise_equity_subject_to_demand",
       "sites_selected": 20,
-      "solve_seconds": 0.388,
+      "solve_seconds": 0.313,
       "state": "Texas"
     },
     {
@@ -166,7 +166,7 @@
       "equity_population_covered": 1037479.13,
       "objective_sense": "maximise_equity_subject_to_demand",
       "sites_selected": 20,
-      "solve_seconds": 0.491,
+      "solve_seconds": 0.417,
       "state": "Texas"
     },
     {
@@ -178,7 +178,7 @@
       "equity_population_covered": 984158.86,
       "objective_sense": "maximise_equity_subject_to_demand",
       "sites_selected": 20,
-      "solve_seconds": 0.771,
+      "solve_seconds": 0.663,
       "state": "Texas"
     },
     {
@@ -190,7 +190,7 @@
       "equity_population_covered": 866528.6,
       "objective_sense": "maximise_equity_subject_to_demand",
       "sites_selected": 20,
-      "solve_seconds": 0.421,
+      "solve_seconds": 0.363,
       "state": "Texas"
     }
   ],

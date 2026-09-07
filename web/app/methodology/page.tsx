@@ -585,8 +585,8 @@ export default function Methodology() {
           components: prediction interval width; an out-of-distribution score measuring how
           unlike the training distribution the area is; constraint slack, or how far
           reconciliation moved the raw estimate; a penalty for degraded sources; and a
-          geographic transformation penalty reflecting how far the value sits from directly
-          observed evidence.
+          geographic transformation penalty reflecting how far the value sits from the
+          nearest real registration observation.
         </p>
         <p>
           The continuous score is primary. The A / B / C tier shown in the interface is a{" "}
@@ -599,9 +599,14 @@ export default function Methodology() {
           This distinction is the one most easily lost, so the data model keeps two
           independent fields rather than collapsing them into one label.{" "}
           <strong>Evidence grain</strong> records the finest actual observed registration
-          evidence — tract, ZIP-anchored, county-anchored, or state-total-only.{" "}
-          <strong>Estimate method</strong> records what was done — directly observed,
-          crosswalked, modeled, or modeled at high uncertainty.
+          evidence, as one of <code>native_tract</code>, <code>zip_anchored</code>,{" "}
+          <code>county_anchored</code> or <code>state_total_only</code>.{" "}
+          <strong>Estimate method</strong> records what was done to produce the value, as
+          one of <code>directly_observed</code>, <code>crosswalked</code>,{" "}
+          <code>modeled</code> or <code>modeled_high_uncertainty</code>. Naming the schema
+          literals rather than paraphrasing them matters here: in this project only
+          Washington&rsquo;s tract-grain registrations ever carry the first value of
+          either field.
         </p>
         <p>
           A tract built from ZIP-grain observations is <em>anchored</em> to real sub-state

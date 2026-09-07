@@ -2,7 +2,7 @@
   "note": "Benchmark provenance for the ENVIRONMENT-DEPENDENT performance budgets of CLAUDE.md 11.3 (amendment A27). These numeric values are only meaningful on the reference environment recorded with each of them. An absolute figure measured on an undocumented runner is NOT evidence about these budgets, and PR CI does not produce one.",
   "time_to_interactive": {
     "budget_seconds": 3,
-    "measured_seconds": 2.94,
+    "measured_seconds": 2.99,
     "within_budget": true,
     "metric": "Lighthouse `interactive` audit (Time to Interactive)",
     "metric_status": "LEGACY. Removed from the Lighthouse performance score and report display in Lighthouse 10 (registered as weight 0, group hidden); still computed in full. NOT a Core Web Vital and NOT a current Lighthouse scored metric. Retained because CLAUDE.md 11.3 pre-registered it.",
@@ -28,12 +28,12 @@
     "host_dependence": "Lighthouse `simulate` normalises the NETWORK but derives CPU task durations from a trace taken on this host. Same code and profile measured 2.38 s at cpuSlowdownMultiplier 1, 2.86 s at 4, 3.40 s at 8, 3.96 s at 12. An absolute value from a different machine is not comparable with this one.",
     "validity_guard": "refuses to report unless the page under test holds at least 50000 cells",
     "diagnostics_not_substitutes": {
-      "first_contentful_paint_s": 0.201,
-      "largest_contentful_paint_s": 2.659,
-      "total_blocking_time_ms": 303,
-      "cumulative_layout_shift": 0.0308,
-      "speed_index_s": 1.425,
-      "performance_score": 0.72
+      "first_contentful_paint_s": 0.241,
+      "largest_contentful_paint_s": 2.682,
+      "total_blocking_time_ms": 319,
+      "cumulative_layout_shift": 0.0316,
+      "speed_index_s": 1.477,
+      "performance_score": 0.7
     },
     "reference_environment": {
       "platform": "darwin 25.6.0",
@@ -43,7 +43,7 @@
       "total_memory_gb": 16,
       "node": "v24.9.0"
     },
-    "measured_at": "2026-09-07T03:57:00.504Z"
+    "measured_at": "2026-09-07T06:00:45.822Z"
   },
   "sustained_frame_rate": {
     "budget_fps": 55,
@@ -76,6 +76,6 @@
       "total_memory_gb": 16,
       "node": "v24.9.0"
     },
-    "measured_at": "2026-09-07T03:57:19.627Z"
+    "measured_at": "2026-09-07T06:01:14.857Z"
   }
 }

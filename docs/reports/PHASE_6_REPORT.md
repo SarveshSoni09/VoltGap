@@ -2268,3 +2268,123 @@ Two things this establishes, both worth carrying forward:
    not the arbiter; `benchmarkIndex` is.
 
 Recorded as assumption **A-6.17**.
+
+## Release candidate — scope freeze, 2026-09-07
+
+Three deliverables, no new analytical behaviour: the plain-language entry point was
+rewritten, a full Methodology & Architecture page was built, and the repository was audited
+and prepared for manual deployment. No model, threshold, objective, candidate rule,
+uncertainty component or validation result changed.
+
+### 20.1 The deployment blocker, which was real
+
+`web/public/data/` — every file the browser fetches — was git-ignored. Measured:
+
+```
+$ git archive HEAD | tar -t | grep -c '^web/public/'
+0
+```
+
+A clean clone contained **no runtime data at all**. A static host would have cloned,
+installed, built successfully, exported every route, and served an application whose every
+data fetch returned 404, with **nothing failing in the build log**. It survived because
+local development and the gate both run `make artifacts` first, so the directory was always
+populated on any machine that had ever run the pipeline. A build host has not.
+
+The artifacts are now committed: **11 MB across 10 files, largest 7.07 MB**. Object storage
+was considered and rejected at this size — it would add a bucket, a CORS policy and an
+environment variable to misconfigure in exchange for nothing, and committing guarantees the
+deployed site serves byte-for-byte what the gate verified.
+
+Verified by extracting the committed tree to an empty directory and running
+`npm ci && npm run build` with no pipeline and no source cache present: `out/data/` came
+out fully populated, 17 MB export.
+
+### 20.2 The test that forbade this was replaced, not deleted
+
+`test_the_generated_artifacts_are_not_committed` asserted the opposite policy, reasoning
+that *"committing them would make a stale copy indistinguishable from a fresh build."*
+
+That concern is correct, and deleting the test would have discarded a real guarantee to let
+a change pass. But git-ignoring never actually **detected** staleness — it avoided the
+question, at the cost of an empty deployment.
+
+The guarantee is now enforced instead. The gate rebuilds artifacts before the test runs, so
+a stale committed copy is overwritten and the comparison fails. Comparison is **semantic**,
+exactly as §14.1 defines determinism: `solve_seconds` and `computed_at` are wall-clock facts
+about when a run happened, not about what the data are.
+
+Measured before writing it: the parquet files are **byte-identical** across rebuilds; only
+timings and the build timestamp move.
+
+The new test was initially **vacuous** — nothing was in `HEAD` yet, so every file hit its
+`continue` branch and it passed while proving nothing. Verified after committing, one
+mutation at a time:
+
+| Mutation | Expected | Result |
+|---|---|---|
+| `demand_covered` changed on a frontier point | FAIL | **FAIL**, naming `Vermont.json` |
+| `solve_seconds` changed, nothing else | PASS | **PASS** |
+| One byte flipped in `sites.parquet` | FAIL | **FAIL**, naming `sites.parquet` |
+
+### 20.3 A second defect: the freshness indicator was not truthful
+
+Past its threshold the interface would have said **"The scheduled refresh may have
+stopped"** — asserting an automation this release does not have, and it would have started
+saying so on the fourteenth day after publication. Separately, "Data refreshed today"
+conflated *artifacts built* with *data refreshed*, when the registration and census inputs
+are considerably older and carry their own vintages in the manifest.
+
+Both corrected. A test now asserts neither claim can return in either branch of the
+threshold.
+
+### 20.4 Gate evidence — `make gate PHASE=6`, 2026-09-07
+
+```
+ruff: All checks passed!    mypy: Success: no issues found in 148 source files
+repository wide                    6270 stmts  0 miss  1482 branch  100%
+all nine result-computing packages                                   100%
+prior-phase gate suites (Phase 0-5): 13 suites, all PASS
+Phase 6 acceptance criteria:  27 passed
+copy lint: clean (239 files, 15 rules)      determinism: identical
+frontend:  125 tests passed
+slowest greedy re-solve   0.0291 s  (budget 2.0 s)
+PASS: app shell 230.6 KB of 600.0 KB (38.4% of budget)
+  rendered difference 6.12%, of which 94.3% carry the layer's palette
+PASS: the analytical layer is visibly rendered
+PASS: the interface reads correctly to someone who knows nothing about it
+PASS: Time to Interactive 2.99 s of 3.0 s (99.7% of budget)
+PASS: sustained 60.0 fps against a 55 fps budget
+=== Phase 6 gate: PASS ===
+```
+
+### 20.5 The interactivity budget is effectively exhausted
+
+The gate passed, and this figure should not be read as comfortable. Median TTI is
+**2.99 s against 3.0 s — 0.01 s of headroom**, and the five runs behind that median were:
+
+```
+3.00 s   3.09 s   2.99 s   2.95 s   2.95 s     benchmarkIndex 4120-4145
+```
+
+**Two of the five individual runs exceeded the budget.** The median is what §11.3 gates on
+and the median passed, so this is a pass rather than a failure — but it is a pass by
+0.3%, and the machine was demonstrably valid throughout (the benchmark index sat inside the
+documented quiescent range of 4032–4136 on every run, so contention does not explain it).
+
+The trajectory across this phase is one direction only:
+
+| | TTI | Shell |
+|---|---:|---:|
+| After the worker optimization | 2.84 s | 218.9 KB |
+| After the map-explorability pass | 2.91 s | 225.8 KB |
+| After the geography-legibility pass | 2.94 s | 229.6 KB |
+| **This release** | **2.99 s** | **230.6 KB** |
+
+The shell grew 11.7 KB across the phase and TTI grew 0.15 s. The next feature of any size
+will breach the budget on the median, not merely on individual runs.
+
+This is stated rather than absorbed because the honest reading is that **the budget is
+spent, not that there is room**. Recorded as assumption **A-6.18**. No threshold was
+relaxed and no measurement was re-run to obtain a better number — the first five-run median
+is the reported one.

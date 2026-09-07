@@ -10,7 +10,7 @@
       "equity_population_covered": 325163.86,
       "objective_sense": "maximise_demand_subject_to_equity",
       "sites_selected": 20,
-      "solve_seconds": 0.258,
+      "solve_seconds": 0.149,
       "state": "Tennessee"
     },
     {
@@ -22,7 +22,7 @@
       "equity_population_covered": 325163.86,
       "objective_sense": "maximise_demand_subject_to_equity",
       "sites_selected": 20,
-      "solve_seconds": 0.224,
+      "solve_seconds": 0.154,
       "state": "Tennessee"
     },
     {
@@ -34,7 +34,7 @@
       "equity_population_covered": 325163.86,
       "objective_sense": "maximise_demand_subject_to_equity",
       "sites_selected": 20,
-      "solve_seconds": 0.205,
+      "solve_seconds": 0.152,
       "state": "Tennessee"
     },
     {
@@ -46,7 +46,7 @@
       "equity_population_covered": 325163.86,
       "objective_sense": "maximise_demand_subject_to_equity",
       "sites_selected": 20,
-      "solve_seconds": 0.187,
+      "solve_seconds": 0.156,
       "state": "Tennessee"
     },
     {
@@ -58,7 +58,7 @@
       "equity_population_covered": 325163.86,
       "objective_sense": "maximise_demand_subject_to_equity",
       "sites_selected": 20,
-      "solve_seconds": 0.177,
+      "solve_seconds": 0.153,
       "state": "Tennessee"
     },
     {
@@ -70,7 +70,7 @@
       "equity_population_covered": 325163.86,
       "objective_sense": "maximise_demand_subject_to_equity",
       "sites_selected": 20,
-      "solve_seconds": 0.17,
+      "solve_seconds": 0.156,
       "state": "Tennessee"
     },
     {
@@ -82,7 +82,7 @@
       "equity_population_covered": 351626.98,
       "objective_sense": "maximise_demand_subject_to_equity",
       "sites_selected": 20,
-      "solve_seconds": 0.274,
+      "solve_seconds": 0.203,
       "state": "Tennessee"
     },
     {
@@ -94,7 +94,7 @@
       "equity_population_covered": 390384.77,
       "objective_sense": "maximise_demand_subject_to_equity",
       "sites_selected": 20,
-      "solve_seconds": 0.288,
+      "solve_seconds": 0.237,
       "state": "Tennessee"
     },
     {
@@ -106,7 +106,7 @@
       "equity_population_covered": 445944.71,
       "objective_sense": "maximise_equity_subject_to_demand",
       "sites_selected": 20,
-      "solve_seconds": 0.078,
+      "solve_seconds": 0.076,
       "state": "Tennessee"
     },
     {
@@ -118,7 +118,7 @@
       "equity_population_covered": 445944.71,
       "objective_sense": "maximise_equity_subject_to_demand",
       "sites_selected": 20,
-      "solve_seconds": 0.081,
+      "solve_seconds": 0.07,
       "state": "Tennessee"
     },
     {
@@ -130,7 +130,7 @@
       "equity_population_covered": 445944.71,
       "objective_sense": "maximise_equity_subject_to_demand",
       "sites_selected": 20,
-      "solve_seconds": 0.076,
+      "solve_seconds": 0.07,
       "state": "Tennessee"
     },
     {
@@ -142,7 +142,7 @@
       "equity_population_covered": 445944.71,
       "objective_sense": "maximise_equity_subject_to_demand",
       "sites_selected": 20,
-      "solve_seconds": 0.073,
+      "solve_seconds": 0.069,
       "state": "Tennessee"
     },
     {
@@ -154,7 +154,7 @@
       "equity_population_covered": 445944.71,
       "objective_sense": "maximise_equity_subject_to_demand",
       "sites_selected": 20,
-      "solve_seconds": 0.078,
+      "solve_seconds": 0.068,
       "state": "Tennessee"
     },
     {
@@ -166,7 +166,7 @@
       "equity_population_covered": 444488.17,
       "objective_sense": "maximise_equity_subject_to_demand",
       "sites_selected": 20,
-      "solve_seconds": 0.303,
+      "solve_seconds": 0.252,
       "state": "Tennessee"
     },
     {
@@ -178,7 +178,7 @@
       "equity_population_covered": 441697.75,
       "objective_sense": "maximise_equity_subject_to_demand",
       "sites_selected": 20,
-      "solve_seconds": 0.358,
+      "solve_seconds": 0.303,
       "state": "Tennessee"
     },
     {
@@ -190,7 +190,7 @@
       "equity_population_covered": 426449.55,
       "objective_sense": "maximise_equity_subject_to_demand",
       "sites_selected": 20,
-      "solve_seconds": 0.547,
+      "solve_seconds": 0.399,
       "state": "Tennessee"
     }
   ],

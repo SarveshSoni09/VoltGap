@@ -10,7 +10,7 @@
       "equity_population_covered": 167293.87,
       "objective_sense": "maximise_demand_subject_to_equity",
       "sites_selected": 20,
-      "solve_seconds": 0.058,
+      "solve_seconds": 0.045,
       "state": "Washington"
     },
     {
@@ -22,7 +22,7 @@
       "equity_population_covered": 167293.87,
       "objective_sense": "maximise_demand_subject_to_equity",
       "sites_selected": 20,
-      "solve_seconds": 0.055,
+      "solve_seconds": 0.045,
       "state": "Washington"
     },
     {
@@ -34,7 +34,7 @@
       "equity_population_covered": 167293.87,
       "objective_sense": "maximise_demand_subject_to_equity",
       "sites_selected": 20,
-      "solve_seconds": 0.054,
+      "solve_seconds": 0.043,
       "state": "Washington"
     },
     {
@@ -46,7 +46,7 @@
       "equity_population_covered": 167293.87,
       "objective_sense": "maximise_demand_subject_to_equity",
       "sites_selected": 20,
-      "solve_seconds": 0.053,
+      "solve_seconds": 0.043,
       "state": "Washington"
     },
     {
@@ -58,7 +58,7 @@
       "equity_population_covered": 167293.87,
       "objective_sense": "maximise_demand_subject_to_equity",
       "sites_selected": 20,
-      "solve_seconds": 0.051,
+      "solve_seconds": 0.043,
       "state": "Washington"
     },
     {
@@ -70,7 +70,7 @@
       "equity_population_covered": 167293.87,
       "objective_sense": "maximise_demand_subject_to_equity",
       "sites_selected": 20,
-      "solve_seconds": 0.051,
+      "solve_seconds": 0.043,
       "state": "Washington"
     },
     {
@@ -82,7 +82,7 @@
       "equity_population_covered": 167293.87,
       "objective_sense": "maximise_demand_subject_to_equity",
       "sites_selected": 20,
-      "solve_seconds": 0.051,
+      "solve_seconds": 0.043,
       "state": "Washington"
     },
     {
@@ -94,7 +94,7 @@
       "equity_population_covered": 184024.42,
       "objective_sense": "maximise_demand_subject_to_equity",
       "sites_selected": 20,
-      "solve_seconds": 0.16,
+      "solve_seconds": 0.14,
       "state": "Washington"
     },
     {
@@ -106,7 +106,7 @@
       "equity_population_covered": 210149.38,
       "objective_sense": "maximise_equity_subject_to_demand",
       "sites_selected": 20,
-      "solve_seconds": 0.053,
+      "solve_seconds": 0.044,
       "state": "Washington"
     },
     {
@@ -118,7 +118,7 @@
       "equity_population_covered": 210149.38,
       "objective_sense": "maximise_equity_subject_to_demand",
       "sites_selected": 20,
-      "solve_seconds": 0.053,
+      "solve_seconds": 0.043,
       "state": "Washington"
     },
     {
@@ -130,7 +130,7 @@
       "equity_population_covered": 210149.38,
       "objective_sense": "maximise_equity_subject_to_demand",
       "sites_selected": 20,
-      "solve_seconds": 0.053,
+      "solve_seconds": 0.044,
       "state": "Washington"
     },
     {
@@ -142,7 +142,7 @@
       "equity_population_covered": 210149.38,
       "objective_sense": "maximise_equity_subject_to_demand",
       "sites_selected": 20,
-      "solve_seconds": 0.055,
+      "solve_seconds": 0.043,
       "state": "Washington"
     },
     {
@@ -154,7 +154,7 @@
       "equity_population_covered": 210149.38,
       "objective_sense": "maximise_equity_subject_to_demand",
       "sites_selected": 20,
-      "solve_seconds": 0.054,
+      "solve_seconds": 0.043,
       "state": "Washington"
     },
     {
@@ -166,7 +166,7 @@
       "equity_population_covered": 210149.38,
       "objective_sense": "maximise_equity_subject_to_demand",
       "sites_selected": 20,
-      "solve_seconds": 0.054,
+      "solve_seconds": 0.044,
       "state": "Washington"
     },
     {
@@ -178,7 +178,7 @@
       "equity_population_covered": 210149.38,
       "objective_sense": "maximise_equity_subject_to_demand",
       "sites_selected": 20,
-      "solve_seconds": 0.054,
+      "solve_seconds": 0.043,
       "state": "Washington"
     },
     {
@@ -190,7 +190,7 @@
       "equity_population_covered": 208857.57,
       "objective_sense": "maximise_equity_subject_to_demand",
       "sites_selected": 20,
-      "solve_seconds": 0.147,
+      "solve_seconds": 0.119,
       "state": "Washington"
     }
   ],
