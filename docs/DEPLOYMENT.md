@@ -1,4 +1,4 @@
-# VoltGap — deployment
+# VoltGap: deployment
 
 Manual deployment of the current Core release to Vercel. This is a **frozen portfolio
 release**, not Phase 7 automation: there is no scheduled ETL, no automated refresh and no
@@ -43,7 +43,7 @@ rules.
 **This is the finding that mattered.** The brief warned about a successful build that
 renders an empty application. That was the exact state of the repository.
 
-`web/public/data/` — every file the browser fetches at runtime — was listed in
+`web/public/data/` (every file the browser fetches at runtime) was listed in
 `.gitignore`. Measured before the fix:
 
 ```
@@ -74,10 +74,10 @@ pipeline. A build host has not.
 **Why committing them is the right answer here**, rather than the object-storage path the
 architecture also supports:
 
-- **It is small.** 11 MB total, largest file 7.07 MB — an order of magnitude inside
+- **It is small.** 11 MB total, largest file 7.07 MB: an order of magnitude inside
   GitHub's 50 MB per-file warning and well inside Vercel's deployment limits.
 - **It is frozen.** This release does not refresh, so the artifacts are written once. The
-  usual objection to binaries in Git — history bloat from repeated churn — does not apply.
+  usual objection to binaries in Git (history bloat from repeated churn) does not apply.
 - **It removes moving parts.** No bucket, no CORS configuration, no base-URL environment
   variable, no second place for the deployment to be wrong. The most reliable deployment
   is the one with fewest external dependencies.
@@ -104,7 +104,7 @@ $ git archive $(git write-tree) | tar -t | grep -c '^web/public/data'
 
 | Variable | Required on Vercel? | Default | Contains anything sensitive? |
 |---|---|---|---|
-| `NEXT_PUBLIC_DATA_BASE` | **No** | `/data` | No — a path on the site's own origin |
+| `NEXT_PUBLIC_DATA_BASE` | **No** | `/data` | No: a path on the site's own origin |
 
 **Set nothing.** The default serves artifacts from the deployment itself, which is what
 committing them enables.
@@ -125,9 +125,9 @@ key, serves permissive CORS headers, and is designed for direct browser use. No
 configuration is needed.
 
 With artifacts served same-origin, **no CORS configuration is required anywhere**. (This
-changes if you later move artifacts to object storage — see §5.)
+changes if you later move artifacts to object storage: see §5.)
 
-### 1.5 Freshness reporting — corrected for a frozen release
+### 1.5 Freshness reporting: corrected for a frozen release
 
 The interface carries a data-age indicator driven by `manifest.json.computed_at`. Its
 wording was **wrong for a manual release** and was fixed as part of this work.
@@ -139,7 +139,7 @@ wording was **wrong for a manual release** and was fixed as part of this work.
 
 Two separate untruths were removed. There is no scheduled refresh behind this release, so
 claiming one "may have stopped" would have asserted a broken automation that does not
-exist — and it would have started saying so on the fourteenth day after publication.
+exist, and it would have started saying so on the fourteenth day after publication.
 Separately, `computed_at` is when the **artifacts were built**, not when the underlying
 data was refreshed; the registration and census inputs are considerably older, and their
 vintages are listed separately in the manifest. Telling a reader that year-old
@@ -160,18 +160,18 @@ Runtime fetches, all same-origin under `/data/`:
 | `/` | `manifest.json`, `hex6_national.parquet` |
 | `/access/` | `manifest.json`, `access_points.parquet` |
 | `/studio/` | `manifest.json`, `hex6_national.parquet`, `frontier/{State}.json` |
-| `/how-it-works/`, `/methodology/` | none — fully static |
+| `/how-it-works/`, `/methodology/` | none: fully static |
 
 ---
 
-## 2. Repository preparation — completed
+## 2. Repository preparation: completed
 
 Everything in this section is done; no owner action is required for any of it.
 
 - [x] Runtime artifacts committed (`web/public/data/`, 11 MB, 10 files), with the
       `.gitignore` entry replaced by a comment explaining why.
 - [x] Clean-checkout build verified: extract the committed tree to an empty directory,
-      `npm ci && npm run build`, confirm `out/data/` is populated — with no pipeline run
+      `npm ci && npm run build`, confirm `out/data/` is populated: with no pipeline run
       and no source cache present.
 - [x] Freshness copy corrected for a frozen release (§1.5).
 - [x] `vercel.json` added, pinning the framework, build command, output directory and
@@ -179,7 +179,7 @@ Everything in this section is done; no owner action is required for any of it.
 - [x] Node version pinned via `engines` in `web/package.json` and `.nvmrc`.
 - [x] Gate assertions extended to cover the two new routes and the figures the
       Methodology page publishes.
-- [x] Full release gate re-run — see the release-readiness summary.
+- [x] Full release gate re-run: see the release-readiness summary.
 
 ---
 
@@ -234,7 +234,7 @@ and cache headers, so the dashboard values should match what it specifies. If th
 dashboard and `vercel.json` disagree, `vercel.json` wins.
 
 Do **not** add any environment variable. In particular do not add the four pipeline API
-keys — the frontend never reads them, and anything prefixed `NEXT_PUBLIC_` is compiled
+keys: the frontend never reads them, and anything prefixed `NEXT_PUBLIC_` is compiled
 into client JavaScript and publicly readable.
 
 ### 3.4 Node version
@@ -252,7 +252,7 @@ A successful build log ends with the route table showing six routes marked `○ 
 
 ### 3.6 Production verification
 
-Run the smoke test at §4 against the deployment URL. Do not skip it — the failure mode
+Run the smoke test at §4 against the deployment URL. Do not skip it: the failure mode
 this release was most exposed to produces a **completely successful build log**.
 
 ### 3.7 Optional: custom domain
@@ -262,8 +262,7 @@ registrar. A custom domain changes nothing about the build; artifacts remain sam
 
 ### 3.8 Redeploying
 
-Any push to `main` triggers a new deployment automatically. To redeploy the same commit —
-after changing a project setting, for example — use **Deployments → ⋯ → Redeploy** and
+Any push to `main` triggers a new deployment automatically. To redeploy the same commit (after changing a project setting, for example) use **Deployments → ⋯ → Redeploy** and
 leave "Use existing Build Cache" unchecked if you changed anything about the build
 configuration.
 
@@ -303,7 +302,7 @@ done
 ```
 
 All five must return `200` with a non-trivial byte count. **A `404` here is the failure
-this release exists to prevent** — it means the artifacts did not reach the deployment.
+this release exists to prevent**: it means the artifacts did not reach the deployment.
 
 ### 4.3 Interface checks, by eye
 
@@ -314,7 +313,7 @@ this release exists to prevent** — it means the artifacts did not reach the de
 | `/studio/` | Choosing a state and budget returns a ranked table within about a second; hovering a row highlights its map marker and vice versa; rank numbers on markers match the table; CSV and GeoJSON export download and parse |
 | `/how-it-works/` | Reads as plain language; no H3, Poisson, ε-constraint or CBC anywhere; the Methodology link works |
 | `/methodology/` | Sticky contents highlights the section in view; all 23 sections present; tables scroll horizontally on a narrow window rather than overflowing the page |
-| all | Header shows "Data artifacts built … Sources carry their own, older vintages" — **never** "The scheduled refresh may have stopped" |
+| all | Header shows "Data artifacts built … Sources carry their own, older vintages": **never** "The scheduled refresh may have stopped" |
 
 ### 4.4 Console and network
 
@@ -333,7 +332,7 @@ LFS:
 1. Upload the contents of `web/public/data/` to a Cloudflare R2 bucket, preserving the
    directory layout.
 2. Enable public read access and set a CORS policy allowing `GET` from the deployment
-   origin. **This is required** — the browser fetches these cross-origin, and a missing
+   origin. **This is required**: the browser fetches these cross-origin, and a missing
    CORS header fails silently in exactly the way §1.2 describes.
 3. Set `NEXT_PUBLIC_DATA_BASE` in Vercel to the public bucket URL, with no trailing slash.
 4. Re-run the §4.2 checks against the bucket URL.
@@ -350,7 +349,7 @@ Per the release scope freeze:
 - No scheduled ETL or automated refresh.
 - No keepalive workflow.
 - No R2 automation.
-- No serverless functions — `output: "export"` makes this a build-time guarantee.
+- No serverless functions: `output: "export"` makes this a build-time guarantee.
 - No Extension-tier features.
 
 The site is a fixed snapshot. It says so, in those words, in its own freshness indicator.

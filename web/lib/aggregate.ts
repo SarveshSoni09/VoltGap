@@ -32,7 +32,7 @@ export const NATIVE_RESOLUTION = 6;
 export function displayResolution(zoom: number): number {
   // Resolution 4 (~1,770 km² per cell), not 3 (~12,400 km²), at national zoom. A parent
   // is drawn if ANY child has population, so an over-coarse grouping paints a large
-  // hexagon for one small town and makes the country look uniformly covered — when in
+  // hexagon for one small town and makes the country look uniformly covered: when in
   // fact 78.8% of the landmass has no cell at all. Resolution 4 groups enough to read as
   // geography while leaving the genuine gaps visible.
   if (zoom < 5) return 4;

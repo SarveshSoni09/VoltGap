@@ -4,7 +4,7 @@
  * Selecting a state filters the analysis on both map pages, which makes two things
  * testable: that the control can only ever offer geographies the data actually contains,
  * and that a state's frame is derived from the cells the page will draw for it. The
- * analytical parity — a state's figures equalling the aggregate of its displayed cells —
+ * analytical parity (a state's figures equalling the aggregate of its displayed cells)
  * is asserted in `access.test.ts` against real published points.
  */
 

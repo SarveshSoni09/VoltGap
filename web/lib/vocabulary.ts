@@ -113,7 +113,7 @@ export const METRIC_LEGEND_HINT: Record<MetricKey, string> = {
  * population sits. 78.8% of the US landmass has no cell.
  */
 export const NO_DATA_EXPLANATION =
-  "Unshaded areas have no estimate because nobody lives there — mostly desert, mountain, forest and federal land. They are not zero demand and not low confidence.";
+  "Unshaded areas have no estimate because nobody lives there: mostly desert, mountain, forest and federal land. They are not zero demand and not low confidence.";
 
 export type MetricKey = keyof typeof METRIC_LABELS;
 
@@ -133,14 +133,14 @@ export const NOT_OPTIMALITY_NOTE =
 
 /** The short version, for the primary workflow. The full version stays in Methodology. */
 export const RECOMMENDATION_NOTE =
-  "These are candidate areas worth considering. VoltGap does not claim they are the right places to build — no data exists that could establish that. Interactive results use a fast approximation; the published tradeoff analysis is computed offline.";
+  "These are candidate areas worth considering. VoltGap does not claim they are the right places to build, because no data exists that could establish that. Interactive results use a fast approximation; the published tradeoff analysis is computed offline.";
 
 /** What the product is, in one sentence a stranger can read. */
 export const PRODUCT_ONE_LINER =
   "Where should the next EV chargers be considered?";
 
 export const PRODUCT_EXPLAINER =
-  "VoltGap weighs estimated EV demand, the public charging that already exists, underserved communities, and road access — then shows which areas a given budget could cover.";
+  "VoltGap combines estimated EV demand, existing public charging, underserved population, and road access to show which areas a given budget could cover.";
 
 /** Shown on the historical deployment alignment result. Phase 5's finding was negative. */
 export const DEPLOYMENT_ALIGNMENT_NOTE =

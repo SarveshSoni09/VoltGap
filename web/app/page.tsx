@@ -65,7 +65,7 @@ export default function NationalOverview() {
    * Test affordance: `?resolution=native` disables display aggregation.
    *
    * The performance harnesses require the full 53,208-cell surface to be genuinely
-   * rendered — a frame rate over 2,700 aggregated parents would not demonstrate the
+   * rendered: a frame rate over 2,700 aggregated parents would not demonstrate the
    * §11.3 budget, and the ≥50,000-cell guard exists precisely to stop that. This forces
    * the heaviest real rendering path so the guard keeps its original meaning.
    */
@@ -75,7 +75,7 @@ export default function NationalOverview() {
    *
    * Selecting a state **filters the analysis**, it does not only move the camera: the
    * cells, the totals, the colour scale's quantile breaks and the reliability mix all
-   * describe the selected state alone. The alternative — zoom only — would leave national
+   * describe the selected state alone. The alternative (zoom only) would leave national
    * figures beside a state map, which is the kind of quiet mismatch this project exists to
    * avoid. The interface says which it is, and `tests/geography.test.ts` asserts the
    * parity that makes the claim checkable.
@@ -86,7 +86,7 @@ export default function NationalOverview() {
    * Where the reader asked to be taken, from the card of an area they clicked.
    *
    * Distinct from `fit`, which frames a whole geography. This centres one area and keeps
-   * the current geography, metric and threshold untouched — moving the camera is the only
+   * the current geography, metric and threshold untouched: moving the camera is the only
    * thing it does, so a reader can look closer without losing the question they set up.
    */
   const [focus, setFocus] =
@@ -345,7 +345,7 @@ export default function NationalOverview() {
       facts: chosen.facts,
       // The PUBLISHED tier, never one re-derived here. Where cells are grouped for
       // display the pipeline published several tiers and none of them describes the
-      // group, so the group reports its sub-state-anchored share instead — a quantity
+      // group, so the group reports its sub-state-anchored share instead: a quantity
       // that is published and that means the same thing at any grouping. §11.5 forbids
       // calling any of this "observed": most anchored demand is allocated from ZIP or
       // county evidence, not reported for the tract itself.
@@ -666,7 +666,7 @@ export default function NationalOverview() {
               <div className="swatches">
                 <span className="sw">
                   <i className="hollow" />
-                  no estimate — nobody lives here
+                  no estimate (nobody lives here)
                 </span>
                 {resolution < NATIVE_RESOLUTION && (
                   <span className="sw">

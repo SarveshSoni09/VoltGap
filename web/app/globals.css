@@ -297,7 +297,7 @@ td.num, th.num { text-align: right; font-family: var(--mono); }
 
 /* What the map is showing, above the map, before anyone has to hover anything.
    A panel rather than a gradient: a gradient fades to nothing over the basemap's own
-   labels, which left the second line — the part naming where to look — unreadable. */
+   labels, which left the second line (the part naming where to look) unreadable. */
 .mapsummary { position: absolute; top: 0.75rem; left: 0.75rem; z-index: 6;
               max-width: min(46ch, calc(100% - 5.5rem));
               background: rgba(23,26,33,0.94); border: 1px solid var(--line);

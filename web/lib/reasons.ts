@@ -2,7 +2,7 @@
  * Why a candidate area ranked highly, assembled only from that area's own model output.
  *
  * A ranked table without explanation is a black box. These reasons are derived from
- * published values and thresholds — nothing is invented, and an area only gets a reason
+ * published values and thresholds: nothing is invented, and an area only gets a reason
  * that its own data supports, so two rows rarely read the same.
  *
  * **What these are not.** They explain what the model saw, not that a site is buildable,

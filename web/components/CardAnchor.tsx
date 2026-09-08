@@ -3,8 +3,8 @@
 /**
  * Positions a {@link FeatureCard} over a map.
  *
- * Two modes, one component, because the alternative — a hover tooltip in one file and a
- * details panel in another — is how a product ends up with three information patterns that
+ * Two modes, one component, because the alternative: a hover tooltip in one file and a
+ * details panel in another: is how a product ends up with three information patterns that
  * disagree. Hovering floats the card by the cursor; clicking pins it to the corner, where
  * it can hold actions the reader has time to click.
  */

@@ -10,13 +10,13 @@
  * under a camera-only reading the figures beside the map would keep describing the country
  * while the map showed one state, and every denominator on the page would silently mean
  * something other than what the reader sees. `tests/geography.test.ts` asserts the parity
- * that this choice requires — a state's published figures equal the aggregate of the cells
+ * that this choice requires: a state's published figures equal the aggregate of the cells
  * drawn for it.
  */
 
 /**
  * Two-letter code to full name. Distinct from `lib/data/states.ts`, which maps FIPS to
- * name for the six states the published frontier covers — that one answers "can the Studio
+ * name for the six states the published frontier covers: that one answers "can the Studio
  * plan here", this one answers "what is this place called".
  *
  * Reference data, not a dataset: it is the naming the Census
@@ -115,7 +115,7 @@ export function boundsOf(
 /**
  * FIPS to full state name, built from the loaded artifact.
  *
- * Needed because the published surfaces key on FIPS (domain rule G13 — county and state
+ * Needed because the published surfaces key on FIPS (domain rule G13: county and state
  * names collide, FIPS does not) while a reader needs a name. Without it a summary line
  * reads "Mostly in Texas (195.3k), 39 (139.9k), 20 (121.8k)", which is what shipped before
  * this was added: `lib/data/states.ts` covers only the six states the frontier publishes,

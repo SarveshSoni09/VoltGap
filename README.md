@@ -20,7 +20,7 @@ mistaken for a strong one.
 |---|---|
 | **EV demand** | Where are electric vehicles concentrated, and how good is the evidence there? |
 | **Charging gaps** | Which communities are furthest from public fast charging, and how many people does that affect? |
-| **Plan locations** | Given a state, a budget and a priority, which candidate areas would a portfolio choose — and what does that choice give up? |
+| **Plan locations** | Given a state, a budget and a priority, which candidate areas would a portfolio choose, and what does that choice give up? |
 | **Methodology** | The full technical record: sources, models, validation, engineering and every open limitation |
 
 ## How it is built
@@ -33,7 +33,7 @@ Public data sources  →  Source verification & caching  →  Canonical models (
 ```
 
 Everything analytical happens offline in Python. The browser receives finished, checksummed
-artifacts and re-derives nothing — except the interactive portfolio solver, which is
+artifacts and re-derives nothing: except the interactive portfolio solver, which is
 checked against the offline exact solver rather than trusted.
 
 **Stack.** Python 3.12, DuckDB, pandas, Pandera, scikit-learn, H3, PuLP/CBC · TypeScript,
@@ -45,7 +45,7 @@ GitHub Actions.
 - **Existing charging supply is excluded from the demand model, enforced by a test.**
   Infrastructure is an outcome of past investment; predicting demand from it and then
   siting from that demand would launder historical deployment patterns into "need".
-- **Three validations that are never conflated** — demand model validation, historical
+- **Three validations that are never conflated**: demand model validation, historical
   deployment alignment, and cross-objective robustness. A copy lint fails the build if the
   vocabulary blurs.
 - **A runtime leakage guard.** Every backtest feature must satisfy

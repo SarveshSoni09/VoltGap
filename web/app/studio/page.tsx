@@ -70,7 +70,7 @@ export default function SitingStudio() {
   const [cursor, setCursor] = useState({ x: 0, y: 0 });
   /**
    * Where the hover came from. A card summoned by the table must not appear at the last
-   * place the mouse happened to be on the map — it parks in the corner instead, which is
+   * place the mouse happened to be on the map: it parks in the corner instead, which is
    * also where a pinned card sits, so the reader's eye has one place to look.
    */
   const [hoverFrom, setHoverFrom] = useState<"map" | "table">("map");
@@ -87,7 +87,7 @@ export default function SitingStudio() {
   useEffect(() => {
     // Cross-page context. A reader who clicked "plan locations in Washington" from another
     // view should land on Washington, and should be told that is why they are looking at
-    // it. The link carries only WHERE to look — it never changes what the optimiser
+    // it. The link carries only WHERE to look: it never changes what the optimiser
     // computes, and the threshold travels as a sentence, not as a solver input.
     const params = new URLSearchParams(window.location.search);
     const wanted = params.get("state");
@@ -540,7 +540,7 @@ export default function SitingStudio() {
                   </span>
                   <span className="sw">
                     <i className="hollow" />
-                    not a candidate — screened out or unpopulated
+                    not a candidate: screened out or unpopulated
                   </span>
                 </div>
               </div>
@@ -590,7 +590,7 @@ export default function SitingStudio() {
                       <td className="num">{row.rank}</td>
                       <td>{source ? areaName(source, row.rank) : `Area ${row.rank}`}</td>
                       <td className="why">
-                        {source ? headlineReason(source, cohort) : "—"}
+                        {source ? headlineReason(source, cohort) : "n/a"}
                       </td>
                       <td className="num">{formatCompact(row.demand_bev)}</td>
                       <td className="num">{formatCompact(row.equity_population)}</td>

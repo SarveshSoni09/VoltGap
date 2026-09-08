@@ -4,14 +4,14 @@
  *
  *   | Time to interactive, cold, national view | ≤ 3.0 s |
  *
- * **What is measured, exactly.** Lighthouse's `interactive` audit — Time to Interactive:
+ * **What is measured, exactly.** Lighthouse's `interactive` audit: Time to Interactive:
  * the first 5-second window after First Contentful Paint in which the main thread has no
  * long task and no more than two network requests are in flight. That is the metric §11.3
  * names, and it is the one asserted.
  *
  * **TTI is a LEGACY metric, and this harness does not pretend otherwise.** Lighthouse 10
  * removed Time to Interactive from the performance score and from the report display. It
- * is *still computed and still emitted* by current Lighthouse — in 12.8.2 the audit is
+ * is *still computed and still emitted* by current Lighthouse: in 12.8.2 the audit is
  * registered as `{id: 'interactive', weight: 0, group: 'hidden', acronym: 'TTI'}`, i.e.
  * unscored and hidden, but fully calculated by the original algorithm. So:
  *
@@ -19,8 +19,8 @@
  *     It is a pre-registered project criterion from CLAUDE.md §11.3, retained because that
  *     is what the specification fixed, and asserted from the value current Lighthouse still
  *     computes. No Lighthouse version is pinned below 10 to obtain it.
- *   - The contemporary metrics are printed alongside as **diagnostics** — LCP, TBT, CLS,
- *     Speed Index and the overall performance score — so modern auditing stays available.
+ *   - The contemporary metrics are printed alongside as **diagnostics**: LCP, TBT, CLS,
+ *     Speed Index and the overall performance score: so modern auditing stays available.
  *     None of them substitutes for the TTI budget.
  *
  * That the audit genuinely computes TTI rather than aliasing another metric was verified
@@ -28,8 +28,8 @@
  * after LCP gave TTI 64 ms → 4,035 ms while LCP moved 64 ms → 80 ms. Recorded in
  * `docs/reports/PHASE_6_REPORT.md` §13.
  *
- * **Under what conditions.** A cold load of the National Overview — the view the budget
- * names — from a local static server serving the production `next build` export, in
+ * **Under what conditions.** A cold load of the National Overview: the view the budget
+ * names: from a local static server serving the production `next build` export, in
  * headless Chrome, with Lighthouse's **simulated desktop throttling**: 40 ms RTT,
  * 10 Mbps, and a **4x CPU slowdown**. The profile is fixed here rather than taken from
  * the machine, so the number means the same thing on a laptop and in CI.
@@ -69,7 +69,7 @@ const MIN_CELLS = 50000;
  *
  * Derived from measurement, not chosen: quiescent runs on the reference machine report
  * 4032-4136. Under eight competing CPU burners the same machine reports 2840 and TTI rises
- * from 2.91 s to 3.84 s — the contention, not the application. The floor is set at 3500,
+ * from 2.91 s to 3.84 s: the contention, not the application. The floor is set at 3500,
  * about 85% of the observed quiescent range, which admits normal variation and rejects the
  * loaded case. It is a VALIDITY GUARD of the same class as refusing an empty page: it
  * changes which measurements may be reported, never the budget they are reported against.

@@ -3,14 +3,14 @@
  *
  * **Why per-vertex.** A binary attribute on `SolidPolygonLayer` is read per *vertex*, not
  * per *polygon*. Supplying one RGBA per cell produced a buffer a seventh of the length the
- * layer expected, and deck.gl read colours from the wrong offsets — the visible symptom
+ * layer expected, and deck.gl read colours from the wrong offsets: the visible symptom
  * was polygons rendering black. Nothing warned; the layer reported the right feature count
  * throughout.
  *
  * **Why `_normalize` is left at its default.** The first version of this path set
  * `_normalize: false`, on the reasoning that H3 rings arrive already closed so the
  * normalisation step is redundant. It is documented as valid for closed rings, and the
- * rings *are* closed — `cellToBoundary(cell, true)` returns 7 points for a hexagon with the
+ * rings *are* closed: `cellToBoundary(cell, true)` returns 7 points for a hexagon with the
  * first repeated last. But with it set, deck.gl produced **no geometry at all**: the layer
  * attached, reported 53,208 features, held valid coordinates, had non-zero alpha on every
  * cell, and drew nothing. Removing it fixes it. Both facts were established by isolating

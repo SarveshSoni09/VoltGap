@@ -10,7 +10,7 @@
       "equity_population_covered": 454965.98,
       "objective_sense": "maximise_demand_subject_to_equity",
       "sites_selected": 20,
-      "solve_seconds": 0.061,
+      "solve_seconds": 0.064,
       "state": "California"
     },
     {
@@ -22,7 +22,7 @@
       "equity_population_covered": 454965.98,
       "objective_sense": "maximise_demand_subject_to_equity",
       "sites_selected": 20,
-      "solve_seconds": 0.055,
+      "solve_seconds": 0.058,
       "state": "California"
     },
     {
@@ -34,7 +34,7 @@
       "equity_population_covered": 454965.98,
       "objective_sense": "maximise_demand_subject_to_equity",
       "sites_selected": 20,
-      "solve_seconds": 0.054,
+      "solve_seconds": 0.057,
       "state": "California"
     },
     {
@@ -46,7 +46,7 @@
       "equity_population_covered": 454965.98,
       "objective_sense": "maximise_demand_subject_to_equity",
       "sites_selected": 20,
-      "solve_seconds": 0.053,
+      "solve_seconds": 0.055,
       "state": "California"
     },
     {
@@ -58,7 +58,7 @@
       "equity_population_covered": 454965.98,
       "objective_sense": "maximise_demand_subject_to_equity",
       "sites_selected": 20,
-      "solve_seconds": 0.054,
+      "solve_seconds": 0.055,
       "state": "California"
     },
     {
@@ -70,7 +70,7 @@
       "equity_population_covered": 454965.98,
       "objective_sense": "maximise_demand_subject_to_equity",
       "sites_selected": 20,
-      "solve_seconds": 0.053,
+      "solve_seconds": 0.056,
       "state": "California"
     },
     {
@@ -82,7 +82,7 @@
       "equity_population_covered": 489029.97,
       "objective_sense": "maximise_demand_subject_to_equity",
       "sites_selected": 20,
-      "solve_seconds": 0.19,
+      "solve_seconds": 0.202,
       "state": "California"
     },
     {
@@ -94,7 +94,7 @@
       "equity_population_covered": 569489.42,
       "objective_sense": "maximise_demand_subject_to_equity",
       "sites_selected": 20,
-      "solve_seconds": 0.144,
+      "solve_seconds": 0.152,
       "state": "California"
     },
     {
@@ -106,7 +106,7 @@
       "equity_population_covered": 648893.32,
       "objective_sense": "maximise_equity_subject_to_demand",
       "sites_selected": 20,
-      "solve_seconds": 0.06,
+      "solve_seconds": 0.064,
       "state": "California"
     },
     {
@@ -118,7 +118,7 @@
       "equity_population_covered": 648893.32,
       "objective_sense": "maximise_equity_subject_to_demand",
       "sites_selected": 20,
-      "solve_seconds": 0.055,
+      "solve_seconds": 0.058,
       "state": "California"
     },
     {
@@ -130,7 +130,7 @@
       "equity_population_covered": 648893.32,
       "objective_sense": "maximise_equity_subject_to_demand",
       "sites_selected": 20,
-      "solve_seconds": 0.054,
+      "solve_seconds": 0.057,
       "state": "California"
     },
     {
@@ -142,7 +142,7 @@
       "equity_population_covered": 648893.32,
       "objective_sense": "maximise_equity_subject_to_demand",
       "sites_selected": 20,
-      "solve_seconds": 0.054,
+      "solve_seconds": 0.056,
       "state": "California"
     },
     {
@@ -154,7 +154,7 @@
       "equity_population_covered": 648893.32,
       "objective_sense": "maximise_equity_subject_to_demand",
       "sites_selected": 20,
-      "solve_seconds": 0.054,
+      "solve_seconds": 0.057,
       "state": "California"
     },
     {
@@ -166,7 +166,7 @@
       "equity_population_covered": 648893.32,
       "objective_sense": "maximise_equity_subject_to_demand",
       "sites_selected": 20,
-      "solve_seconds": 0.106,
+      "solve_seconds": 0.108,
       "state": "California"
     },
     {
@@ -178,7 +178,7 @@
       "equity_population_covered": 648893.32,
       "objective_sense": "maximise_equity_subject_to_demand",
       "sites_selected": 20,
-      "solve_seconds": 0.054,
+      "solve_seconds": 0.056,
       "state": "California"
     },
     {
@@ -190,7 +190,7 @@
       "equity_population_covered": 628836.92,
       "objective_sense": "maximise_equity_subject_to_demand",
       "sites_selected": 20,
-      "solve_seconds": 0.66,
+      "solve_seconds": 0.676,
       "state": "California"
     }
   ],

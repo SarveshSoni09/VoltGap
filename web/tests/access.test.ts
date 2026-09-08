@@ -4,7 +4,7 @@
  * Before this pass the page had no map: the threshold control drove four summary numbers
  * and a sensitivity table, and there was nothing spatial to respond to it. The map added
  * here is derived from the SAME points at the SAME threshold as those numbers, and these
- * tests exist so the two can never drift into disagreeing — the failure mode where a
+ * tests exist so the two can never drift into disagreeing: the failure mode where a
  * headline says 12 million people and the shaded areas add up to something else.
  *
  * The fixture is 4,000 real published block-group access points.
@@ -89,7 +89,7 @@ describe("each mapped cell is internally consistent", () => {
     // A cell on the gap map is a place people are far from charging. If the reported
     // distance could fall below the threshold the colour would describe something the
     // reader did not ask for. This includes uninhabited cells, whose distance is a plain
-    // mean rather than a weighted mean over zero weight — reporting those as 0 km would
+    // mean rather than a weighted mean over zero weight: reporting those as 0 km would
     // state the opposite of what is true about them.
     expect(cells.length).toBeGreaterThan(0);
     for (const cell of cells) expect(cell.km).toBeGreaterThan(16.1);

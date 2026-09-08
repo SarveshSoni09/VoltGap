@@ -81,7 +81,7 @@ for (const [name, size] of shellFiles.slice(0, 8)) {
   console.log(`  ${kb(size).padStart(10)}  ${name}`);
 }
 if (shellFiles.length > 8) console.log(`  … ${shellFiles.length - 8} more`);
-console.log(`  ${"—".repeat(10)}`);
+console.log(`  ${"-".repeat(10)}`);
 console.log(`  ${kb(shellBytes).padStart(10)}  TOTAL  (budget ${kb(SHELL_BUDGET_BYTES)})`);
 console.log("");
 console.log("Lazily loaded (dynamic import, after first paint), gzipped:");

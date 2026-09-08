@@ -42,6 +42,9 @@ ALLOWLISTED_PATHS: frozenset[str] = frozenset({
     "CLAUDE.md",
     "pipeline/quality/copy_lint.py",
     "tests/unit/test_copy_lint.py",
+    # The frontend counterpart. It checks rendered HTML for the same prohibitions, so it
+    # necessarily lists them, exactly as this file does.
+    "web/tests/copy.test.ts",
     "docs/reports/PHASE_1_PLAN.md",
     "docs/reports/PHASE_6_PLAN.md",
     "docs/reports/PLAN_CHANGE_6.md",

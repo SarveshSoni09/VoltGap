@@ -23,7 +23,7 @@ const RAMP: readonly [number, number, number][] = [
  * the vocabulary tests still describe the tiers.
  *
  * Encoding reliability as transparency was a mistake: it made a low-reliability estimate
- * fade toward the background, which is also what 78.8% of the country looks like — the
+ * fade toward the background, which is also what 78.8% of the country looks like: the
  * land with no cell at all. A reader could not tell "we are unsure" from "nobody lives
  * here". Reliability is now reported separately, in the sidebar and on hover, and the
  * underlying confidence values are unchanged.
@@ -46,7 +46,7 @@ export const CELL_ALPHA = 215;
  * once already.
  *
  * The floor is 0.55 rather than something fainter because the metric has to stay readable
- * — the fix for an overpowering overlay is putting the labels above it, not making the
+ *: the fix for an overpowering overlay is putting the labels above it, not making the
  * data too faint to read.
  */
 export function analyticalOpacity(zoom: number): number {
@@ -105,7 +105,7 @@ export function quantileScale(values: readonly number[]): (value: number) => num
 }
 
 export function formatCompact(value: number): string {
-  if (!Number.isFinite(value)) return "—";
+  if (!Number.isFinite(value)) return "n/a";
   const abs = Math.abs(value);
   if (abs >= 1_000_000) return `${(value / 1_000_000).toFixed(1)}M`;
   if (abs >= 1_000) return `${(value / 1_000).toFixed(1)}k`;

@@ -5,7 +5,7 @@
  * These views are client-rendered, so the static HTML is only a shell: the legend, the
  * candidate table, the disclosure contents and every number arrive after hydration. A
  * check against the emitted HTML would pass while the visible page said something else.
- * So this drives a real browser, waits for the data, and reads `innerText` — including
+ * So this drives a real browser, waits for the data, and reads `innerText`: including
  * the text inside every collapsed section, which it opens first.
  *
  * It cannot judge whether the writing is good. It checks the specific things a first

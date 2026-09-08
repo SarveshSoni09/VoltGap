@@ -9,7 +9,7 @@ import { useEffect, useState } from "react";
  * screen without running a handler on every scroll frame, which matters on a page that also
  * has to stay within a frame-rate budget elsewhere in the product.
  *
- * Degrades to a plain list of links if the observer is unavailable — the navigation still
+ * Degrades to a plain list of links if the observer is unavailable: the navigation still
  * works, it simply stops tracking position.
  */
 export interface TocSection {

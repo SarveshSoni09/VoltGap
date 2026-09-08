@@ -8,8 +8,8 @@
  * what they can do next. Only the primary metric changes between views.
  *
  * Deliberately small. The point of this pass was to make the maps explorable, not to move
- * the sidebar into a tooltip, so anything that is not needed to decide — H3 indexes, exact
- * uncertainty scores, provenance — sits behind "Technical details".
+ * the sidebar into a tooltip, so anything that is not needed to decide: H3 indexes, exact
+ * uncertainty scores, provenance: sits behind "Technical details".
  */
 
 export interface FeatureFact {
@@ -18,7 +18,7 @@ export interface FeatureFact {
 }
 
 export interface FeatureCardProps {
-  /** "Pierce County, WA" — the same identity the tables use for the same cell. */
+  /** "Pierce County, WA": the same identity the tables use for the same cell. */
   readonly place: string;
   /** Optional finer context, e.g. "Near Tacoma". Omitted when not defensible. */
   readonly near?: string;

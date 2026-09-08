@@ -10,7 +10,7 @@
       "equity_population_covered": 34354.07,
       "objective_sense": "maximise_demand_subject_to_equity",
       "sites_selected": 20,
-      "solve_seconds": 0.034,
+      "solve_seconds": 0.033,
       "state": "Vermont"
     },
     {
@@ -22,7 +22,7 @@
       "equity_population_covered": 34354.07,
       "objective_sense": "maximise_demand_subject_to_equity",
       "sites_selected": 20,
-      "solve_seconds": 0.034,
+      "solve_seconds": 0.033,
       "state": "Vermont"
     },
     {
@@ -34,7 +34,7 @@
       "equity_population_covered": 34354.07,
       "objective_sense": "maximise_demand_subject_to_equity",
       "sites_selected": 20,
-      "solve_seconds": 0.033,
+      "solve_seconds": 0.032,
       "state": "Vermont"
     },
     {
@@ -46,7 +46,7 @@
       "equity_population_covered": 34354.07,
       "objective_sense": "maximise_demand_subject_to_equity",
       "sites_selected": 20,
-      "solve_seconds": 0.033,
+      "solve_seconds": 0.031,
       "state": "Vermont"
     },
     {
@@ -58,7 +58,7 @@
       "equity_population_covered": 34354.07,
       "objective_sense": "maximise_demand_subject_to_equity",
       "sites_selected": 20,
-      "solve_seconds": 0.033,
+      "solve_seconds": 0.032,
       "state": "Vermont"
     },
     {
@@ -82,7 +82,7 @@
       "equity_population_covered": 34354.07,
       "objective_sense": "maximise_demand_subject_to_equity",
       "sites_selected": 20,
-      "solve_seconds": 0.033,
+      "solve_seconds": 0.034,
       "state": "Vermont"
     },
     {
@@ -94,7 +94,7 @@
       "equity_population_covered": 36611.17,
       "objective_sense": "maximise_demand_subject_to_equity",
       "sites_selected": 20,
-      "solve_seconds": 0.05,
+      "solve_seconds": 0.052,
       "state": "Vermont"
     },
     {
@@ -166,7 +166,7 @@
       "equity_population_covered": 41804.33,
       "objective_sense": "maximise_equity_subject_to_demand",
       "sites_selected": 20,
-      "solve_seconds": 0.033,
+      "solve_seconds": 0.034,
       "state": "Vermont"
     },
     {
@@ -178,7 +178,7 @@
       "equity_population_covered": 41804.33,
       "objective_sense": "maximise_equity_subject_to_demand",
       "sites_selected": 20,
-      "solve_seconds": 0.033,
+      "solve_seconds": 0.032,
       "state": "Vermont"
     },
     {
@@ -190,7 +190,7 @@
       "equity_population_covered": 41595.4,
       "objective_sense": "maximise_equity_subject_to_demand",
       "sites_selected": 20,
-      "solve_seconds": 0.087,
+      "solve_seconds": 0.089,
       "state": "Vermont"
     }
   ],

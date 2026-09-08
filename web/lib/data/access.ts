@@ -95,7 +95,7 @@ export interface GapCell {
   /**
    * Distance among the points beyond the threshold, population-weighted.
    *
-   * Falls back to the plain mean where the cell holds no population — 230 of the 20,781
+   * Falls back to the plain mean where the cell holds no population: 230 of the 20,781
    * cells beyond 16.1 km nationally are uninhabited block groups. A weighted mean over
    * zero weight is undefined, and reporting it as 0 km would say the opposite of what is
    * true about a place with no charging near it.
@@ -158,7 +158,7 @@ export function gapCells(
 /**
  * Roll gap cells up for display, exactly as the national view rolls up its surface.
  *
- * 20,781 resolution-6 cells beyond 16.1 km read as scattered specks at national zoom —
+ * 20,781 resolution-6 cells beyond 16.1 km read as scattered specks at national zoom
  * the reader can see that a gap exists but not where it is. Grouping makes the shape of
  * the gap legible, and the same conservation rule applies: population and affected
  * lower-income population are summed, distance is population-weighted, and nothing is

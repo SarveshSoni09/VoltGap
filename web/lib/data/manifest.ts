@@ -53,8 +53,8 @@ export async function loadManifest(base: string = DATA_BASE): Promise<Manifest> 
  *
  * **The wording is deliberately about the build, not about a refresh.** This release is a
  * fixed, manually published snapshot: there is no scheduled ETL behind it, so the earlier
- * copy — "Data refreshed today", and past the threshold "The scheduled refresh may have
- * stopped" — asserted an automation that does not exist and would have become a false
+ * copy: "Data refreshed today", and past the threshold "The scheduled refresh may have
+ * stopped": asserted an automation that does not exist and would have become a false
  * statement on the fourteenth day after publication. `computed_at` is the moment the
  * artifacts were BUILT; the upstream data carry their own, older vintages, which the
  * manifest lists separately under `source_vintages`. Conflating the two would tell a

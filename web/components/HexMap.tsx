@@ -54,10 +54,10 @@ const BASEMAP = "https://tiles.openfreemap.org/styles/positron";
  * and boundary lines** → labels. Inserting before `tunnel_motorway_casing`, the first of
  * the line layers, produces the intended reading order:
  *
- *     water and landcover        (below — context the metric sits on)
+ *     water and landcover        (below: context the metric sits on)
  *     ANALYTICAL POLYGON FILL
  *     roads, railways, state and county boundaries
- *     place labels               (above — always readable)
+ *     place labels               (above: always readable)
  *     hover, selection, markers  (above everything, in the overlay's own pass)
  *
  * If the basemap ever stops publishing this layer id, MapLibre throws on the insert; the
@@ -70,7 +70,7 @@ const ANALYTICAL_BEFORE_ID = "tunnel_motorway_casing";
  * State outlines at the zooms where the basemap does not draw them.
  *
  * Positron's own `boundary_3` layer carries admin levels 3-6 but is gated at `minzoom: 8`,
- * so between the national view and city zoom there are no state borders at all — which is
+ * so between the national view and city zoom there are no state borders at all: which is
  * most of the range this product is read at. The features themselves are present in the
  * tiles well below that (measured: admin_level 4 features are returned by
  * `querySourceFeatures` at zoom 3.4), so nothing new needs fetching; only a layer that
@@ -159,7 +159,7 @@ export interface HexMapProps {
   readonly fitBounds?: Bounds | null;
   /**
    * Fill opacity for the analytical surface, 0..1. A uniform, not a per-vertex value, so
-   * zoom-dependent styling costs no buffer rebuild — see `analyticalOpacity` in
+   * zoom-dependent styling costs no buffer rebuild: see `analyticalOpacity` in
    * `lib/scales.ts` for why it varies and by how much.
    */
   readonly fillOpacity?: number;
@@ -215,7 +215,7 @@ export default function HexMap({
   onZoomRef.current = onZoom;
   const handlers = useRef({ onHoverCell, onPickCell, onHoverSelected, onPickSelected });
   handlers.current = { onHoverCell, onPickCell, onHoverSelected, onPickSelected };
-  /** Whether the analytical layer answers a pointer — a boolean, so it is a stable dep. */
+  /** Whether the analytical layer answers a pointer: a boolean, so it is a stable dep. */
   const pickable = onHoverCell !== undefined || onPickCell !== undefined;
   const [basemapFailed, setBasemapFailed] = useState(false);
   /**
@@ -223,7 +223,7 @@ export default function HexMap({
    *
    * `beforeId` naming a layer the style does not have makes MapLibre throw, so the id is
    * verified against the loaded style rather than trusted. If it is absent the overlay
-   * still draws — on top, as it used to — and the console says the label hierarchy was
+   * still draws (on top, as it used to) and the console says the label hierarchy was
    * lost. Degrading explicitly beats an empty map (directive D8).
    */
   const [styleReady, setStyleReady] = useState(false);
@@ -275,7 +275,7 @@ export default function HexMap({
        * Reading pixels back off a WebGL canvas requires the drawing buffer to survive the
        * frame. Chrome's own `Page.captureScreenshot` normally arranges that itself, but
        * with the analytical layer interleaved into MapLibre's render pass at the full
-       * 52,912 cells it takes **208 seconds** against 102 ms with the layer off — measured,
+       * 52,912 cells it takes **208 seconds** against 102 ms with the layer off: measured,
        * not estimated. With this flag the rendering regression check reads the canvas
        * directly instead, which is fast and captures exactly the same pixels.
        *
@@ -348,8 +348,8 @@ export default function HexMap({
    *
    * This object's IDENTITY is what deck.gl diffs to decide whether to re-upload 370,384
    * vertices and a 1.48 MB colour buffer. Building it inline inside the layer effect made
-   * every rebuild a full GPU upload, so once `fillOpacity` — which varies continuously
-   * with zoom — entered that effect's dependencies, a routine zoom re-uploaded the whole
+   * every rebuild a full GPU upload, so once `fillOpacity`: which varies continuously
+   * with zoom: entered that effect's dependencies, a routine zoom re-uploaded the whole
    * surface and the sustained frame rate fell from 60.0 to 21.4 fps.
    *
    * Memoised on the buffers themselves, so a layer rebuild for any other reason (opacity,
@@ -486,7 +486,7 @@ export default function HexMap({
     // `onHoverCell` / `onPickCell` are deliberately NOT dependencies.
     //
     // They arrive as inline arrow functions, so they are new objects on every render of
-    // the parent — and the national view re-renders on every zoom change, which during a
+    // the parent: and the national view re-renders on every zoom change, which during a
     // pan is every frame. Listing them here rebuilt all three layers and re-uploaded the
     // 370,384-vertex buffer once per frame, which measured 26.3 fps against a 60.0 fps
     // baseline on the same machine. The callbacks are read through `handlers.current`,
@@ -505,7 +505,7 @@ export default function HexMap({
     );
   }, [fitBounds]);
 
-  // Fly to a place chosen elsewhere on the page — a table row, or a regional summary.
+  // Fly to a place chosen elsewhere on the page: a table row, or a regional summary.
   useEffect(() => {
     if (map.current === null || focus === null) return;
     map.current.easeTo({

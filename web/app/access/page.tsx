@@ -34,7 +34,7 @@ const HexMap = dynamic(() => import("../../components/HexMap"), {
 const THRESHOLDS = [1, 2, 3, 5, 8, 10, 16.1, 20, 25, 30, 40, 50];
 
 /**
- * Ways of looking at the same gap areas — never a new score.
+ * Ways of looking at the same gap areas: never a new score.
  *
  * Each of these sorts and trims the areas the threshold already selected, using a
  * quantity that is published in the data dictionary. Nothing here computes a hidden
@@ -53,8 +53,8 @@ const LENSES = [
   {
     id: "people", label: "Most people affected", base: "Most people affected",
     describe: (cut: number) =>
-      `The ${HIGHLIGHT_LIMIT} areas with the largest population beyond that distance — ` +
-      `every highlighted area holds at least ${Math.round(cut).toLocaleString()} people.`,
+      `The ${HIGHLIGHT_LIMIT} gap areas with the largest population. Every highlighted ` +
+      `area holds at least ${Math.round(cut).toLocaleString()} people.`,
     sort: (a: Ranked, b: Ranked) => b.population - a.population,
     limit: HIGHLIGHT_LIMIT,
     value: (c: Ranked) => c.population,
@@ -62,8 +62,8 @@ const LENSES = [
   {
     id: "equity", label: "Lower-income households", base: "Most lower-income people affected",
     describe: (cut: number) =>
-      `The ${HIGHLIGHT_LIMIT} areas with the most affected people in lower-income ` +
-      `households — at least ${Math.round(cut).toLocaleString()} such people each.`,
+      `The ${HIGHLIGHT_LIMIT} gap areas with the most affected people in lower-income ` +
+      `households, at least ${Math.round(cut).toLocaleString()} such people each.`,
     sort: (a: Ranked, b: Ranked) => b.equity - a.equity,
     limit: HIGHLIGHT_LIMIT,
     value: (c: Ranked) => c.equity,
@@ -71,8 +71,8 @@ const LENSES = [
   {
     id: "distance", label: "Furthest from charging", base: "Furthest from charging",
     describe: (cut: number) =>
-      `The ${HIGHLIGHT_LIMIT} populated areas furthest from public fast charging — ` +
-      `every highlighted area is at least ${cut.toFixed(0)} km away.`,
+      `The ${HIGHLIGHT_LIMIT} populated gap areas furthest from public fast charging. ` +
+      `Every highlighted area is at least ${cut.toFixed(0)} km away.`,
     sort: (a: Ranked, b: Ranked) => b.km - a.km,
     limit: HIGHLIGHT_LIMIT,
     value: (c: Ranked) => c.km,
@@ -116,7 +116,7 @@ export default function AccessAndEquity() {
    * state filters the analysis, it does not only move the camera.
    *
    * For this page that choice has a consequence the other page does not have. The three
-   * specialised lenses are RANKINGS, and a ranking's scope is part of its meaning — the
+   * specialised lenses are RANKINGS, and a ranking's scope is part of its meaning: the
    * national hundred furthest areas are 71 in Alaska, 17 in Montana, 10 in Hawaii and 2 in
    * North Dakota, so a reader who selected Washington and kept a national ranking would be
    * shown nothing at all. Rankings are therefore recomputed within the selected state, and
@@ -216,7 +216,7 @@ export default function AccessAndEquity() {
    *
    * The three specialised lenses each pick 100 areas. The audit in the Phase 6 report
    * measured what that means: 100 of 20,551 populated gap areas, 0.49% of them, and the
-   * three lenses together cover 234 areas — so 98.9% of the gap, holding 94% of the
+   * three lenses together cover 234 areas: so 98.9% of the gap, holding 94% of the
    * affected population, belongs to none of them. Drawing only the 100 made the rest of
    * the problem disappear from a page whose subject is the problem.
    *
@@ -229,7 +229,7 @@ export default function AccessAndEquity() {
    */
   const drawn = useMemo(() => {
     const spec = LENSES.find((l) => l.id === lens) ?? LENSES[0];
-    // Uninhabited areas are counted in the figures — they really are beyond the distance —
+    // Uninhabited areas are counted in the figures (they really are beyond the distance)
     // but they are not shaded on a map whose colour means "people affected".
     const populated = cells.filter((c) => c.population > 0);
     const sorted = [...populated].sort(spec.sort);
@@ -324,7 +324,7 @@ export default function AccessAndEquity() {
    * Two treatments in one buffer: context areas in a flat, desaturated grey-purple, and
    * the lens's own areas on the full colour ramp.
    *
-   * One layer rather than two, because the reader is looking at one thing — the gap — and
+   * One layer rather than two, because the reader is looking at one thing (the gap) and
    * a second polygon layer would double the geometry upload for a distinction that is
    * four bytes per vertex.
    *
@@ -672,7 +672,7 @@ export default function AccessAndEquity() {
                 {lens !== "all" && (
                   <span className="sw">
                     <i style={{ background: "rgba(150,142,168,0.55)" }} />
-                    other gap areas — a much larger problem this view is a subset of
+                    other gap areas, the larger set this view is drawn from
                   </span>
                 )}
                 <span className="sw">

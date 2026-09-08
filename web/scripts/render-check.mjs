@@ -4,7 +4,7 @@
  *
  * This exists because of a defect that every other check passed: the layer attached,
  * reported all 53,208 cells, held coordinates with valid US bounds, carried non-zero alpha
- * on every cell — and rendered nothing. `__voltgapLayerCells` said 53,208 the whole time.
+ * on every cell: and rendered nothing. `__voltgapLayerCells` said 53,208 the whole time.
  * A populated layer is not a visible layer, and only rendered output distinguishes them.
  *
  * **Method: pixel difference, not a golden screenshot.** The same view is rendered twice,
@@ -113,7 +113,7 @@ try {
     //
     // Not a convenience: with the analytical layer interleaved into MapLibre's render pass
     // at the full 52,912 cells, `Page.captureScreenshot` took **208,775 ms**, against
-    // 102 ms with the layer off — measured on this machine. Reading the canvas takes 38 ms
+    // 102 ms with the layer off: measured on this machine. Reading the canvas takes 38 ms
     // and returns the identical pixels. `?preserve=1` asks the map for a WebGL context
     // whose drawing buffer survives the frame, which is what makes the read possible.
     //
@@ -209,7 +209,7 @@ try {
     console.log(
       `  continental-US spot check: cell ${s.conus.cell}, ${s.conus.ring.length} vertices, ` +
         `lon ${Math.min(...lons).toFixed(3)}..${Math.max(...lons).toFixed(3)}, ` +
-        `lat ${Math.min(...lats).toFixed(3)}..${Math.max(...lats).toFixed(3)} — ` +
+        `lat ${Math.min(...lats).toFixed(3)}..${Math.max(...lats).toFixed(3)}: ` +
         `${ok ? "within" : "OUTSIDE"} ${CONUS.minLon}..${CONUS.maxLon} / ${CONUS.minLat}..${CONUS.maxLat}`,
     );
     if (!ok) fail("the continental-US spot-check cell has implausible bounds");

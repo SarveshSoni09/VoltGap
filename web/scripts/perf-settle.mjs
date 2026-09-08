@@ -2,15 +2,14 @@
 /**
  * Wait for the machine to quiesce before an environment-dependent benchmark.
  *
- * The authoritative gate runs ~20 minutes of full-load work — the whole test suite under
- * coverage, a national artifact rebuild, a production frontend build — and then measures
+ * The authoritative gate runs ~20 minutes of full-load work: the whole test suite under
+ * coverage, a national artifact rebuild, a production frontend build: and then measures
  * time to interactive and frame rate. Measuring a performance benchmark on a machine still
  * working through that describes the gate's own load, not the application: measured on the
  * reference machine, eight competing CPU burners moved TTI from 2.91 s to 3.84 s.
  *
  * This is part of establishing the reference conditions, not part of the measurement. It
- * changes no threshold and no measured quantity. The benchmark's own validity guard —
- * Lighthouse's `benchmarkIndex` against a documented floor — independently verifies that
+ * changes no threshold and no measured quantity. The benchmark's own validity guard (* Lighthouse's `benchmarkIndex` against a documented floor) independently verifies that
  * the wait actually worked, and refuses to report if it did not.
  */
 

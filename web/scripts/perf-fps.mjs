@@ -4,8 +4,7 @@
  *
  *   | National hex layer render | ≥ 55 fps sustained pan and zoom |
  *
- * **What is measured, exactly.** Presented animation frames while the national layer —
- * all 53,208 H3 cells — is continuously panned and zoomed. Frame timestamps are collected
+ * **What is measured, exactly.** Presented animation frames while the national layer (* all 53,208 H3 cells) is continuously panned and zoomed. Frame timestamps are collected
  * with `requestAnimationFrame`, which fires once per frame the compositor actually
  * presents, so this counts frames rendered rather than JavaScript executed.
  *
@@ -17,8 +16,8 @@
  * stall hide behind fast frames either side of it, which is the exact failure a user
  * notices when dragging a map.
  *
- * **The motion is deterministic.** The camera follows a fixed path — a continuous pan
- * across the contiguous United States with a zoom oscillation superimposed — advanced once
+ * **The motion is deterministic.** The camera follows a fixed path: a continuous pan
+ * across the contiguous United States with a zoom oscillation superimposed: advanced once
  * per animation frame. Synthetic mouse events would make the measurement depend on the
  * driver's event timing rather than on the renderer.
  *
@@ -38,7 +37,7 @@
  * This is the frame-rate counterpart of the TTI harness's `benchmarkIndex` floor, and it
  * exists for the same reason (CLAUDE.md §11.3, amendment A27): a measurement that cannot
  * be taken must be reported as not taken. It was added after a gate run reported
- * `FAIL: 23.8 fps` on a machine whose GPU was being contended by another application —
+ * `FAIL: 23.8 fps` on a machine whose GPU was being contended by another application
  * a real measurement of a contended machine, and no evidence at all about the budget.
  *
  * It cannot be used to launder a genuine regression into a pass. Calibration renders a
@@ -74,8 +73,8 @@ const CALIBRATION_MS = 2500;
 /**
  * The measurement itself, serialised into the page.
  *
- * Defined once and used twice — once to calibrate the environment and once to measure
- * the layer — so the two runs differ only in what the page is drawing, never in how it
+ * Defined once and used twice: once to calibrate the environment and once to measure
+ * the layer: so the two runs differ only in what the page is drawing, never in how it
  * is driven.
  */
 const driveCameraPath =
@@ -156,7 +155,7 @@ try {
   const page = await browser.newPage();
   await page.setViewport({ width: 1600, height: 1000, deviceScaleFactor: 1 });
   // `resolution=native` disables display aggregation, so this measures the heaviest real
-  // rendering path — all 53,208 cells — rather than the ~2,700 aggregated parents the
+  // rendering path (all 53,208 cells) rather than the ~2,700 aggregated parents the
   // national view draws at default zoom. The >=50,000-cell guard keeps its meaning.
   await page.goto(`http://localhost:${PORT}/?resolution=native`, {
     waitUntil: "networkidle0", timeout: 120000,
@@ -177,7 +176,7 @@ try {
     console.error(
       "FAIL: no WebGL context is available on this machine, so the national layer cannot " +
         "render and no frame rate exists to measure. This is what a GPU-less runner " +
-        "produces. See docs/reports/PLAN_CHANGE_6.md — do not substitute a software " +
+        "produces. See docs/reports/PLAN_CHANGE_6.md: do not substitute a software " +
         "measurement or a proxy.",
     );
     process.exit(1);
@@ -266,7 +265,7 @@ try {
     );
     console.error(
       "  Usual cause: another application contending for the GPU or the window server. " +
-        "Close it and re-run. This is a validity guard, not a budget failure — the " +
+        "Close it and re-run. This is a validity guard, not a budget failure: the " +
         "counterpart of the TTI harness's benchmarkIndex floor. See CLAUDE.md 11.3 (A27).",
     );
     process.exit(2);
